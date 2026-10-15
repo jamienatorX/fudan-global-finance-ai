@@ -1,0 +1,6 @@
+-- Deliberately no global financial seed or service credential.
+-- An administrator provisions the signed-in user's profile and explicitly enrolls
+-- fictional demo identities (users.is_demo = true). The server repository then
+-- calls the no-argument reset_demo_data RPC. Its private implementation embeds the
+-- canonical v1 Task 2 seed and accepts only the deterministic demo identity
+-- 00000000-0000-4000-8000-000000000001. No caller-provided replacement data is accepted.
