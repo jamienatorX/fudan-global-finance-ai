@@ -94,7 +94,7 @@ function ForecastCard({ overview }: Readonly<{ overview: OverviewModel }>) {
           </div>
         ))}
       </div>
-      <p className="px-5 pb-5 text-xs leading-5 text-slate-500 sm:px-6 sm:pb-6">Projection uses recurring family allowance, the current monthly budget, and dated unpaid tuition obligations. It is a planning estimate, not a guarantee.</p>
+      <p className="px-5 pb-5 text-xs leading-5 text-slate-500 sm:px-6 sm:pb-6">Projection uses recurring income observed in the reporting month, the current monthly budget, and dated unpaid tuition obligations. It is a planning estimate, not a guarantee.</p>
     </Card>
   );
 }

@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useEffect, useRef, type ComponentType, type KeyboardEvent, type RefObject } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useRef, type ComponentType, type KeyboardEvent, type RefObject } from 'react';
 import {
   ArrowLeftRight, Bell, Bot, ChartNoAxesCombined, ChevronLeft, CircleDollarSign,
   CreditCard, GraduationCap, LayoutDashboard, ReceiptText, Repeat2, SendHorizontal,
@@ -35,14 +35,15 @@ function ProductMark({ compact = false }: Readonly<{ compact?: boolean }>) {
   );
 }
 
-function Navigation({ compact = false, onNavigate }: Readonly<{ compact?: boolean; onNavigate?: () => void }>) {
+function NavigationLinks({ compact = false, onNavigate }: Readonly<{ compact?: boolean; onNavigate?: () => void }>) {
   const pathname = usePathname();
+  const accountId = useSearchParams().get('account');
   return (
     <nav aria-label={onNavigate ? 'Mobile product navigation' : 'Primary navigation'} className="space-y-1">
       {NAV_ITEMS.map(({ href, label, shortLabel, icon: Icon }) => (
         <Link
           key={href}
-          href={href}
+          href={accountId ? `${href}?${new URLSearchParams({ account: accountId })}` : href}
           title={compact ? label : undefined}
           onClick={onNavigate}
           aria-current={pathname === href ? 'page' : undefined}
@@ -54,6 +55,10 @@ function Navigation({ compact = false, onNavigate }: Readonly<{ compact?: boolea
       ))}
     </nav>
   );
+}
+
+function Navigation(props: Readonly<{ compact?: boolean; onNavigate?: () => void }>) {
+  return <Suspense fallback={null}><NavigationLinks {...props} /></Suspense>;
 }
 
 export function Sidebar({ collapsed, onToggle }: Readonly<{ collapsed: boolean; onToggle: () => void }>) {

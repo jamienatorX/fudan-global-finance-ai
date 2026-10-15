@@ -12,8 +12,7 @@ export function Topbar({ accounts, userName, onOpenNavigation, navigationButtonR
   const router = useRouter();
   const searchParams = useSearchParams();
   const accountFromUrl = searchParams.get('account');
-  const [pendingAccount, setPendingAccount] = useState(accounts[0]?.id ?? '');
-  const selectedAccount = accounts.some((account) => account.id === accountFromUrl) ? accountFromUrl! : pendingAccount;
+  const selectedAccount = accounts.some((account) => account.id === accountFromUrl) ? accountFromUrl! : accounts[0]?.id ?? '';
   const [showNotifications, setShowNotifications] = useState(false);
   const initials = userName.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
 
@@ -30,7 +29,6 @@ export function Topbar({ accounts, userName, onOpenNavigation, navigationButtonR
           <label className="sr-only" htmlFor="active-account">Active account</label>
           <select id="active-account" aria-label="Active account" value={selectedAccount} onChange={(event) => {
             const accountId = event.target.value;
-            setPendingAccount(accountId);
             const next = new URLSearchParams(searchParams.toString());
             next.set('account', accountId);
             router.push(`${pathname}?${next.toString()}`);

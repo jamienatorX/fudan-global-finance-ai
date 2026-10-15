@@ -1,9 +1,13 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppShell } from '../../src/components/shell/app-shell';
-import { createSeedSnapshot } from '../../src/demo/seed';
+import { DemoFinancialRepository } from '../../src/demo/demo-financial-repository';
+import { createSeedSnapshot, DEMO_USER_ID } from '../../src/demo/seed';
+import { OverviewDashboard } from '../../src/features/overview/overview-dashboard';
+import { getOverviewModel } from '../../src/features/overview/overview-queries';
 
 const navigation = vi.hoisted(() => ({ pathname: '/overview', query: '', pushes: [] as string[] }));
+const desktopViewport = { matches: false, listeners: new Set<(event: { matches: boolean }) => void>() };
 vi.mock('next/navigation', () => ({
   usePathname: () => navigation.pathname,
   useRouter: () => ({ push: (href: string) => navigation.pushes.push(href) }),
@@ -17,6 +21,25 @@ describe('AppShell', () => {
     navigation.pathname = '/overview';
     navigation.query = '';
     navigation.pushes = [];
+    desktopViewport.matches = false;
+    desktopViewport.listeners.clear();
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: vi.fn().mockImplementation((query: string) => ({
+        matches: desktopViewport.matches,
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: (type: string, listener: (event: { matches: boolean }) => void) => {
+          if (type === 'change') desktopViewport.listeners.add(listener);
+        },
+        removeEventListener: (type: string, listener: (event: { matches: boolean }) => void) => {
+          if (type === 'change') desktopViewport.listeners.delete(listener);
+        },
+        dispatchEvent: vi.fn(),
+      })),
+    });
   });
 
   it('exposes all twelve product destinations and the persistent banking controls', () => {
@@ -58,6 +81,58 @@ describe('AppShell', () => {
     expect(navigation.pushes).toEqual([`/overview?account=${usdAccount.id}`]);
   });
 
+  it('keeps account query, selector, and overview balance synchronized across route navigation', async () => {
+    const usdAccount = snapshot.accounts.find((account) => account.currency === 'USD')!;
+    const repository = new DemoFinancialRepository();
+    const { rerender } = render(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><p>Overview</p></AppShell>);
+    const navigate = (href: string) => {
+      const url = new URL(href, 'http://localhost');
+      navigation.pathname = url.pathname;
+      navigation.query = url.search.slice(1);
+    };
+    fireEvent.change(screen.getByRole('combobox', { name: 'Active account' }), { target: { value: usdAccount.id } });
+    navigate(navigation.pushes[0]);
+    const overview = await getOverviewModel(repository, DEMO_USER_ID, new URLSearchParams(navigation.query).get('account') ?? undefined);
+    rerender(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><OverviewDashboard overview={overview} /></AppShell>);
+
+    expect(screen.getByRole('combobox', { name: 'Active account' })).toHaveValue(usdAccount.id);
+    expect(screen.getByRole('region', { name: 'Selected account' })).toHaveTextContent('USD 650.00');
+    expect(screen.getByRole('link', { name: 'Accounts' })).toHaveAttribute('href', `/accounts?account=${usdAccount.id}`);
+
+    navigate(screen.getByRole('link', { name: 'Accounts' }).getAttribute('href')!);
+    rerender(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><p>Accounts route</p></AppShell>);
+    expect(screen.getByRole('combobox', { name: 'Active account' })).toHaveValue(usdAccount.id);
+    expect(screen.getByRole('link', { name: 'Overview' })).toHaveAttribute('href', `/overview?account=${usdAccount.id}`);
+
+    navigate(screen.getByRole('link', { name: 'Overview' }).getAttribute('href')!);
+    const returnedOverview = await getOverviewModel(repository, DEMO_USER_ID, new URLSearchParams(navigation.query).get('account') ?? undefined);
+    rerender(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><OverviewDashboard overview={returnedOverview} /></AppShell>);
+    expect(screen.getByRole('combobox', { name: 'Active account' })).toHaveValue(usdAccount.id);
+    expect(screen.getByRole('region', { name: 'Selected account' })).toHaveTextContent('USD 650.00');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }));
+    const mobileLinks = within(screen.getByRole('navigation', { name: 'Mobile product navigation' })).getAllByRole('link');
+    expect(mobileLinks.every((link) => new URL(link.getAttribute('href')!, 'http://localhost').searchParams.get('account') === usdAccount.id)).toBe(true);
+  });
+
+  it('resets selection with the dashboard when navigation removes or invalidates the account query', async () => {
+    const usdAccount = snapshot.accounts.find((account) => account.currency === 'USD')!;
+    const repository = new DemoFinancialRepository();
+    const { rerender } = render(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><p>Overview</p></AppShell>);
+    fireEvent.change(screen.getByRole('combobox', { name: 'Active account' }), { target: { value: usdAccount.id } });
+    navigation.query = `account=${usdAccount.id}`;
+    rerender(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><p>USD selected</p></AppShell>);
+    expect(screen.getByRole('combobox', { name: 'Active account' })).toHaveValue(usdAccount.id);
+
+    for (const query of ['', 'account=unknown']) {
+      navigation.query = query;
+      const overview = await getOverviewModel(repository, DEMO_USER_ID, new URLSearchParams(query).get('account') ?? undefined);
+      rerender(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><OverviewDashboard overview={overview} /></AppShell>);
+      expect(screen.getByRole('combobox', { name: 'Active account' })).toHaveValue(overview.selectedAccount!.id);
+      expect(screen.getByRole('region', { name: 'Selected account' })).toHaveTextContent('CNY Daily account');
+    }
+  });
+
   it('collapses the desktop sidebar and opens a keyboard-operable mobile navigation drawer', () => {
     render(
       <AppShell accounts={snapshot.accounts} user={snapshot.users[0]}>
@@ -90,5 +165,32 @@ describe('AppShell', () => {
     expect(screen.queryByRole('dialog', { name: 'Mobile navigation' })).not.toBeInTheDocument();
     expect(screen.getByTestId('shell-background')).not.toHaveAttribute('inert');
     return waitFor(() => expect(opener).toHaveFocus());
+  });
+
+  it('closes the mobile drawer and removes inert state when entering the desktop viewport', () => {
+    const { unmount } = render(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><p>Dashboard content</p></AppShell>);
+    fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }));
+    expect(screen.getByRole('dialog', { name: 'Mobile navigation' })).toBeInTheDocument();
+    expect(screen.getByTestId('shell-background')).toHaveAttribute('inert');
+
+    expect(window.matchMedia).toHaveBeenCalledWith('(min-width: 64rem)');
+
+    act(() => {
+      desktopViewport.matches = true;
+      desktopViewport.listeners.forEach((listener) => listener({ matches: true }));
+    });
+
+    expect(screen.queryByRole('dialog', { name: 'Mobile navigation' })).not.toBeInTheDocument();
+    expect(screen.getByTestId('shell-background')).not.toHaveAttribute('inert');
+    expect(screen.getByTestId('shell-background')).not.toHaveAttribute('aria-hidden');
+    act(() => {
+      desktopViewport.matches = false;
+      desktopViewport.listeners.forEach((listener) => listener({ matches: false }));
+    });
+    expect(screen.queryByRole('dialog', { name: 'Mobile navigation' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }));
+    expect(screen.getByRole('dialog', { name: 'Mobile navigation' })).toBeInTheDocument();
+    unmount();
+    expect(desktopViewport.listeners.size).toBe(0);
   });
 });

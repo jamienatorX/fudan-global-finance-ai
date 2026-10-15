@@ -159,7 +159,9 @@ export async function getOverviewModel(repository: FinancialRepository, userId: 
     ...(nextTuition ? [`${nextTuition.installment} is due ${nextTuition.dueAt.slice(0, 10)}`] : []),
     ...expenses.filter((transaction) => transaction.anomaly).map((transaction) => transaction.anomaly!),
   ];
-  const recurringIncome = sumMoney(snapshot.transactions
+  // Phase 1 has occurrence metadata, not stable recurrence-series IDs. Use only
+  // the reporting month's observed income rather than replaying all history.
+  const recurringIncome = sumMoney(monthTransactions
     .filter((transaction) => transaction.direction === 'credit' && transaction.classification === 'income' && transaction.recurrence)
     .map((transaction) => {
       const converted = convertToCny(transaction.amount, snapshot.exchangeRates);
