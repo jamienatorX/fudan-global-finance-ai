@@ -1,8 +1,9 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useRef, type ComponentType, type KeyboardEvent, type RefObject } from 'react';
+import { AccountLink as Link } from './account-link';
+import { SimulationBadge } from '../ui/simulation-badge';
+import { usePathname } from 'next/navigation';
+import { useEffect, useRef, type ComponentType, type KeyboardEvent, type RefObject } from 'react';
 import {
   ArrowLeftRight, Bell, Bot, ChartNoAxesCombined, ChevronLeft, CircleDollarSign,
   CreditCard, GraduationCap, LayoutDashboard, ReceiptText, Repeat2, SendHorizontal,
@@ -35,15 +36,14 @@ function ProductMark({ compact = false }: Readonly<{ compact?: boolean }>) {
   );
 }
 
-function NavigationLinks({ compact = false, onNavigate }: Readonly<{ compact?: boolean; onNavigate?: () => void }>) {
+function Navigation({ compact = false, onNavigate }: Readonly<{ compact?: boolean; onNavigate?: () => void }>) {
   const pathname = usePathname();
-  const accountId = useSearchParams().get('account');
   return (
     <nav aria-label={onNavigate ? 'Mobile product navigation' : 'Primary navigation'} className="space-y-1">
       {NAV_ITEMS.map(({ href, label, shortLabel, icon: Icon }) => (
         <Link
           key={href}
-          href={accountId ? `${href}?${new URLSearchParams({ account: accountId })}` : href}
+          href={href}
           title={compact ? label : undefined}
           onClick={onNavigate}
           aria-current={pathname === href ? 'page' : undefined}
@@ -55,10 +55,6 @@ function NavigationLinks({ compact = false, onNavigate }: Readonly<{ compact?: b
       ))}
     </nav>
   );
-}
-
-function Navigation(props: Readonly<{ compact?: boolean; onNavigate?: () => void }>) {
-  return <Suspense fallback={null}><NavigationLinks {...props} /></Suspense>;
 }
 
 export function Sidebar({ collapsed, onToggle }: Readonly<{ collapsed: boolean; onToggle: () => void }>) {
@@ -110,6 +106,7 @@ export function MobileNavigation({ onClose, returnFocusRef }: Readonly<{ onClose
       <button type="button" tabIndex={-1} aria-label="Close navigation overlay" className="absolute inset-0 bg-slate-950/55 backdrop-blur-sm" onClick={onClose} />
       <aside className="relative flex h-full w-[min(86vw,20rem)] flex-col bg-[var(--color-navy)] p-5 shadow-2xl">
         <div className="mb-7 flex items-center justify-between"><button ref={closeRef} type="button" onClick={onClose} aria-label="Close navigation" className="order-2 grid size-10 place-items-center rounded-xl text-slate-200 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-blue-300"><X size={20} aria-hidden /></button><div className="order-1"><ProductMark /></div></div>
+        <div className="mb-4"><SimulationBadge /></div>
         <div className="min-h-0 flex-1 overflow-y-auto"><Navigation onNavigate={onClose} /></div>
       </aside>
     </div>

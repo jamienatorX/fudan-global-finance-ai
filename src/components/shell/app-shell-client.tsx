@@ -5,7 +5,7 @@ import { CopilotLauncher } from './copilot-launcher';
 import { MobileNavigation, Sidebar } from './sidebar';
 import { Topbar, type ShellAccountOption } from './topbar';
 
-export function AppShellClient({ accounts, userName, children }: Readonly<{ accounts: readonly ShellAccountOption[]; userName: string; children: ReactNode }>) {
+export function AppShellClient({ accounts, userName, alerts, children }: Readonly<{ accounts: readonly ShellAccountOption[]; userName: string; alerts: readonly string[]; children: ReactNode }>) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigationButtonRef = useRef<HTMLButtonElement>(null);
@@ -27,7 +27,7 @@ export function AppShellClient({ accounts, userName, children }: Readonly<{ acco
         <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((value) => !value)} />
         <div className={`transition-[padding] duration-200 ${collapsed ? 'lg:pl-20' : 'lg:pl-64'}`}>
           <Suspense fallback={<div className="min-h-18 border-b border-[var(--color-border)] bg-white" aria-label="Loading account controls" />}>
-            <Topbar accounts={accounts} userName={userName} onOpenNavigation={() => {
+            <Topbar accounts={accounts} userName={userName} alerts={alerts} onOpenNavigation={() => {
               if (!window.matchMedia('(min-width: 64rem)').matches) setMobileOpen(true);
             }} navigationButtonRef={navigationButtonRef} />
           </Suspense>

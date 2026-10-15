@@ -1,9 +1,11 @@
 import { render, screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { DemoFinancialRepository } from '../../src/demo/demo-financial-repository';
 import { DEMO_USER_ID } from '../../src/demo/seed';
 import { OverviewDashboard } from '../../src/features/overview/overview-dashboard';
 import { getOverviewModel, overviewQueryKeys } from '../../src/features/overview/overview-queries';
+
+vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams() }));
 
 describe('overview queries', () => {
   it('derives reporting totals from the repository snapshot without double-counting transfers or investments', async () => {

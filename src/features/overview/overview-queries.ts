@@ -4,7 +4,6 @@ import type { FinancialRepository } from '../../domain/financial-repository';
 import { money, type Money } from '../../domain/money';
 
 const REPORTING_CURRENCY = 'CNY' as const;
-const RATE_SCALE = 1_000_000n;
 
 export const overviewQueryKeys = {
   all: ['overview'] as const,
@@ -43,10 +42,14 @@ export type OverviewModel = Readonly<{
   }>[];
 }>;
 
-function parseRate(rate: string): bigint {
-  const match = /^(\d+)\.(\d{1,6})$/.exec(rate);
+function parseRate(rate: string): Readonly<{ numerator: bigint; scale: bigint }> {
+  // Match persistence's positive-decimal text contract without truncating scale.
+  const match = /^(\d+)(?:\.(\d+))?$/.exec(rate);
   if (!match) throw new TypeError(`Unsupported exchange rate: ${rate}`);
-  return BigInt(match[1]) * RATE_SCALE + BigInt(match[2].padEnd(6, '0'));
+  const fraction = match[2] ?? '';
+  const numerator = BigInt(`${match[1]}${fraction}`);
+  if (numerator <= 0n) throw new TypeError(`Unsupported exchange rate: ${rate}`);
+  return { numerator, scale: 10n ** BigInt(fraction.length) };
 }
 
 function roundedDivide(numerator: bigint, denominator: bigint): bigint {
@@ -63,9 +66,11 @@ function convertToCny(value: Money, rates: readonly ExchangeRate[]): Money {
   const sourceScale = 10n ** BigInt(CURRENCY_MINOR_DIGITS[value.currency]);
   const targetScale = 10n ** BigInt(CURRENCY_MINOR_DIGITS[REPORTING_CURRENCY]);
   if (direct) {
-    return money(roundedDivide(value.amountMinor * parseRate(direct.rate) * targetScale, sourceScale * RATE_SCALE), REPORTING_CURRENCY);
+    const rate = parseRate(direct.rate);
+    return money(roundedDivide(value.amountMinor * rate.numerator * targetScale, sourceScale * rate.scale), REPORTING_CURRENCY);
   }
-  return money(roundedDivide(value.amountMinor * RATE_SCALE * targetScale, sourceScale * parseRate(inverse!.rate)), REPORTING_CURRENCY);
+  const rate = parseRate(inverse!.rate);
+  return money(roundedDivide(value.amountMinor * rate.scale * targetScale, sourceScale * rate.numerator), REPORTING_CURRENCY);
 }
 
 function sumMoney(values: readonly Money[], currency: CurrencyCode = REPORTING_CURRENCY): Money {
@@ -85,6 +90,14 @@ function monthlyTransactions(snapshot: FinancialSnapshot): readonly Transaction[
   return snapshot.transactions.filter((transaction) => transaction.occurredAt.startsWith(month));
 }
 
+export function getOverviewAlerts(snapshot: FinancialSnapshot): readonly string[] {
+  const nextTuition = snapshot.tuitionObligations.filter((tuition) => tuition.status !== 'paid').toSorted((left, right) => left.dueAt.localeCompare(right.dueAt))[0];
+  return [
+    ...(nextTuition ? [`${nextTuition.installment} is due ${nextTuition.dueAt.slice(0, 10)}`] : []),
+    ...monthlyTransactions(snapshot).filter((transaction) => transaction.direction === 'debit' && transaction.classification === 'consumption' && transaction.anomaly).map((transaction) => transaction.anomaly!),
+  ];
+}
+
 function normalizedMonthlySubscription(subscription: Subscription): Money {
   return subscription.cadence === 'monthly'
     ? subscription.amount
@@ -102,16 +115,18 @@ export async function getOverviewModel(repository: FinancialRepository, userId: 
   const user = snapshot.users.find((candidate) => candidate.id === userId);
   if (!user) throw new Error('Overview user was not found');
 
-  const accountBalances = snapshot.accounts.filter((account) => account.status === 'active').map((account) => ({
+  const activeAccounts = snapshot.accounts.filter((account) => account.status === 'active');
+  const accountBalances = activeAccounts.map((account) => ({
     id: account.id,
     label: `${account.currency} ${account.type === 'daily' ? 'Daily account' : 'Savings account'}`,
-    amount: account.availableBalance,
-    reportingAmount: convertToCny(account.availableBalance, snapshot.exchangeRates),
+    amount: account.balance,
+    reportingAmount: convertToCny(account.balance, snapshot.exchangeRates),
   }));
   const selectedAccount = accountBalances.find((account) => account.id === selectedAccountId) ?? accountBalances[0] ?? null;
-  const availableCash = sumMoney(accountBalances.map((account) => account.reportingAmount));
+  const accountAssets = sumMoney(accountBalances.map((account) => account.reportingAmount));
+  const availableCash = sumMoney(activeAccounts.map((account) => convertToCny(account.availableBalance, snapshot.exchangeRates)));
   const investedValue = sumMoney(snapshot.holdings.map((holding) => convertToCny(holding.simulatedValue, snapshot.exchangeRates)));
-  const totalNetWorth = money(availableCash.amountMinor + investedValue.amountMinor, REPORTING_CURRENCY);
+  const totalNetWorth = money(accountAssets.amountMinor + investedValue.amountMinor, REPORTING_CURRENCY);
 
   const monthTransactions = monthlyTransactions(snapshot);
   const income = monthTransactions.filter((transaction) => transaction.direction === 'credit' && transaction.classification === 'income');
@@ -137,7 +152,10 @@ export async function getOverviewModel(repository: FinancialRepository, userId: 
   const budgetActual = sumMoney(currentBudgets.map((budget) => convertToCny(budget.actualSpend, snapshot.exchangeRates)));
   const activeSubscriptions = snapshot.subscriptions.filter((subscription) => subscription.status === 'active');
   const subscriptionMonthly = sumMoney(activeSubscriptions.map((subscription) => convertToCny(normalizedMonthlySubscription(subscription), snapshot.exchangeRates)));
-  const subscriptionAnnual = money(subscriptionMonthly.amountMinor * 12n, REPORTING_CURRENCY);
+  const subscriptionAnnual = sumMoney(activeSubscriptions.map((subscription) => convertToCny(
+    subscription.cadence === 'yearly' ? subscription.amount : money(subscription.amount.amountMinor * 12n, subscription.currency),
+    snapshot.exchangeRates,
+  )));
   const nextTuition = snapshot.tuitionObligations.filter((tuition) => tuition.status !== 'paid').toSorted((left, right) => left.dueAt.localeCompare(right.dueAt))[0] ?? null;
   const tuitionOutstanding = nextTuition ? money(convertToCny(nextTuition.amount, snapshot.exchangeRates).amountMinor - convertToCny(nextTuition.paidAmount, snapshot.exchangeRates).amountMinor, REPORTING_CURRENCY) : money(0n, REPORTING_CURRENCY);
   const recurringOutflow = monthlyExpenses.amountMinor;
@@ -155,10 +173,7 @@ export async function getOverviewModel(repository: FinancialRepository, userId: 
 
   const recentTransactions = snapshot.transactions.toSorted((left, right) =>
     right.occurredAt.localeCompare(left.occurredAt) || right.id.localeCompare(left.id)).slice(0, 5);
-  const alerts = [
-    ...(nextTuition ? [`${nextTuition.installment} is due ${nextTuition.dueAt.slice(0, 10)}`] : []),
-    ...expenses.filter((transaction) => transaction.anomaly).map((transaction) => transaction.anomaly!),
-  ];
+  const alerts = getOverviewAlerts(snapshot);
   // Phase 1 has occurrence metadata, not stable recurrence-series IDs. Use only
   // the reporting month's observed income rather than replaying all history.
   const recurringIncome = sumMoney(monthTransactions

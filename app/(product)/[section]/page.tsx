@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { AccountLink as Link } from '../../../src/components/shell/account-link';
 import { ArrowLeft, Construction, Sparkles } from 'lucide-react';
 import { notFound } from 'next/navigation';
 

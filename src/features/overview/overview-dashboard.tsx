@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { AccountField, AccountLink as Link } from '../../components/shell/account-link';
 import { ArrowDownRight, ArrowRight, ArrowUpRight, CalendarClock, CircleAlert, PiggyBank, Sparkles, TrendingUp, WalletCards } from 'lucide-react';
 import { Badge } from '../../components/ui/badge';
 import { Card, CardHeader } from '../../components/ui/card';
@@ -32,6 +32,7 @@ function CommandCenter() {
         <Link href={`/copilot?prompt=${encodeURIComponent(FLAGSHIP_PROMPT)}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 text-sm font-semibold text-white hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300">Run competition demo<ArrowRight size={16} aria-hidden /></Link>
       </div>
       <form action="/copilot" method="get" aria-label="AI banking command" className="relative mt-6 flex flex-col gap-3 rounded-2xl bg-white p-2 sm:flex-row">
+        <AccountField />
         <label htmlFor="banking-command" className="sr-only">What would you like your AI banker to do?</label>
         <input id="banking-command" name="prompt" placeholder="e.g. Plan my tuition payment and next month’s budget" className="min-h-12 flex-1 rounded-xl px-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500" />
         <button type="submit" className="min-h-12 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">Plan with AI</button>

@@ -5,6 +5,8 @@ import { DemoFinancialRepository } from '../../src/demo/demo-financial-repositor
 import { createSeedSnapshot, DEMO_USER_ID } from '../../src/demo/seed';
 import { OverviewDashboard } from '../../src/features/overview/overview-dashboard';
 import { getOverviewModel } from '../../src/features/overview/overview-queries';
+import ProductSectionPage from '../../app/(product)/[section]/page';
+import ProductLayout from '../../app/(product)/layout';
 
 const navigation = vi.hoisted(() => ({ pathname: '/overview', query: '', pushes: [] as string[] }));
 const desktopViewport = { matches: false, listeners: new Set<(event: { matches: boolean }) => void>() };
@@ -70,6 +72,55 @@ describe('AppShell', () => {
 
     expect(screen.getByRole('link', { name: 'Accounts' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: 'Overview' })).not.toHaveAttribute('aria-current');
+  });
+
+  it('keeps the simulation label exposed in the shell and mobile drawer', () => {
+    render(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><p>Accounts</p></AppShell>);
+    const badge = within(screen.getByRole('banner')).getByText('Simulated data');
+    for (let element: HTMLElement | null = badge; element && element.tagName !== 'HEADER'; element = element.parentElement) {
+      expect(element.className).not.toMatch(/(?:^|\s)(?:hidden|\w+:hidden)(?:\s|$)/);
+    }
+    fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }));
+    expect(within(screen.getByRole('dialog', { name: 'Mobile navigation' })).getByText('Simulated data')).toBeInTheDocument();
+  });
+
+  it('preserves account context in brand, dashboard, Copilot, and placeholder links', async () => {
+    const usdId = snapshot.accounts.find((account) => account.currency === 'USD')!.id;
+    navigation.query = `account=${usdId}&unrelated=omit`;
+    const model = await getOverviewModel(new DemoFinancialRepository(), DEMO_USER_ID, usdId);
+    const { rerender } = render(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><OverviewDashboard overview={model} /></AppShell>);
+    for (const name of [/Fudan Global/, 'View accounts', 'Ask AI banker', 'Run competition demo']) {
+      const href = screen.getByRole('link', { name }).getAttribute('href')!;
+      const url = new URL(href, 'http://localhost');
+      expect(url.searchParams.get('account')).toBe(usdId);
+      expect(url.searchParams.has('unrelated')).toBe(false);
+      if (name === 'Run competition demo') expect(url.searchParams.get('prompt')).toContain('Pay my CNY 5,000');
+    }
+    expect(within(screen.getByRole('form', { name: 'AI banking command' })).getByDisplayValue(usdId)).toHaveAttribute('name', 'account');
+    const page = await ProductSectionPage({ params: Promise.resolve({ section: 'accounts' }) });
+    rerender(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}>{page}</AppShell>);
+    expect(screen.getByRole('link', { name: 'Back to overview' })).toHaveAttribute('href', `/overview?account=${usdId}`);
+  });
+
+  it('threads snapshot-derived dashboard alerts into the production layout notifications', async () => {
+    render(await ProductLayout({ children: <p>Accounts route</p> }));
+    const model = await getOverviewModel(new DemoFinancialRepository(), DEMO_USER_ID);
+    fireEvent.click(screen.getByRole('button', { name: 'Notifications' }));
+    const status = screen.getByRole('status');
+    expect(status).toHaveTextContent(`${model.alerts.length} financial alerts`);
+    for (const alert of model.alerts) expect(status).toHaveTextContent(alert);
+  });
+
+  it('updates notification text and count with snapshot alerts and handles an empty alert list', () => {
+    const { rerender } = render(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]} alerts={['December tuition is due 2026-12-15']}><p>Overview</p></AppShell>);
+    fireEvent.click(screen.getByRole('button', { name: 'Notifications' }));
+    expect(screen.getByRole('status')).toHaveTextContent('1 financial alert');
+    expect(screen.getByRole('status')).toHaveTextContent('December tuition is due 2026-12-15');
+    expect(screen.getByRole('status')).not.toHaveTextContent('November 1');
+    rerender(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]} alerts={[]}><p>Overview</p></AppShell>);
+    expect(screen.getByRole('status')).toHaveTextContent('0 financial alerts');
+    expect(screen.getByRole('status')).toHaveTextContent('No financial alerts');
+    expect(screen.getByRole('status')).not.toHaveTextContent('December tuition');
   });
 
   it('writes account selection to dashboard URL state', () => {

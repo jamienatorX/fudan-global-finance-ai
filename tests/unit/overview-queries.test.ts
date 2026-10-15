@@ -4,6 +4,68 @@ import { createSeedSnapshot, DEMO_USER_ID } from '../../src/demo/seed';
 import { getOverviewModel } from '../../src/features/overview/overview-queries';
 
 describe('overview reporting period', () => {
+  it('uses ledger balances for net worth and available balances for cash and runway', async () => {
+    const seed = createSeedSnapshot('v1');
+    const snapshot = { ...seed, accounts: seed.accounts.map((account, index) => index === 0
+      ? { ...account, balance: { ...account.balance, amountMinor: account.balance.amountMinor + 100_000n } }
+      : account) };
+    const overview = await getOverviewModel({ getSnapshot: async () => snapshot } as unknown as FinancialRepository, DEMO_USER_ID);
+    expect(overview.totalNetWorth.amountMinor).toBe(4_120_136n);
+    expect(overview.accountBalances[0].amount.amountMinor).toBe(1_965_000n);
+    expect(overview.availableCash.amountMinor).toBe(3_866_936n);
+    expect(overview.cashRunwayMonths).toBe(6.5);
+  });
+
+  it('annualizes subscriptions from original cadence amounts without monthly rounding loss', async () => {
+    const seed = createSeedSnapshot('v1');
+    const yearly = { ...seed.subscriptions[0], cadence: 'yearly' as const, amount: { amountMinor: 10_000n, currency: 'CNY' as const } };
+    const overview = await getOverviewModel({ getSnapshot: async () => ({ ...seed, subscriptions: [yearly] }) } as unknown as FinancialRepository, DEMO_USER_ID);
+    expect(overview.subscriptions.monthly.amountMinor).toBe(833n);
+    expect(overview.subscriptions.annual.amountMinor).toBe(10_000n);
+  });
+
+  it('derives alert content from changed tuition dates and clears resolved snapshot alerts', async () => {
+    const seed = createSeedSnapshot('v1');
+    const snapshot = {
+      ...seed,
+      tuitionObligations: seed.tuitionObligations.map((tuition) => ({ ...tuition, dueAt: '2026-12-15T00:00:00.000Z' })),
+      transactions: seed.transactions.map((transaction) => ({ ...transaction, anomaly: null })),
+    };
+    const model = await getOverviewModel({ getSnapshot: async () => snapshot } as unknown as FinancialRepository, DEMO_USER_ID);
+    expect(model.alerts).toEqual([`${snapshot.tuitionObligations[0].installment} is due 2026-12-15`]);
+    const resolved = { ...snapshot, tuitionObligations: snapshot.tuitionObligations.map((tuition) => ({ ...tuition, status: 'paid' as const })) };
+    const cleared = await getOverviewModel({ getSnapshot: async () => resolved } as unknown as FinancialRepository, DEMO_USER_ID);
+    expect(cleared.alerts).toEqual([]);
+  });
+
+  it.each([
+    ['7', 65_000n, 455_000n], ['7.12345678', 100_000_000n, 712_345_678n], ['7.12345678901234567890', 100_000_000n, 712_345_679n],
+  ])('accepts persistence-valid direct FX rate %s', async (rate, amountMinor, expected) => {
+    const seed = createSeedSnapshot('v1');
+    const snapshot = { ...seed,
+      accounts: seed.accounts.map((account) => account.currency === 'USD' ? { ...account, balance: { ...account.balance, amountMinor } } : account),
+      exchangeRates: seed.exchangeRates.map((fx) => fx.base === 'USD' ? { ...fx, rate } : fx),
+    };
+    const overview = await getOverviewModel({ getSnapshot: async () => snapshot } as unknown as FinancialRepository, DEMO_USER_ID);
+    expect(overview.accountBalances.find((account) => account.label.startsWith('USD'))!.reportingAmount.amountMinor).toBe(expected);
+  });
+
+  it.each([['2000', 50_000_000_000_000n], ['2000.00000001', 49_999_999_999_750n]])('accepts persistence-valid inverse FX rate %s', async (rate, expected) => {
+    const seed = createSeedSnapshot('v1');
+    const snapshot = { ...seed,
+      accounts: seed.accounts.map((account) => account.currency === 'IDR' ? { ...account, balance: { ...account.balance, amountMinor: 1_000_000_000_000_000n } } : account),
+      exchangeRates: seed.exchangeRates.map((fx) => fx.quote === 'IDR' ? { ...fx, rate } : fx),
+    };
+    const overview = await getOverviewModel({ getSnapshot: async () => snapshot } as unknown as FinancialRepository, DEMO_USER_ID);
+    expect(overview.accountBalances.find((account) => account.label.startsWith('IDR'))!.reportingAmount.amountMinor).toBe(expected);
+  });
+
+  it.each(['0', '0.000000', '0.00000000', '-7.1', '1e2', '7.', '.1', ' 7', 'NaN'])('rejects persistence-invalid FX rate %s', async (rate) => {
+    const seed = createSeedSnapshot('v1');
+    const snapshot = { ...seed, exchangeRates: seed.exchangeRates.map((fx) => fx.base === 'USD' ? { ...fx, rate } : fx) };
+    await expect(getOverviewModel({ getSnapshot: async () => snapshot } as unknown as FinancialRepository, DEMO_USER_ID)).rejects.toThrow(/exchange rate/i);
+  });
+
   it('excludes historical budgets from the current reporting month', async () => {
     const seed = createSeedSnapshot('v1');
     const historical = {

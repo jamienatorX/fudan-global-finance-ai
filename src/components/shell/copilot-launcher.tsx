@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { AccountLink as Link } from './account-link';
 import { Bot, Sparkles } from 'lucide-react';
 
 export function CopilotLauncher() {
