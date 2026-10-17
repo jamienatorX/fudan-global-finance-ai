@@ -30,8 +30,14 @@ export function referenceConversion(value: Money, target: CurrencyCode, rates: r
 export function projectedRunway(snapshot: FinancialSnapshot) {
   const toCny = (m: Money) => referenceConversion(m, 'CNY', snapshot.exchangeRates).amount.amountMinor;
   const available = snapshot.accounts.filter(a => a.status === 'active').reduce((s,a)=>s+toCny(a.availableBalance),0n);
-  const monthly = snapshot.budgets.filter(b=>b.month===snapshot.asOf.slice(0,7)).reduce((s,b)=>s+toCny(b.limit),0n);
+  const budgetCaps = snapshot.budgets.filter(b=>b.month===snapshot.asOf.slice(0,7)).reduce((s,b)=>s+toCny(b.limit),0n);
+  // A cancelled recurring charge no longer contributes to next month's outflow.
+  // Only subtract charges actually present in the seeded transaction ledger.
+  const cancelledMonthly = snapshot.subscriptions.filter(s=>s.status==='cancelled' &&
+    snapshot.transactions.some(t=>t.subscriptionId===s.id && t.classification==='consumption'))
+    .reduce((sum,s)=>sum+(s.cadence==='monthly'?toCny(s.amount):toCny(s.amount)/12n),0n);
+  const monthly = budgetCaps > cancelledMonthly ? budgetCaps-cancelledMonthly : 0n;
   const due = snapshot.tuitionObligations.filter(t=>t.status!=='paid').reduce((s,t)=>s+toCny(t.amount)-toCny(t.paidAmount),0n);
   return { available: money(available,'CNY'), monthly: money(monthly,'CNY'), due: money(due,'CNY'),
-    months: monthly > 0n ? Math.max(0, Number((available-due)*10n/monthly)/10) : null };
+    months: monthly > 0n ? Math.max(0, Number(((available-due)*10n + monthly/2n)/monthly)/10) : null };
 }
