@@ -1,5 +1,5 @@
 'use client';
-import { useCallback,useEffect,useMemo,useState,type FormEvent } from 'react';
+import { useCallback,useEffect,useMemo,useState,type ReactNode,type FormEvent } from 'react';
 import Link from 'next/link';
 import { createBrowserSupabaseClient } from '../../lib/supabase/browser';
 import type { BankingState,TableItem } from '../../server/secure-banking';
@@ -25,7 +25,7 @@ const errorMessage=(e:unknown)=>e instanceof Error?e.message:'An unexpected erro
 const input='mt-1 block w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-blue-500';
 const cta='rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-400';
 const sec='rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50';
-function Pane({title,description,children}:{title:string;description?:string;children:React.ReactNode}) {
+function Pane({title,description,children}:{title:string;description?:string;children:ReactNode}) {
  return <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"><h2 className="text-lg font-bold text-slate-900">{title}</h2>
  {description&&<p className="mt-1 text-sm leading-6 text-slate-500">{description}</p>}<div className="mt-5">{children}</div></section>;
 }
