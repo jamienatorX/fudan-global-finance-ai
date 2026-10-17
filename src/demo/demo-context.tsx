@@ -34,10 +34,14 @@ export function DemoProvider({ children }: Readonly<{ children: ReactNode }>) {
         if (saved.snapshot?.seedVersion === DEFAULT_SEED_VERSION &&
           Array.isArray(saved.snapshot.accounts) && Array.isArray(saved.snapshot.auditEvents) &&
           Number.isSafeInteger(saved.version) && saved.version >= 0) {
-          // Rehydrate only after mount so the server and client render the same seed initially.\n          // eslint-disable-next-line react-hooks/set-state-in-effect\n          setState({ snapshot: fromFinancialSnapshotDTO(saved.snapshot), version: saved.version });
+          // Rehydrate only after mount so the server and client render the same seed initially.
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setState({ snapshot: fromFinancialSnapshotDTO(saved.snapshot), version: saved.version });
         }
       }
     } catch { /* Corrupt browser-local demos always fall back to the versioned fixture. */ }
+    // Mount-time hydration protects the server/client seed agreement.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setHydrated(true);
   }, []);
   useEffect(() => {
