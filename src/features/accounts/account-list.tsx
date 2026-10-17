@@ -1,8 +1,8 @@
 import type { Account } from '../../domain/entities';
 import type { Money } from '../../domain/money';
 import { formatMoney } from '../../domain/money';
-import { AccountLink as Link } from '../../components/shell/account-link';
-import { Card, CardHeader } from '../../components/ui/card';
+import Link from 'next/link';
+import { Card } from '../../components/ui/card';
 
 export function AccountList({ accounts, reportingBalances }: Readonly<{
   accounts: readonly Account[];
