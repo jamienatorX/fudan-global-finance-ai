@@ -1,7 +1,6 @@
 'use client';
 
 import { Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
-import { CopilotLauncher } from './copilot-launcher';
 import { MobileNavigation, Sidebar } from './sidebar';
 import { Topbar, type ShellAccountOption } from './topbar';
 
@@ -33,7 +32,6 @@ export function AppShellClient({ accounts, userName, alerts, children }: Readonl
           </Suspense>
           <main id="main-content" tabIndex={-1} className="mx-auto min-h-[calc(100vh-4.5rem)] w-full max-w-[1600px] px-4 py-6 outline-none sm:px-6 lg:px-8 lg:py-8">{children}</main>
         </div>
-        <CopilotLauncher />
       </div>
       {mobileOpen ? <MobileNavigation onClose={() => setMobileOpen(false)} returnFocusRef={navigationButtonRef} /> : null}
     </div>

@@ -9,15 +9,15 @@ test.describe('overview dashboard', () => {
     await expect(page.getByRole('heading', { name: /Good morning, Ayu/ })).toBeVisible();
     await expect(page.getByText('CNY 40,201.36')).toBeVisible();
     await expect(page.getByText('Simulated data').first()).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Ask AI banker' })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Banking shortcuts' })).toBeVisible();
 
     if (testInfo.project.name === 'mobile-chromium') {
       await page.getByRole('button', { name: 'Open navigation' }).click();
       await expect(page.getByRole('dialog', { name: 'Mobile navigation' })).toBeVisible();
       await expect(page.getByRole('dialog', { name: 'Mobile navigation' }).getByText('Simulated data')).toBeVisible();
-      await expect(page.getByRole('navigation', { name: 'Mobile product navigation' }).getByRole('link')).toHaveCount(12);
+      await expect(page.getByRole('navigation', { name: 'Mobile product navigation' }).getByRole('link')).toHaveCount(11);
     } else {
-      await expect(page.getByRole('navigation', { name: 'Primary navigation' }).getByRole('link')).toHaveCount(12);
+      await expect(page.getByRole('navigation', { name: 'Primary navigation' }).getByRole('link')).toHaveCount(11);
       await page.getByRole('button', { name: 'Collapse sidebar' }).click();
       await expect(page.getByRole('button', { name: 'Expand sidebar' })).toHaveAttribute('aria-expanded', 'false');
     }
@@ -33,7 +33,7 @@ test.describe('overview dashboard', () => {
     await expect(page.locator('#main-content')).toBeFocused();
     await expect(page.getByRole('combobox', { name: 'Active account' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Notifications' })).toBeVisible();
-    await expect(page.getByRole('textbox', { name: 'What would you like your AI banker to do?' })).toBeVisible();
+    await expect(page.getByRole('link', { name: /Transfer money/ })).toBeVisible();
   });
 
   test('switches account context through URL state and updates the selected balance', async ({ page }) => {

@@ -1,12 +1,10 @@
-import { AccountField, AccountLink as Link } from '../../components/shell/account-link';
-import { ArrowDownRight, ArrowRight, ArrowUpRight, CalendarClock, CircleAlert, PiggyBank, Sparkles, TrendingUp, WalletCards } from 'lucide-react';
+import { AccountLink as Link } from '../../components/shell/account-link';
+import { ArrowDownRight, ArrowUpRight, CalendarClock, CircleAlert, PiggyBank, TrendingUp, WalletCards } from 'lucide-react';
 import { Badge } from '../../components/ui/badge';
 import { Card, CardHeader } from '../../components/ui/card';
 import { formatMoney, type Money } from '../../domain/money';
 import type { OverviewModel } from './overview-queries';
 
-const FLAGSHIP_PROMPT = 'Pay my CNY 5,000 tuition installment, reduce my shopping budget by 20%, cancel my unused video subscription, and show my remaining cash runway.';
-const SUGGESTIONS = ['Analyze my spending', 'Help me pay tuition', 'Optimize my subscriptions', 'Freeze my virtual card'];
 const CATEGORY_COLORS: Record<string, string> = { rent: '#2563EB', food: '#10B981', transportation: '#F59E0B', shopping: '#8B5CF6', other: '#94A3B8' };
 
 function MetricCard({ label, value, detail, tone = 'neutral', icon }: Readonly<{ label: string; value: string; detail: string; tone?: 'neutral' | 'positive' | 'warning'; icon: React.ReactNode }>) {
@@ -23,21 +21,25 @@ function SignedMoney({ amount, direction }: Readonly<{ amount: Money; direction:
   return <span className={`font-semibold tabular-nums ${direction === 'credit' ? 'text-emerald-700' : 'text-slate-900'}`}>{direction === 'credit' ? '+' : '−'}{formatMoney(amount)}</span>;
 }
 
-function CommandCenter() {
+function BankingShortcuts() {
+  const shortcuts = [
+    { href: '/transfers', title: 'Transfer money', detail: 'Between simulated accounts' },
+    { href: '/planner', title: 'Plan tuition', detail: 'Budgets and cash runway' },
+    { href: '/transactions', title: 'Review spending', detail: 'Transactions and trends' },
+    { href: '/subscriptions', title: 'Manage subscriptions', detail: 'Review recurring costs' },
+  ] as const;
   return (
-    <section className="relative overflow-hidden rounded-3xl bg-[var(--color-navy)] px-5 py-6 text-white shadow-[var(--shadow-elevated)] sm:px-8 sm:py-8">
-      <div className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full bg-blue-500/25 blur-3xl" />
-      <div className="relative grid gap-6 xl:grid-cols-[1fr_auto] xl:items-end">
-        <div className="max-w-3xl"><div className="mb-3 flex items-center gap-2 text-sm font-semibold text-blue-200"><Sparkles size={17} aria-hidden />AI banking command center</div><h2 className="text-xl font-semibold tracking-tight sm:text-2xl">What would you like your AI banker to do?</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">I’ll retrieve your simulated data, calculate the impact, and ask for approval before any change.</p></div>
-        <Link href={`/copilot?prompt=${encodeURIComponent(FLAGSHIP_PROMPT)}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 text-sm font-semibold text-white hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300">Run competition demo<ArrowRight size={16} aria-hidden /></Link>
+    <section aria-label="Banking shortcuts" className="rounded-3xl bg-[var(--color-navy)] px-5 py-6 text-white shadow-[var(--shadow-elevated)] sm:px-8 sm:py-8">
+      <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">Manage your finances</h2>
+      <p className="mt-2 text-sm leading-6 text-slate-300">Explore simulated banking services. You control each action and must approve changes before they take effect.</p>
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {shortcuts.map(({ href, title, detail }) => (
+          <Link key={href} href={href} className="rounded-2xl border border-white/15 bg-white/10 p-4 hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300">
+            <span className="block text-sm font-semibold text-white">{title}</span>
+            <span className="mt-1 block text-xs text-blue-100">{detail}</span>
+          </Link>
+        ))}
       </div>
-      <form action="/copilot" method="get" aria-label="AI banking command" className="relative mt-6 flex flex-col gap-3 rounded-2xl bg-white p-2 sm:flex-row">
-        <AccountField />
-        <label htmlFor="banking-command" className="sr-only">What would you like your AI banker to do?</label>
-        <input id="banking-command" name="prompt" placeholder="e.g. Plan my tuition payment and next month’s budget" className="min-h-12 flex-1 rounded-xl px-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500" />
-        <button type="submit" className="min-h-12 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">Plan with AI</button>
-      </form>
-      <div className="relative mt-4 flex flex-wrap gap-2">{SUGGESTIONS.map((suggestion) => <Link key={suggestion} href={`/copilot?prompt=${encodeURIComponent(suggestion)}`} className="rounded-full border border-white/12 bg-white/7 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-white/12 hover:text-white focus-visible:outline-2 focus-visible:outline-blue-300">{suggestion}</Link>)}</div>
     </section>
   );
 }
@@ -110,7 +112,7 @@ export function OverviewDashboard({ overview }: Readonly<{ overview: OverviewMod
   return (
     <div className="space-y-6 pb-20 sm:space-y-8">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><div className="mb-2 flex flex-wrap items-center gap-2"><Badge tone="info">Student finance cockpit</Badge><span className="text-xs text-slate-500">As of {new Date(overview.asOf).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}</span></div><h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Good morning, {overview.userName}</h1><p className="mt-2 text-sm text-slate-600 sm:text-base">Your finances across Shanghai and home, in one verified view.</p></div><div className="flex items-center gap-2 text-xs text-slate-500"><span className={`size-2 rounded-full ${overview.fxSource.source === 'live' ? 'bg-emerald-500' : 'bg-amber-500'}`} />{overview.fxSource.source === 'live' ? 'Live FX' : 'Fallback FX'} · {overview.fxSource.referenceAt.slice(0, 10)}</div></header>
-      <CommandCenter />
+      <BankingShortcuts />
       <section aria-label="Financial summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Consolidated net worth" value={formatMoney(overview.totalNetWorth)} detail={`Includes ${formatMoney(overview.investedValue)} simulated investments`} icon={<TrendingUp size={20} aria-hidden />} />
         <MetricCard label="Available cash" value={formatMoney(overview.availableCash)} detail="Converted using seeded reference rates" icon={<WalletCards size={20} aria-hidden />} />
@@ -140,7 +142,7 @@ export function OverviewDashboard({ overview }: Readonly<{ overview: OverviewMod
       </section>
       <section className="grid gap-4 xl:grid-cols-[1.4fr_0.6fr]">
         <Card className="overflow-hidden"><CardHeader title="Recent transactions" eyebrow="All accounts" action={<Link href="/transactions" className="text-xs font-semibold text-blue-600">View all</Link>} /><div className="mt-3 divide-y divide-slate-100">{overview.recentTransactions.map((transaction) => <div key={transaction.id} data-testid="recent-transaction" className="flex items-center gap-3 px-5 py-4 sm:px-6"><span className={`grid size-9 shrink-0 place-items-center rounded-xl ${transaction.direction === 'credit' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>{transaction.direction === 'credit' ? <ArrowDownRight size={17} aria-hidden /> : <ArrowUpRight size={17} aria-hidden />}</span><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-900">{transaction.merchant}</p><p className="mt-0.5 text-xs capitalize text-slate-500">{transaction.category.replace('-', ' ')} · {transaction.originalCurrency}</p></div><SignedMoney amount={transaction.amount} direction={transaction.direction} /></div>)}</div></Card>
-        <div className="space-y-4"><Card><CardHeader title="AI insight" eyebrow="Grounded in your data" /><div className="p-5 sm:p-6"><div className="flex gap-3 rounded-2xl bg-blue-50 p-4 text-sm leading-6 text-blue-950"><Sparkles size={18} className="mt-1 shrink-0 text-blue-600" aria-hidden /><p>{unusedSubscription && unusedAnnualCost ? <>{unusedSubscription.merchant} has no recorded usage. Reviewing it could save {formatMoney(unusedAnnualCost)} per year.</> : <>Your recurring commitments are currently supported by your cash runway.</>}</p></div></div></Card><Card><CardHeader title="Financial alerts" eyebrow={`${overview.alerts.length} items`} /><ul className="space-y-3 p-5 sm:p-6">{overview.alerts.slice(0, 3).map((alert) => <li key={alert} className="flex gap-3 text-sm leading-5 text-slate-700"><span className="mt-1 size-2 shrink-0 rounded-full bg-amber-500" />{alert}</li>)}</ul></Card><Card><CardHeader title="Recent agent activity" eyebrow="Approval protected" /><div className="p-5 text-center sm:p-6"><div className="mx-auto grid size-10 place-items-center rounded-xl bg-blue-50 text-blue-700"><Sparkles size={18} aria-hidden /></div><p className="mt-3 text-sm font-semibold text-slate-900">{overview.agentActivityCount ? `${overview.agentActivityCount} agent events recorded` : 'No agent actions yet'}</p><p className="mt-1 text-xs leading-5 text-slate-500">{overview.agentActivityCount ? 'Every agent event is preserved in the approval-protected audit trail.' : 'Ask your AI banker to create a transparent, reviewable plan.'}</p></div></Card></div>
+        <div className="space-y-4"><Card><CardHeader title="Spending insight" eyebrow="From your simulated records" /><div className="p-5 sm:p-6"><div className="flex gap-3 rounded-2xl bg-blue-50 p-4 text-sm leading-6 text-blue-950"><CircleAlert size={18} className="mt-1 shrink-0 text-blue-600" aria-hidden /><p>{unusedSubscription && unusedAnnualCost ? <>{unusedSubscription.merchant} has no recorded usage. Reviewing it could save {formatMoney(unusedAnnualCost)} per year.</> : <>Your recurring commitments are currently supported by your cash runway.</>}</p></div></div></Card><Card><CardHeader title="Financial alerts" eyebrow={`${overview.alerts.length} items`} /><ul className="space-y-3 p-5 sm:p-6">{overview.alerts.slice(0, 3).map((alert) => <li key={alert} className="flex gap-3 text-sm leading-5 text-slate-700"><span className="mt-1 size-2 shrink-0 rounded-full bg-amber-500" />{alert}</li>)}</ul></Card></div>
       </section>
       <p className="text-center text-xs leading-5 text-slate-500">All balances, products, rates, and actions are fictional or simulated. This prototype is not a licensed financial institution.</p>
     </div>

@@ -27,7 +27,7 @@ describe('overview queries', () => {
 });
 
 describe('OverviewDashboard', () => {
-  it('renders financial context, commitments, activity, and an actionable command bar', async () => {
+  it('renders financial context, commitments, activity, and banking shortcuts', async () => {
     const overview = await getOverviewModel(new DemoFinancialRepository(), DEMO_USER_ID);
     render(<OverviewDashboard overview={overview} />);
 
@@ -42,10 +42,9 @@ describe('OverviewDashboard', () => {
     expect(screen.getByRole('heading', { name: '3-month cash-flow forecast' })).toBeInTheDocument();
     expect(screen.getByText('CNY 33,014.81')).toBeInTheDocument();
 
-    const command = screen.getByRole('form', { name: 'AI banking command' });
-    expect(within(command).getByRole('textbox', { name: 'What would you like your AI banker to do?' })).toBeInTheDocument();
-    expect(within(command).getByRole('button', { name: 'Plan with AI' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Run competition demo' })).toHaveAttribute('href', expect.stringContaining('/copilot?prompt='));
+    expect(screen.getByRole('region', { name: 'Banking shortcuts' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Transfer money/ })).toHaveAttribute('href', '/transfers');
+    expect(screen.queryByRole('form', { name: 'AI banking command' })).not.toBeInTheDocument();
 
     expect(screen.getByRole('heading', { name: 'Recent transactions' })).toBeInTheDocument();
     expect(screen.getAllByTestId('recent-transaction')).toHaveLength(5);
@@ -56,9 +55,9 @@ describe('OverviewDashboard', () => {
     expect(screen.getByRole('heading', { name: 'Investment portfolio' })).toBeInTheDocument();
     expect(screen.getByText('2 holdings')).toBeInTheDocument();
     expect(screen.getByText('CNY 1,532.00')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'AI insight' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Spending insight' })).toBeInTheDocument();
     expect(screen.getByText(/save CNY 816.00 per year/)).toBeInTheDocument();
-    expect(screen.getByText('No agent actions yet')).toBeInTheDocument();
+    expect(screen.queryByText('No agent actions yet')).not.toBeInTheDocument();
   });
 
   it('shows the selected account and derives labels and counts from the model', async () => {
@@ -71,7 +70,6 @@ describe('OverviewDashboard', () => {
       fxSource: { ...base.fxSource, source: 'live' as const, provider: 'Live fixture' },
       accountBalances: base.accountBalances.slice(0, 2),
       budget: { ...base.budget, categories: base.budget.categories.slice(0, 3) },
-      agentActivityCount: 2,
     };
     render(<OverviewDashboard overview={overview} />);
 
@@ -81,6 +79,6 @@ describe('OverviewDashboard', () => {
     expect(screen.getByText(/Live FX/)).toBeInTheDocument();
     expect(screen.getByText('2 active accounts')).toBeInTheDocument();
     expect(screen.getByText('3 categories')).toBeInTheDocument();
-    expect(screen.getByText('2 agent events recorded')).toBeInTheDocument();
+    expect(screen.queryByText('2 agent events recorded')).not.toBeInTheDocument();
   });
 });
