@@ -178,7 +178,9 @@ begin
     raise exception 'ACTION_NOT_ALLOWED'; end if;
   select version into v from public.sim_profiles where user_id=owner;
   if v is null then raise exception 'INITIALIZE_REQUIRED'; end if;
-  if (select count(*) from public.sim_actions where user_id=owner and status='pending' and expires_at>now()) >= 20 then\n    raise exception 'TOO_MANY_PENDING_ACTIONS'; end if;\n  insert into public.sim_actions(user_id,payload,state_version)
+  if (select count(*) from public.sim_actions where user_id=owner and status='pending' and expires_at>now()) >= 20 then
+    raise exception 'TOO_MANY_PENDING_ACTIONS'; end if;
+  insert into public.sim_actions(user_id,payload,state_version)
     values(owner,p_payload,v) returning id into rid;
   return jsonb_build_object('id',rid,'status','pending','version',v,'expiresInSeconds',600,'payload',p_payload);
 end;
