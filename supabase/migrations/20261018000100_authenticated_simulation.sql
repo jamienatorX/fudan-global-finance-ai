@@ -99,6 +99,7 @@ create index sim_accounts_owner_idx on public.sim_accounts(user_id);
 create index sim_actions_owner_created_idx on public.sim_actions(user_id,created_at desc);
 create index sim_ledger_owner_created_idx on public.sim_ledger(user_id,created_at desc);
 create index sim_ledger_owner_account_idx on public.sim_ledger(user_id,account_id);
+create index sim_ledger_owner_action_idx on public.sim_ledger(user_id,action_id);
 create index sim_audit_owner_created_idx on public.sim_audit(user_id,created_at desc);
 
 alter table public.sim_profiles enable row level security;
@@ -191,7 +192,7 @@ language plpgsql security definer set search_path = '' as $$
 declare
   owner uuid := auth.uid(); r public.sim_actions%rowtype; current_version bigint;
   kind text; minor bigint; acct public.sim_accounts%rowtype; dest public.sim_accounts%rowtype;
-  target uuid; option_text text; fee bigint; previous bigint; result jsonb;
+  target uuid; option_text text; v_result jsonb;
 begin
   if owner is null then raise exception 'AUTH_REQUIRED'; end if;
   if p_approve is null then raise exception 'DECISION_REQUIRED'; end if;
@@ -236,7 +237,7 @@ begin
       insert into public.sim_ledger(user_id,account_id,action_id,direction,amount_minor,currency,classification,label)
         values(owner,acct.id,r.id,'debit',minor,acct.currency,'internal-transfer','Transfer to '||dest.label),
           (owner,dest.id,r.id,'credit',minor,dest.currency,'internal-transfer','Transfer from '||acct.label);
-      result := jsonb_build_object('message','Fictional own-account transfer completed','amountMinor',minor);
+      v_result := jsonb_build_object('message','Fictional own-account transfer completed','amountMinor',minor);
     when 'tuition' then
       target := (r.payload->>'tuitionId')::uuid;
       select amount_minor into minor from public.sim_tuition where user_id=owner and id=target and not paid for update;
@@ -295,13 +296,13 @@ begin
     else raise exception 'ACTION_NOT_ALLOWED';
   end case;
   update public.sim_profiles set version=version+1 where user_id=owner;
-  result := result || jsonb_build_object('status','executed','id',r.id,'kind',kind,'version',current_version+1);
-  update public.sim_actions set status='executed',result=result,decided_at=now() where user_id=owner and id=r.id;
+  v_result := v_result || jsonb_build_object('status','executed','id',r.id,'kind',kind,'version',current_version+1);
+  update public.sim_actions set status='executed',result=v_result,decided_at=now() where user_id=owner and id=r.id;
   insert into public.sim_audit(user_id,action_id,event,detail)
     values(owner,r.id,'action.executed',jsonb_build_object('type',kind,'version',current_version+1));
-  return result;
+  return v_result;
 end;
-$$;
+$;
 
 create or replace function public.sim_initialize() returns jsonb
 language sql security invoker set search_path = '' as $$select private.sim_initialize()$$;
