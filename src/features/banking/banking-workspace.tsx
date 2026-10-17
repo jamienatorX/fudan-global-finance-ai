@@ -1,18 +1,18 @@
 'use client';
-import { useCallback,useEffect,useMemo,useState,type ReactNode,type FormEvent } from 'react';
+import { useCallback,useEffect,useMemo,useState,type ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createBrowserSupabaseClient } from '../../lib/supabase/browser';
 import type { BankingState,TableItem } from '../../server/secure-banking';
-import type { BankPlan,BankProposal } from '../../server/banking-plan';
+type BankProposal = Readonly<{type: 'transfer'|'tuition'|'budget'|'subscription'|'card'|'investment'; [key:string]:string}>;
 
-type Tab='overview'|'transfers'|'cards'|'budgets'|'subscriptions'|'wealth'|'ai'|'activity';
+type Tab='overview'|'transfers'|'cards'|'budgets'|'subscriptions'|'wealth'|'activity';
 type Pending={id:string;payload:BankProposal;expiresInSeconds:number};
 const TABS:readonly {id:Tab;title:string}[]=[
  {id:'overview',title:'Overview'},{id:'transfers',title:'Transfers'},
  {id:'cards',title:'Cards'},{id:'budgets',title:'Budgets'},
  {id:'subscriptions',title:'Subscriptions'},{id:'wealth',title:'Investments'},
- {id:'ai',title:'AI Copilot'},{id:'activity',title:'Activity'},
+ {id:'activity',title:'Activity'},
 ];
 const money=(minor:unknown,currency='CNY')=>{
  try {
@@ -58,8 +58,6 @@ export function BankingWorkspace(){
  const [notice,setNotice]=useState('');
  const [error,setError]=useState('');
  const [form,setForm]=useState<Record<string,string>>({});
- const [prompt,setPrompt]=useState('Pay my tuition, reduce shopping budget by 20%, cancel my unused video subscription, and show my cash runway.');
- const [plan,setPlan]=useState<BankPlan|null>(null);
  const field=(key:string,defaultValue='')=>form[key]??defaultValue;
  const put=(key:string,value:string)=>setForm(f=>({...f,[key]:value}));
  const refresh=useCallback(async()=>{
@@ -106,13 +104,6 @@ export function BankingWorkspace(){
  async function initialize(){
   await run(async()=>{await post({operation:'initialize'});await refresh();setNotice('Fictional accounts were initialized for your authenticated profile.');});
  }
- async function planCommand(e:FormEvent<HTMLFormElement>){
-  e.preventDefault();await run(async()=>{
-   const result=await post({prompt},'/api/banking/plan') as unknown as BankPlan;
-   setPlan(result);
-   setNotice(result.source==='model'?'AI-generated proposal. No action executed.':'Rule-based plan generated. Configure OPENAI_API_KEY for model reasoning.');
-  });
- }
  const cny=state.accounts.filter(a=>a.currency==='CNY');
  const sourceId=field('source',String(cny.find(a=>a.label==='Daily CNY')?.id??cny[0]?.id??''));
  const source=byId(state.accounts,sourceId);
@@ -143,7 +134,7 @@ export function BankingWorkspace(){
        <div><p className="text-xs font-bold uppercase tracking-widest text-blue-700">Banking command center</p><h1 className="mt-1 text-3xl font-bold tracking-tight">Your financial workspace</h1>
        <p className="mt-2 text-sm text-slate-500">Server-authoritative fictional ledger · State version {state.version}</p></div>
        <div className="flex gap-2"><button className={sec} onClick={()=>void run(refresh)} disabled={busy}>Refresh ledger</button>
-       <button className={cta} onClick={()=>setTab('ai')}>Ask AI Copilot</button></div>
+       <button className={cta} onClick={()=>setTab('transfers')}>New transfer</button></div>
      </div>
      <nav aria-label="Banking modules" className="mb-6 flex flex-wrap gap-2">
       {TABS.map(item=><button type="button" key={item.id} aria-current={tab===item.id?'page':undefined}
@@ -221,31 +212,6 @@ export function BankingWorkspace(){
          <button className={cta+' mt-4'} onClick={()=>{try{void prepare({type:'investment',sourceId,productId:field('product',String(state.products[0]?.id)),direction:field('direction','buy'),amountMinor:toMinor(field('investAmount','500.00'))})}catch(e){setError(errorMessage(e))}}}>Review fictional investment order</button>
          <h3 className="mt-7 text-sm font-bold">Holdings</h3>
          {state.holdings.map(h=><p key={String(h.id)} className="mt-2 text-sm">{String(byId(state.products,String(h.product_id))?.name)}: {money(h.value_minor)}</p>)}
-       </Pane></div>}
-     {tab==='ai'&&<div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
-       <Pane title="AI banking copilot" description="Plans can use an OpenAI model when the private OPENAI_API_KEY environment variable is configured; otherwise a deterministic planner is used. Neither can approve or execute transactions.">
-         <form onSubmit={e=>void planCommand(e)}>
-           <label htmlFor="banking-prompt" className="block text-sm font-semibold">What should your AI banker help with?</label>
-           <textarea id="banking-prompt" className={input} rows={5} maxLength={1500} value={prompt} onChange={e=>setPrompt(e.target.value)}/>
-           <button disabled={busy} className={cta+' mt-4'} type="submit">Generate financial action plan</button>
-         </form>
-         {plan&&<div className="mt-6 space-y-4"><p className="rounded-xl bg-blue-50 p-4 text-sm text-blue-950">{plan.summary}</p>
-           <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">Planning mode: {plan.source==='model'?'Model-assisted':'Deterministic'}</p>
-           {plan.actions.map((a,i)=><div key={i} className="rounded-xl border border-slate-200 p-4">
-             <p className="text-sm font-bold capitalize">{a.type} proposal {i+1}</p><p className="mt-2 break-all font-mono text-xs text-slate-500">{JSON.stringify(a)}</p>
-             <button className={sec+' mt-3'} disabled={busy} onClick={()=>void prepare(a)}>Prepare for my approval</button>
-           </div>)}
-           {plan.warnings.map((w,i)=><p key={i} className="text-xs text-amber-800">{w}</p>)}
-         </div>}
-       </Pane>
-       <Pane title="AI safety and audit controls">
-        <ol className="space-y-4 text-sm text-slate-600">
-         <li><strong>1. Retrieve</strong> account-owned fictional balances and commitments.</li>
-         <li><strong>2. Plan</strong> structured, allowlisted actions with validation.</li>
-         <li><strong>3. Approve</strong> one action at a time through an explicit human decision.</li>
-         <li><strong>4. Execute</strong> an atomic Supabase transaction, with stale-state protection.</li>
-         <li><strong>5. Verify</strong> by re-reading the ledger and audit trail.</li>
-        </ol>
        </Pane></div>}
      {tab==='activity'&&<div className="grid gap-5 lg:grid-cols-2">
        <Pane title="Immutable-style transaction receipts" description="Read-only activity view. Recorded transfers have debit and credit ledger entries.">

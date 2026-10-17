@@ -31,7 +31,6 @@ export type OverviewModel = Readonly<{
   fxSource: Readonly<{ source: ExchangeRate['source']; provider: string; referenceAt: string }>;
   alerts: readonly string[];
   holdingsCount: number;
-  agentActivityCount: number;
   forecast: readonly Readonly<{
     month: string;
     opening: Money;
@@ -220,7 +219,6 @@ export async function getOverviewModel(repository: FinancialRepository, userId: 
     fxSource: { source: fxReference.source, provider: fxReference.provider, referenceAt: fxReference.referenceAt },
     alerts,
     holdingsCount: snapshot.holdings.length,
-    agentActivityCount: snapshot.auditEvents.filter((event) => event.eventType.startsWith('agent.')).length,
     forecast,
   };
 }

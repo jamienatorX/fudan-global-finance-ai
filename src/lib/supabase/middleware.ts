@@ -7,7 +7,7 @@ const publicRoute = (path: string) => path === '/' || path === '/login' || path 
 // Server data APIs, Supabase functions, and future private pages remain authentication-gated.
 const demoRoutes = new Set([
   '/overview', '/accounts', '/transfers', '/transactions', '/wealth', '/cards',
-  '/subscriptions', '/fx', '/planner', '/copilot', '/competition', '/audit', '/settings',
+  '/subscriptions', '/fx', '/planner', '/audit', '/settings',
 ]);
 const publicSimulation = (path: string) => process.env.COMPETITION_PUBLIC_DEMO === '1' && demoRoutes.has(path);
 

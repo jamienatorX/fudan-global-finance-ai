@@ -5,7 +5,7 @@ import { SimulationBadge } from '../ui/simulation-badge';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, type ComponentType, type KeyboardEvent, type RefObject } from 'react';
 import {
-  ArrowLeftRight, Bell, Bot, ChartNoAxesCombined, ChevronLeft, CircleDollarSign,
+  ArrowLeftRight, Bell, ChartNoAxesCombined, ChevronLeft, CircleDollarSign,
   CreditCard, GraduationCap, LayoutDashboard, ReceiptText, Repeat2, SendHorizontal,
   Settings2, WalletCards, X,
 } from 'lucide-react';
@@ -22,7 +22,6 @@ export const NAV_ITEMS: readonly Readonly<{ href: string; label: string; shortLa
   { href: '/subscriptions', label: 'Subscription Management', shortLabel: 'Subscriptions', icon: Repeat2 },
   { href: '/fx', label: 'Currency Exchange & Cross-Border', shortLabel: 'FX & Cross-border', icon: ArrowLeftRight },
   { href: '/planner', label: 'Budget & Tuition Planner', shortLabel: 'Planner', icon: GraduationCap },
-  { href: '/copilot', label: 'AI Banking Copilot', shortLabel: 'AI Copilot', icon: Bot },
   { href: '/audit', label: 'Notifications & Audit Trail', shortLabel: 'Audit trail', icon: Bell },
   { href: '/settings', label: 'Settings & Security', shortLabel: 'Settings', icon: Settings2 },
 ] as const;
@@ -31,7 +30,7 @@ function ProductMark({ compact = false }: Readonly<{ compact?: boolean }>) {
   return (
     <Link href="/overview" className="flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-400">
       <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-950/20"><CircleDollarSign size={22} aria-hidden /></span>
-      {!compact ? <span className="min-w-0"><span className="block truncate text-sm font-bold text-white">Fudan Global</span><span className="block truncate text-xs text-blue-200">Finance AI</span></span> : null}
+      {!compact ? <span className="min-w-0"><span className="block truncate text-sm font-bold text-white">Fudan Global</span><span className="block truncate text-xs text-blue-200">Finance Lab</span></span> : null}
     </Link>
   );
 }
