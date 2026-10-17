@@ -166,8 +166,8 @@ export function BankingWorkspace(){
      {tab==='transfers'&&<div className="grid gap-5 lg:grid-cols-2">
        <Pane title="Transfer between your own accounts" description="Immediate, same-currency transfers are atomic: the source is debited and destination credited in one database transaction.">
          <div className="space-y-4">
-          <label className="block text-sm font-semibold">From<select className={input} value={sourceId} onChange={e=>{put('source',e.target.value);put('destination','')}}>
-            {state.accounts.map(a=><option key={String(a.id)} value={String(a.id)}>{String(a.label)} · {money(a.balance_minor,String(a.currency))}</option>)}</select></label>
+          <label className="block text-sm font-semibold">From<select className={input} value={sourceId} onChange={e=>{const next=e.target.value;setForm(f=>({...f,source:next,destination:String(state.accounts.find(a=>a.currency===byId(state.accounts,next)?.currency && a.id!==next)?.id??'')}));}}>
+            {state.accounts.filter(a=>state.accounts.some(other=>other.id!==a.id&&other.currency===a.currency)).map(a=><option key={String(a.id)} value={String(a.id)}>{String(a.label)} · {money(a.balance_minor,String(a.currency))}</option>)}</select></label>
           <label className="block text-sm font-semibold">To<select className={input} value={destinationId} onChange={e=>put('destination',e.target.value)}>
             {state.accounts.filter(a=>a.id!==source?.id && a.currency===source?.currency).map(a=><option key={String(a.id)} value={String(a.id)}>{String(a.label)}</option>)}</select></label>
           <label className="block text-sm font-semibold">Amount ({String(source?.currency??'CNY')})<input className={input} inputMode="decimal" value={field('amount','800.00')} onChange={e=>put('amount',e.target.value)}/></label>
