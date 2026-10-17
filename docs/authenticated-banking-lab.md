@@ -11,7 +11,7 @@ This is a **persistent, private simulation**, not a bank. No customer deposits, 
 3. Select **Create fictional banking portfolio**. This idempotently seeds only the signed-in user's demo state.
 4. Review balances in CNY, USD, SGD and IDR. Create transfers between owned accounts, set budgets and card limits, mark tuition paid, cancel subscriptions or invest in fictional products.
 5. **Review** creates a server-stored, immutable proposal for 10 minutes. A separate **Approve** or **Reject** click invokes a PostgreSQL transaction. All current balances and ledger entries are re-read after execution.
-6. The AI tab drafts typed actions. Each action requires its own review and human approval. The AI never executes RPC writes.
+6. All changes are initiated manually in the banking UI. The AI tab and AI planning endpoints are intentionally disabled while a no-cost model option is being evaluated.
 
 ## Database guarantees
 
@@ -24,13 +24,9 @@ This is a **persistent, private simulation**, not a bank. No customer deposits, 
 - The server checks valid Supabase claims, and mutation endpoints reject cross-origin requests.
 - Every query is owned by the signed-in user. No service-role key is used in the Next.js browser or banking API routes.
 
-## Optional OpenAI model integration
+## AI features paused
 
-`OPENAI_API_KEY` can be configured as a **server-side encrypted or sensitive Vercel environment variable**. Do not paste it into chat, public files, or browser code. Set `OPENAI_MODEL` to a reviewed model ID available to that account.
-
-Without the key, the agent works in deterministic mode. With the key, the server sends only fictional account IDs and amounts, permitted sandbox resources, and the current user prompt. The model must return allowlisted JSON proposals, which are validated against the user's currently owned account records. Invalid or unknown proposed actions are dropped. The server has no path for the model to directly approve or execute an action.
-
-**Model API use may incur cost** depending on provider pricing; the app does not configure a key or purchase usage automatically.
+The AI Copilot, optional OpenAI integration and natural-language planning API have been removed from the current application. No AI API key is needed or configured. The historical implementation is recoverable from Git history if an acceptable free model solution becomes available.
 
 ## Deployment
 

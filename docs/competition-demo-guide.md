@@ -1,41 +1,26 @@
-# Fudan Global Finance AI — Competition demo guide
+# Fudan Global Finance — Non-AI Banking Simulation Guide
 
-## What this version is
-A fictional international-student finance prototype. It demonstrates six domestic AI banking scenarios, FX reference calculations, student planning, browser-local financial state, human approvals and explainable deterministic agent proposals. It is **not a real financial institution, bank account, transfer service, or investment broker**.
+## Scope
 
-## Open and reset
-Open `/competition` from the product sidebar. Public demo access is explicitly opt-in through the server environment variable `COMPETITION_PUBLIC_DEMO=1`, and is restricted to allowlisted fictional UI routes. The hosted Supabase schema and private APIs remain independent from this browser-local demo. If the demo has already been modified, open Settings, type `RESET DEMO`, and confirm.
+The current deployed application is a fictional banking simulator. It supports accounts, transfers, spending reports, card controls, subscription decisions, tuition budgeting, fictional investments and illustrative FX conversions.
 
-## Flagship demonstration
-The default command is:
+**The AI Banking Copilot has been removed from the active product while a free model solution is explored.** The `/copilot` and `/competition` agent routes no longer provide a chat or multi-action assistant. There are no model API calls or OpenAI API keys required.
 
-> Pay my CNY 5,000 tuition installment, reduce my shopping budget by 20%, cancel my unused video subscription, and show my remaining cash runway.
+## Try the public demo
 
-The plan proposes **three independent actions**. Check each action you approve, then select **Execute only selected approved simulations**.
+1. Open `/overview`; use the shortcuts to explore simulated transfers, the spending overview and the tuition planner.
+2. Create an approval-gated fictional transfer, freeze a virtual card or review a subscription cancellation.
+3. Visit `/audit` for local action receipts.
+4. In `/settings`, type `RESET DEMO` to restore the seeded fictional state. The public demo is browser-local and is **not** the secure backend.
 
-From the original seed:
-- Tuition: **CNY 5,000**, from the fictional CNY daily account, reducing that account from CNY 18,650 to CNY 13,650.
-- Shopping: monthly cap **CNY 580 → CNY 464**, saving **CNY 116** in the plan.
-- Video subscription: **CNY 68/month**, simulated cancellation.
-- Planned monthly cash outflow declines by **CNY 184** overall when both savings measures apply.
-- The FX and runway calculations clearly identify the demo reference rates and the one-off tuition obligation.
+## Try persistent banking
 
-The plan lists every executed, rejected and failed action. Approved simulated changes affect Overview, Accounts, Transactions, Planner, Subscriptions and Audit. Reloading preserves results within the same browser using localStorage.
+Register at `/register`, sign in, then open `/banking`. Initialize a fictional portfolio once. Review individual financial actions, approve or reject them, and confirm that the account balance, ledger and audit history reflect the result. Data is stored in owner-scoped Supabase tables; it does not transfer real funds.
 
-## Other example commands
-- `Analyze my spending`: read-only CNY consumption report, excluding internal transfers and investments.
-- `Transfer CNY 800 to Zhang Wei`: recipient-specific fictional transfer proposal.
-- `Freeze my card`: card-control proposal.
-- `Compare low risk funds`: fictional product descriptions, without executing an order.
-- `Show my remaining cash runway`: reference runway with input figures.
+## Safeguards and limitations
 
-## What judges should check
-1. Rejected actions are never executed.
-2. An insufficient available balance fails without modifying the ledger.
-3. Duplicate IDs cannot debit twice.
-4. FX source, reference date and fallback label remain visible.
-5. Browser-local approval expires after ten minutes or becomes stale when demo version changes.
-6. All actions are simulations, and resetting the demo starts from exactly the same fixtures.
-
-## Known scope boundaries
-This version's mutations are client-side and browser-local. They are **not protected by server-authoritative approval tokens, bank-grade authorization, or persistent Supabase RPC mutation transactions**. The existing Supabase schema has RLS but is not the writer for this competition state. Browser devtools and localStorage are user-controlled; the approval flow illustrates product UX, not a security guarantee. The default FX fixtures are illustrative and not current market quotations. Scheduled transfers are recorded for demo display but are not automatically executed. A real financial release requires secure server-side identity, ledger invariants, signed approvals, custody/payment partners, rate sourcing, idempotency on the server, privacy review, and independent security and accessibility testing.
+- All account values are simulated. Never use real bank credentials or sensitive customer data.
+- The authenticated lab uses server-side authorization; the public UI demo uses browser-local state.
+- Illustrative FX figures are not executable rates.
+- Scheduled public-demo transfers are displayed but not automatically settled.
+- There is no active AI agent, model integration, or natural-language planning workflow. This release is a banking prototype and **does not claim to meet an AI-agent competition requirement**.
