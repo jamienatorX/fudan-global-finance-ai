@@ -50,7 +50,7 @@ create table public.sim_products (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.sim_profiles(user_id) on delete cascade,
   name text not null, risk text not null check(risk in ('low','medium','high')),
-  description text not null, unique(user_id,name)
+  description text not null, unique(user_id,name), unique(user_id,id)
 );
 create table public.sim_holdings (
   id uuid primary key default gen_random_uuid(),
@@ -178,7 +178,7 @@ begin
     raise exception 'ACTION_NOT_ALLOWED'; end if;
   select version into v from public.sim_profiles where user_id=owner;
   if v is null then raise exception 'INITIALIZE_REQUIRED'; end if;
-  insert into public.sim_actions(user_id,payload,state_version)
+  if (select count(*) from public.sim_actions where user_id=owner and status='pending' and expires_at>now()) >= 20 then\n    raise exception 'TOO_MANY_PENDING_ACTIONS'; end if;\n  insert into public.sim_actions(user_id,payload,state_version)
     values(owner,p_payload,v) returning id into rid;
   return jsonb_build_object('id',rid,'status','pending','version',v,'expiresInSeconds',600,'payload',p_payload);
 end;
@@ -214,8 +214,8 @@ begin
   if kind in ('transfer','tuition','investment') then
     option_text := r.payload->>'sourceId';
     if option_text is null then raise exception 'SOURCE_REQUIRED'; end if;
-    select * into acct from public.sim_accounts where id=option_text::uuid and user_id=owner and currency='CNY' for update;
-    if not found then raise exception 'CNY_SOURCE_REQUIRED'; end if;
+    select * into acct from public.sim_accounts where id=option_text::uuid and user_id=owner and (kind='transfer' or currency='CNY') for update;
+    if not found then raise exception 'OWNED_SOURCE_REQUIRED'; end if;
   end if;
   if kind in ('transfer','investment') then
     option_text := r.payload->>'amountMinor';
