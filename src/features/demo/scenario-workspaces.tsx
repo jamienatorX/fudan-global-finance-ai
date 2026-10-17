@@ -148,7 +148,7 @@ function PageBody({ section }: { section: Page }) {
     </li>)}</ol></Panel>}
     {section==='settings' && <div className="grid gap-5 lg:grid-cols-2"><Panel title="Profile and security">
       <p className="text-sm">{snapshot.users[0].profile.displayName} · {snapshot.users[0].profile.institution}</p>
-      <p className="mt-3 text-sm text-slate-600">Data is held in this browser's local storage only. No real banking credentials, payments or licensed services.</p>
+      <p className="mt-3 text-sm text-slate-600">Data is held in this browser&apos;s local storage only. No real banking credentials, payments or licensed services.</p>
       <p className="mt-3 text-sm text-slate-600">The separate Supabase database schema is not used for these browser-local demo changes.</p></Panel>
       <Panel title="Reset demo"><p className="text-sm text-slate-600">Restore the exact baseline fixture. This will overwrite all locally simulated actions and audit records.</p>
       <Label caption="Type RESET DEMO"><input className={field} value={val('reset')} onChange={e=>set('reset',e.target.value)}/></Label>
