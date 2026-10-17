@@ -1,6 +1,7 @@
 'use client';
 import { useCallback,useEffect,useMemo,useState,type ReactNode,type FormEvent } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { createBrowserSupabaseClient } from '../../lib/supabase/browser';
 import type { BankingState,TableItem } from '../../server/secure-banking';
 import type { BankPlan,BankProposal } from '../../server/banking-plan';
@@ -48,6 +49,7 @@ const toMinor=(text:string,currency='CNY')=>{
 const empty={enrolled:false,version:0,accounts:[],budgets:[],subscriptions:[],cards:[],tuition:[],products:[],holdings:[],actions:[],ledger:[],audit:[]} satisfies BankingState;
 
 export function BankingWorkspace(){
+ const router=useRouter();
  const [state,setState]=useState<BankingState>(empty);
  const [tab,setTab]=useState<Tab>('overview');
  const [loading,setLoading]=useState(true);
@@ -62,7 +64,7 @@ export function BankingWorkspace(){
  const put=(key:string,value:string)=>setForm(f=>({...f,[key]:value}));
  const refresh=useCallback(async()=>{
    const response=await fetch('/api/banking/state',{cache:'no-store'});
-   if(response.status===401){window.location.assign('/login');return;}
+   if(response.status===401){router.replace('/login');return;}
    if(!response.ok)throw new Error('Could not load persistent financial records');
    setState(await response.json() as BankingState);
  },[]);
@@ -115,7 +117,6 @@ export function BankingWorkspace(){
  const sourceId=field('source',String(cny.find(a=>a.label==='Daily CNY')?.id??cny[0]?.id??''));
  const source=byId(state.accounts,sourceId);
  const destinationId=field('destination',String(cny.find(a=>a.label==='Savings CNY')?.id??''));
- const tuitionDue=state.tuition.find(t=>!t.paid);
  const totalCash=state.accounts.filter(a=>a.currency==='CNY').reduce((sum,a)=>sum+BigInt(String(a.balance_minor)),0n);
  const totalBudget=state.budgets.reduce((sum,b)=>sum+BigInt(String(b.limit_minor)),0n);
  const monthlySubscriptions=state.subscriptions.filter(s=>s.active).reduce((sum,s)=>sum+BigInt(String(s.monthly_minor)),0n);
