@@ -203,7 +203,7 @@ export function BankingWorkspace(){
      {tab==='subscriptions'&&<div className="grid gap-5 md:grid-cols-2">{state.subscriptions.map(s=><Pane key={String(s.id)} title={String(s.merchant)}>
        <p className="text-3xl font-bold">{money(s.monthly_minor)}<span className="text-sm font-normal text-slate-500"> / month</span></p>
        <p className="mt-2 text-sm text-slate-600">Status: {s.active?'Active':'Cancelled'}</p>
-       {s.active&&<button className={cta+' mt-4'} onClick={()=>void prepare({type:'subscription',subscriptionId:String(s.id)})}>Review cancellation</button>}
+       {s.active===true&&<button className={cta+' mt-4'} onClick={()=>void prepare({type:'subscription',subscriptionId:String(s.id)})}>Review cancellation</button>}
      </Pane>)}</div>}
      {tab==='wealth'&&<div className="grid gap-5 lg:grid-cols-2">
        <Pane title="Fictional investment products" description="These are simulated instruments, not securities or personalized investment recommendations.">
