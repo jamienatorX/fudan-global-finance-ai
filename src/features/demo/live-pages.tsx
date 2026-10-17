@@ -28,7 +28,7 @@ export function LiveOverview({account}:{account?:string}){
   const overview=useDemoOverview(account);
   return overview?<div className="space-y-4"><div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-blue-200 bg-blue-50 p-4">
   <p className="text-sm text-blue-950"><strong>Explore the new authenticated banking lab.</strong> Test persistent fictional balances, secure approvals, and the AI planner in Supabase.</p>
-  <a href="/banking" className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Open banking lab →</a></div><OverviewDashboard overview={overview}/></div>:
+  <Link href="/banking" className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Open banking lab →</Link></div><OverviewDashboard overview={overview}/></div>:
   <p role="status" className="p-5 text-sm text-slate-600">Preparing simulated overview…</p>;
 }
 export function LiveAccounts(){
