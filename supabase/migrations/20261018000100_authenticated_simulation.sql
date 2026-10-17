@@ -163,13 +163,13 @@ begin
     (owner,'Fictional Balanced Fund','medium','Demonstration diversified fund'),
     (owner,'Fictional Equity Index','high','Demonstration equity index fund')
     on conflict(user_id,name) do nothing;
-  return jsonb_build_object('status','ready','version',(select version from public.sim_profiles where user_id=owner));
+  return jsonb_build_object('status','ready','version',0);
 end;
 $$;
 
 create or replace function private.sim_prepare(p_payload jsonb) returns jsonb
 language plpgsql security definer set search_path = '' as $$
-declare owner uuid := auth.uid(); v bigint; rid uuid; kind text;
+declare owner uuid := auth.uid(); v bigint; rid uuid; kind text; pending_count bigint;
 begin
   if owner is null then raise exception 'AUTH_REQUIRED'; end if;
   if jsonb_typeof(p_payload) is distinct from 'object' or octet_length(p_payload::text)>2048 then
@@ -179,8 +179,9 @@ begin
     raise exception 'ACTION_NOT_ALLOWED'; end if;
   select version into v from public.sim_profiles where user_id=owner;
   if v is null then raise exception 'INITIALIZE_REQUIRED'; end if;
-  if (select count(*) from public.sim_actions where user_id=owner and status='pending' and expires_at>now()) >= 20 then
-    raise exception 'TOO_MANY_PENDING_ACTIONS'; end if;
+  select count(*) into pending_count from public.sim_actions
+    where user_id=owner and status='pending' and expires_at>now();
+  if pending_count >= 20 then raise exception 'TOO_MANY_PENDING_ACTIONS'; end if;
   insert into public.sim_actions(user_id,payload,state_version)
     values(owner,p_payload,v) returning id into rid;
   return jsonb_build_object('id',rid,'status','pending','version',v,'expiresInSeconds',600,'payload',p_payload);
