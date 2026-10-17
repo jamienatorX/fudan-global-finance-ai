@@ -248,19 +248,19 @@ begin
       update public.sim_tuition set paid=true where user_id=owner and id=target;
       insert into public.sim_ledger(user_id,account_id,action_id,direction,amount_minor,currency,classification,label)
         values(owner,acct.id,r.id,'debit',minor,'CNY','external-transfer','Simulated tuition payment');
-      result := jsonb_build_object('message','Fictional tuition obligation marked paid','amountMinor',minor);
+      v_result := jsonb_build_object('message','Fictional tuition obligation marked paid','amountMinor',minor);
     when 'budget' then
       option_text := r.payload->>'limitMinor';
       if option_text is null or option_text !~ '^[1-9][0-9]{0,9}$' then raise exception 'INVALID_LIMIT'; end if;
       update public.sim_budgets set limit_minor=option_text::bigint
         where user_id=owner and category=r.payload->>'category';
       if not found then raise exception 'BUDGET_NOT_FOUND'; end if;
-      result := jsonb_build_object('message','Simulated budget updated','limitMinor',option_text);
+      v_result := jsonb_build_object('message','Simulated budget updated','limitMinor',option_text);
     when 'subscription' then
       target := (r.payload->>'subscriptionId')::uuid;
       update public.sim_subscriptions set active=false where user_id=owner and id=target and active=true;
       if not found then raise exception 'SUBSCRIPTION_NOT_ACTIVE'; end if;
-      result := jsonb_build_object('message','Fictional subscription cancelled');
+      v_result := jsonb_build_object('message','Fictional subscription cancelled');
     when 'card' then
       target := (r.payload->>'cardId')::uuid;
       option_text := r.payload->>'mode';
@@ -273,7 +273,7 @@ begin
         update public.sim_cards set monthly_limit_minor=(r.payload->>'limitMinor')::bigint where id=target and user_id=owner;
       else raise exception 'CARD_MODE_INVALID'; end if;
       if not found then raise exception 'CARD_NOT_FOUND'; end if;
-      result := jsonb_build_object('message','Fictional card setting updated');
+      v_result := jsonb_build_object('message','Fictional card setting updated');
     when 'investment' then
       target := (r.payload->>'productId')::uuid;
       if not exists(select 1 from public.sim_products where user_id=owner and id=target) then raise exception 'PRODUCT_NOT_FOUND'; end if;
@@ -293,7 +293,7 @@ begin
         insert into public.sim_ledger(user_id,account_id,action_id,direction,amount_minor,currency,classification,label)
           values(owner,acct.id,r.id,'credit',minor,'CNY','asset-movement','Fictional investment redemption');
       else raise exception 'INVESTMENT_DIRECTION_INVALID'; end if;
-      result := jsonb_build_object('message','Fictional investment order completed','amountMinor',minor);
+      v_result := jsonb_build_object('message','Fictional investment order completed','amountMinor',minor);
     else raise exception 'ACTION_NOT_ALLOWED';
   end case;
   update public.sim_profiles set version=version+1 where user_id=owner;
@@ -303,20 +303,20 @@ begin
     values(owner,r.id,'action.executed',jsonb_build_object('type',kind,'version',current_version+1));
   return v_result;
 end;
-$;
+$$;
 
 create or replace function public.sim_initialize() returns jsonb
-language sql security invoker set search_path = '' as $
+language sql security invoker set search_path = '' as $$
   select private.sim_initialize();
-$;
+$$;
 create or replace function public.sim_prepare(p_payload jsonb) returns jsonb
-language sql security invoker set search_path = '' as $
+language sql security invoker set search_path = '' as $$
   select private.sim_prepare(p_payload);
-$;
+$$;
 create or replace function public.sim_execute(p_action_id uuid,p_approve boolean) returns jsonb
-language sql security invoker set search_path = '' as $
+language sql security invoker set search_path = '' as $$
   select private.sim_execute(p_action_id,p_approve);
-$;
+$$;
 
 revoke all on function private.sim_initialize() from public,anon,authenticated;
 revoke all on function private.sim_prepare(jsonb) from public,anon,authenticated;
