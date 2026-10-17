@@ -44,7 +44,7 @@ describe('AppShell', () => {
     });
   });
 
-  it('exposes all twelve product destinations and the persistent banking controls', () => {
+  it('exposes all eleven product destinations and the persistent banking controls', () => {
     render(
       <AppShell accounts={snapshot.accounts} user={snapshot.users[0]}>
         <p>Dashboard content</p>
@@ -53,15 +53,15 @@ describe('AppShell', () => {
 
     const primaryNavigation = screen.getByRole('navigation', { name: 'Primary navigation' });
     const destinations = within(primaryNavigation).getAllByRole('link');
-    expect(destinations).toHaveLength(12);
+    expect(destinations).toHaveLength(11);
     expect(destinations.map((link) => link.getAttribute('href'))).toEqual([
       '/overview', '/accounts', '/transfers', '/transactions', '/wealth', '/cards',
-      '/subscriptions', '/fx', '/planner', '/copilot', '/audit', '/settings',
+      '/subscriptions', '/fx', '/planner', '/audit', '/settings',
     ]);
     expect(screen.getByRole('combobox', { name: 'Active account' })).toHaveValue(snapshot.accounts[0].id);
     expect(screen.getByRole('button', { name: 'Notifications' })).toBeInTheDocument();
     expect(screen.getAllByText('Simulated data').length).toBeGreaterThan(0);
-    expect(screen.getByRole('link', { name: 'Ask AI banker' })).toHaveAttribute('href', '/copilot');
+    expect(screen.queryByRole('link', { name: 'Ask AI banker' })).not.toBeInTheDocument();
     expect(screen.getByText('Search coming in Phase 2')).toBeInTheDocument();
     expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
   });
@@ -84,19 +84,17 @@ describe('AppShell', () => {
     expect(within(screen.getByRole('dialog', { name: 'Mobile navigation' })).getByText('Simulated data')).toBeInTheDocument();
   });
 
-  it('preserves account context in brand, dashboard, Copilot, and placeholder links', async () => {
+  it('preserves account context in brand, banking shortcuts, and placeholder links', async () => {
     const usdId = snapshot.accounts.find((account) => account.currency === 'USD')!.id;
     navigation.query = `account=${usdId}&unrelated=omit`;
     const model = await getOverviewModel(new DemoFinancialRepository(), DEMO_USER_ID, usdId);
     const { rerender } = render(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><OverviewDashboard overview={model} /></AppShell>);
-    for (const name of [/Fudan Global/, 'View accounts', 'Ask AI banker', 'Run competition demo']) {
+    for (const name of [/Fudan Global/, 'View accounts', 'Transfer money', 'Plan tuition']) {
       const href = screen.getByRole('link', { name }).getAttribute('href')!;
       const url = new URL(href, 'http://localhost');
       expect(url.searchParams.get('account')).toBe(usdId);
       expect(url.searchParams.has('unrelated')).toBe(false);
-      if (name === 'Run competition demo') expect(url.searchParams.get('prompt')).toContain('Pay my CNY 5,000');
     }
-    expect(within(screen.getByRole('form', { name: 'AI banking command' })).getByDisplayValue(usdId)).toHaveAttribute('name', 'account');
     const page = await ProductSectionPage({ params: Promise.resolve({ section: 'accounts' }) });
     rerender(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}>{page}</AppShell>);
     expect(screen.getByRole('link', { name: 'Back to overview' })).toHaveAttribute('href', `/overview?account=${usdId}`);
@@ -200,7 +198,7 @@ describe('AppShell', () => {
     fireEvent.click(opener);
     const drawer = screen.getByRole('dialog', { name: 'Mobile navigation' });
     const mobileNavigation = within(drawer).getByRole('navigation', { name: 'Mobile product navigation' });
-    expect(within(mobileNavigation).getAllByRole('link')).toHaveLength(12);
+    expect(within(mobileNavigation).getAllByRole('link')).toHaveLength(11);
     expect(screen.getByTestId('shell-background')).toHaveAttribute('inert');
 
     const close = within(drawer).getByRole('button', { name: 'Close navigation' });

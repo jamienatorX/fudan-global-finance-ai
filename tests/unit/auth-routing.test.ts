@@ -10,7 +10,9 @@ describe('local browser demo routing', () => {
     vi.stubEnv('NODE_ENV', 'production');
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', '');
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', '');
-    expect((await updateSession(new NextRequest('https://app.example/competition'))).status).toBe(200);
+    expect((await updateSession(new NextRequest('https://app.example/transfers'))).status).toBe(200);
+    expect((await updateSession(new NextRequest('https://app.example/copilot'))).status).toBe(307);
+    expect((await updateSession(new NextRequest('https://app.example/competition'))).status).toBe(307);
     expect((await updateSession(new NextRequest('https://app.example/overview'))).status).toBe(200);
     expect((await updateSession(new NextRequest('https://app.example/api/private'))).headers.get('location')).toBe('https://app.example/login');
   });
