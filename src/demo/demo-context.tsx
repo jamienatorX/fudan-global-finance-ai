@@ -34,7 +34,7 @@ export function DemoProvider({ children }: Readonly<{ children: ReactNode }>) {
         if (saved.snapshot?.seedVersion === DEFAULT_SEED_VERSION &&
           Array.isArray(saved.snapshot.accounts) && Array.isArray(saved.snapshot.auditEvents) &&
           Number.isSafeInteger(saved.version) && saved.version >= 0) {
-          setState({ snapshot: fromFinancialSnapshotDTO(saved.snapshot), version: saved.version });
+          // Rehydrate only after mount so the server and client render the same seed initially.\n          // eslint-disable-next-line react-hooks/set-state-in-effect\n          setState({ snapshot: fromFinancialSnapshotDTO(saved.snapshot), version: saved.version });
         }
       }
     } catch { /* Corrupt browser-local demos always fall back to the versioned fixture. */ }
@@ -43,7 +43,7 @@ export function DemoProvider({ children }: Readonly<{ children: ReactNode }>) {
   useEffect(() => {
     if (!hydrated) return;
     try { window.localStorage.setItem(STORE, JSON.stringify({ snapshot: toFinancialSnapshotDTO(state.snapshot), version: state.version })); }
-    catch { setNotice('Local browser storage is unavailable; demo changes will last only for this session.'); }
+    catch { /* Browser-local persistence is optional; in-memory state still works for this session. */ }
   }, [state, hydrated]);
 
   const request = useCallback((action: DemoAction) => {
