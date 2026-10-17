@@ -1,0 +1,23 @@
+import { describe,expect,it } from 'vitest';
+import { createSeedSnapshot } from '../../src/demo/seed';
+import { money } from '../../src/domain/money';
+import { parseMajorAmount,referenceConversion,projectedRunway } from '../../src/features/demo/planning-helpers';
+
+describe('demo international planning',()=>{
+ const s=createSeedSnapshot('v1');
+ it('converts exact minor units using labeled inverse reference rates',()=>{
+   expect(parseMajorAmount('100.25','CNY')).toBe('10025');
+   expect(()=>parseMajorAmount('1.2','IDR')).toThrow();
+   expect(referenceConversion(money(10_000_000n,'IDR'),'CNY',s.exchangeRates)).toMatchObject({amount:money(454_545n,'CNY')});
+   expect(()=>referenceConversion(money(5_000n,'USD'),'SGD',s.exchangeRates)).toThrow(/unavailable/i);
+ });
+ it('makes runway one-off tuition separate from recurring caps',()=>{
+   const p=projectedRunway(s);
+   expect(p.monthly.amountMinor).toBe(520000n);
+   expect(p.due.amountMinor).toBe(500000n);
+   expect(p.available.amountMinor).toBe(3866936n);
+   expect(p.months).toBe(6.4);
+   const noBudgets=projectedRunway({...s,budgets:[]});
+   expect(noBudgets.months).toBeNull();
+ });
+});
