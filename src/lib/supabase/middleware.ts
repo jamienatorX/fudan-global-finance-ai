@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { isSupabaseConfigured, supabaseConfig } from './config';
 
-const publicRoute = (path: string) => path === '/' || path === '/login' || path.startsWith('/auth/');
+const publicRoute = (path: string) => path === '/' || path === '/login' || path === '/register' || path.startsWith('/auth/');
 // Only fictional browser-local competition surfaces are public when explicitly enabled.
 // Server data APIs, Supabase functions, and future private pages remain authentication-gated.
 const demoRoutes = new Set([
