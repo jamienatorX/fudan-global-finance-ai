@@ -35,7 +35,7 @@ Without the key, the agent works in deterministic mode. With the key, the server
 ## Deployment
 
 - GitHub Actions runs lint, typecheck, unit/integration tests including PGlite/RLS and owner isolation, Next build, then desktop/mobile Playwright tests.
-- Apply the checked-in migration `20261018000100_authenticated_simulation.sql` to project `geqamggjfmkcvjuaokzz` before promoting an authenticated deployment.
+- Apply the checked-in migration `20261017163635_authenticated_simulation.sql` to project `geqamggjfmkcvjuaokzz` before promoting an authenticated deployment.
 - Confirm migration history and security advisors; test two separate signed-in accounts and the email registration flow against the deployed project.
 - The public demo at `/overview` must remain accessible while all `/banking` pages and `/api/banking/*` remain authentication-gated.
 
