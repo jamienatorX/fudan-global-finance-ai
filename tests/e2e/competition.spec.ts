@@ -7,7 +7,6 @@ test.describe('competition simulation critical paths', () => {
     await expect(page.getByText('Pay fictional tuition').first()).toBeVisible();
     await expect(page.getByText('Reduce shopping cap').first()).toBeVisible();
     await expect(page.getByText('Cancel fictional Campus Video').first()).toBeVisible();
-    await page.getByRole('checkbox').check({force:true}).catch(()=>{});
     const boxes=page.getByRole('checkbox');
     await boxes.nth(0).check();
     await boxes.nth(1).check();
