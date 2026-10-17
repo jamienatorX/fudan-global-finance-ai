@@ -306,11 +306,17 @@ end;
 $;
 
 create or replace function public.sim_initialize() returns jsonb
-language sql security invoker set search_path = '' as $$select private.sim_initialize()$$;
+language sql security invoker set search_path = '' as $
+  select private.sim_initialize();
+$;
 create or replace function public.sim_prepare(p_payload jsonb) returns jsonb
-language sql security invoker set search_path = '' as $$select private.sim_prepare(p_payload)$$;
+language sql security invoker set search_path = '' as $
+  select private.sim_prepare(p_payload);
+$;
 create or replace function public.sim_execute(p_action_id uuid,p_approve boolean) returns jsonb
-language sql security invoker set search_path = '' as $$select private.sim_execute(p_action_id,p_approve)$$;
+language sql security invoker set search_path = '' as $
+  select private.sim_execute(p_action_id,p_approve);
+$;
 
 revoke all on function private.sim_initialize() from public,anon,authenticated;
 revoke all on function private.sim_prepare(jsonb) from public,anon,authenticated;
