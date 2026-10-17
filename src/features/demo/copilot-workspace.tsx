@@ -21,7 +21,7 @@ export function CopilotWorkspace({ initialPrompt = '', presentation = false }: R
     setApproval({});setDone(false);setCommand(text);
   }
   useEffect(()=>{if(initialPrompt){const i=interpretDemoCommand(initialPrompt,snapshot);
-    setPlan({steps:i.steps.map(s=>({action:s.action,approved:false,id:crypto.randomUUID()})),
+    // Initial shared-link hydration occurs only when opening this workspace.\n    // eslint-disable-next-line react-hooks/set-state-in-effect\n    setPlan({steps:i.steps.map(s=>({action:s.action,approved:false,id:crypto.randomUUID()})),
       labels:i.steps.map(s=>s.label),messages:i.messages,version,expiresAt:Date.now()+600_000,command:initialPrompt});
     setApproval({});setDone(false);
   // Only seed the initial shared-link prompt. Do not silently reset an edited plan on balance changes.
