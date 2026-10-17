@@ -42,7 +42,7 @@ function LoginForm() {
     {error && <p role="alert">Unable to sign in. Check your demo credentials and try again.</p>}
     {!error && !signedIn && callbackError && <p role="alert">Unable to complete sign-in. Please try again.</p>}
     {signedIn && <p role="status">Signed in. Opening your overview…</p>}
-    <Link href="/">Open public demo</Link><p><Link href="/register">Create a simulated banking account</Link></p>
+    <Link href="/">Open local demo</Link><p><Link href="/register">Create a simulated banking account</Link></p>
   </main>;
 }
 
