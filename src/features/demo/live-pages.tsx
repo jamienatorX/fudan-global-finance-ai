@@ -8,6 +8,7 @@ import { CURRENCY_MINOR_DIGITS, type CurrencyCode } from '../../domain/currency'
 import { getOverviewModel, type OverviewModel } from '../overview/overview-queries';
 import { OverviewDashboard } from '../overview/overview-dashboard';
 import { AccountList } from '../accounts/account-list';
+import { AccountLink as Link } from '../../components/shell/account-link';
 import { TransactionTable } from '../transactions/transaction-table';
 import { CsvImportPreview } from '../transactions/csv-preview';
 import { buildSpendingReport } from '../transactions/reporting';
@@ -35,7 +36,8 @@ export function LiveAccounts(){
     <section className="rounded-2xl bg-[var(--color-navy)] p-6 text-white"><p className="text-sm text-blue-200">Total available demo cash · CNY reference</p>
       <p className="mt-2 text-3xl font-bold">{overview?formatMoney(overview.availableCash):'Calculating…'}</p>
       <p className="mt-2 text-xs text-blue-100">Fictional demo fixture · {snapshot.accounts.length} accounts</p></section>
-    <AccountList accounts={snapshot.accounts} reportingBalances={overview?.accountBalances??[]}/></div>;
+    <AccountList accounts={snapshot.accounts} reportingBalances={overview?.accountBalances??[]}/>
+    <Link href="/overview" className="inline-flex rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-blue-700">Back to overview</Link></div>;
 }
 function prevMonth(month:string){
   const [year,n]=month.split('-').map(Number);
