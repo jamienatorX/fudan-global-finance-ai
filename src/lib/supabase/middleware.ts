@@ -3,6 +3,13 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { isSupabaseConfigured, supabaseConfig } from './config';
 
 const publicRoute = (path: string) => path === '/' || path === '/login' || path.startsWith('/auth/');
+// Only fictional browser-local competition surfaces are public when explicitly enabled.
+// Server data APIs, Supabase functions, and future private pages remain authentication-gated.
+const demoRoutes = new Set([
+  '/overview', '/accounts', '/transfers', '/transactions', '/wealth', '/cards',
+  '/subscriptions', '/fx', '/planner', '/copilot', '/competition', '/audit', '/settings',
+]);
+const publicSimulation = (path: string) => process.env.COMPETITION_PUBLIC_DEMO === '1' && demoRoutes.has(path);
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -16,6 +23,7 @@ export async function updateSession(request: NextRequest) {
     });
     return redirect;
   };
+  if (publicSimulation(request.nextUrl.pathname)) return response;
   if (!isSupabaseConfigured()) {
     const localBrowserDemo = process.env.NODE_ENV !== 'production' && process.env.PLAYWRIGHT_DEMO_MODE === '1';
     return publicRoute(request.nextUrl.pathname) || localBrowserDemo ? response : login();

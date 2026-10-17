@@ -5,6 +5,15 @@ import { updateSession } from '../../src/lib/supabase/middleware';
 
 describe('local browser demo routing', () => {
   afterEach(() => vi.unstubAllEnvs());
+  it('permits only explicitly allowlisted browser-local demo pages when enabled', async () => {
+    vi.stubEnv('COMPETITION_PUBLIC_DEMO', '1');
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', '');
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', '');
+    expect((await updateSession(new NextRequest('https://app.example/competition'))).status).toBe(200);
+    expect((await updateSession(new NextRequest('https://app.example/overview'))).status).toBe(200);
+    expect((await updateSession(new NextRequest('https://app.example/api/private'))).headers.get('location')).toBe('https://app.example/login');
+  });
 
   it('remains fail-closed in production even when the Playwright demo flag is present', async () => {
     vi.stubEnv('NODE_ENV', 'production');
