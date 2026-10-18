@@ -62,8 +62,8 @@ describe('AppShell', () => {
     expect(screen.getByRole('button', { name: 'Notifications' })).toBeInTheDocument();
     expect(screen.getAllByText('Simulated data').length).toBeGreaterThan(0);
     expect(screen.queryByRole('link', { name: 'Ask AI banker' })).not.toBeInTheDocument();
-    expect(screen.getByText('Search coming in Phase 2')).toBeInTheDocument();
-    expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
+    expect(screen.getByRole('searchbox', { name: 'Search banking' })).toBeInTheDocument();
+    expect(screen.queryByText('Search coming in Phase 2')).not.toBeInTheDocument();
   });
 
   it('uses the current pathname for navigation state', () => {
