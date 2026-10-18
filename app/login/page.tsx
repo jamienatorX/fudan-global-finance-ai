@@ -32,22 +32,22 @@ function LoginForm() {
     finally { setPending(false); }
   }
   return <AuthShell>
-    <span className="auth-mode-label"><ShieldCheck size={15} aria-hidden />SIMULATED BANKING</span>
+    <span className="auth-mode-label"><ShieldCheck size={15} aria-hidden />PERSONAL BANKING</span>
     <h1 className="auth-title">Welcome back.</h1>
-    <p className="auth-intro">Your financial world, all in one place.<br />Sign in to your banking lab.</p>
-    {!configured && <p className="auth-notice">Hosted authentication is not configured. The local demo remains available.</p>}
+    <p className="auth-intro">Your financial world, all in one place.<br />Sign in to your account.</p>
+    {!configured && <p className="auth-notice">Sign-in is currently unavailable. You can still explore the overview.</p>}
     <form onSubmit={signIn} className="auth-form" aria-label="Sign in" aria-busy={pending}>
       <div className="auth-field"><label htmlFor="email">Email</label><div className="auth-input-wrap"><Mail className="auth-input-icon" size={18} aria-hidden /><input id="email" name="email" type="email" autoComplete="username" placeholder="you@example.com" className="auth-input" disabled={pending} required /></div></div>
       <div className="auth-field"><label htmlFor="password">Password</label><PasswordField id="password" name="password" autoComplete="current-password" placeholder="Enter your password" disabled={pending} required /></div>
-      {error && <p role="alert" className="auth-feedback auth-feedback-error"><CircleAlert size={18} aria-hidden />Unable to sign in. Check your demo credentials and try again.</p>}
+      {error && <p role="alert" className="auth-feedback auth-feedback-error"><CircleAlert size={18} aria-hidden />Unable to sign in. Check your email and password and try again.</p>}
       {!error && !signedIn && callbackError && <p role="alert" className="auth-feedback auth-feedback-error"><CircleAlert size={18} aria-hidden />Unable to complete sign-in. Please try again.</p>}
       <button className="auth-submit" disabled={!configured || pending} type="submit">{pending ? <><LoaderCircle size={18} className="auth-spinner" aria-hidden />Signing in…</> : <>Sign in<ArrowRight size={18} aria-hidden /></>}</button>
     </form>
-    {signedIn && <p role="status" className="auth-feedback auth-feedback-success">Signed in. Opening your banking lab…</p>}
-    <p className="auth-switch">New here? <Link href="/register">Create a simulated banking account</Link></p>
-    <div className="auth-divider"><span />JUST EXPLORING?<span /></div>
-    <Link href="/" className="auth-secondary">Open local demo<ArrowUpRight size={16} aria-hidden /></Link>
-    <p className="auth-disclosure">Simulated financial data. Use only your fictional demo account—not bank credentials.</p>
+    {signedIn && <p role="status" className="auth-feedback auth-feedback-success">Signed in. Opening your account…</p>}
+    <p className="auth-switch">New here? <Link href="/register">Create an account</Link></p>
+    <div className="auth-divider"><span />YOUR NEXT STEP<span /></div>
+    <Link href="/" className="auth-secondary">Explore overview<ArrowUpRight size={16} aria-hidden /></Link>
+
   </AuthShell>;
 }
 
