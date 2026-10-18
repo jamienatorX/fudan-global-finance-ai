@@ -58,7 +58,7 @@ function localQuote(base: string, quote: string, rates: Parameters<typeof refere
     const targetScale=10**CURRENCY_MINOR_DIGITS[to];
     return {base,quote,rate:Number(output.amount.amountMinor)/targetScale/100_000_000,
       date: output.referenceAt.slice(0,10),source:base===quote?'identity':'fallback',
-      provider:base===quote?'Identity conversion':'Fictional seed via '+(output.via&&output.via>1?'cross-rate':'direct/inverse rate')};
+      provider:base===quote?'Identity conversion':'Fictional seed via '+('via' in output && typeof output.via === 'number' && output.via>1?'cross-rate':'direct/inverse rate')};
   } catch {return null;}
 }
 
