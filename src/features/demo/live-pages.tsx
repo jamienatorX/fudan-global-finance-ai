@@ -7,6 +7,7 @@ import { formatMoney } from '../../domain/money';
 import { CURRENCY_MINOR_DIGITS, type CurrencyCode } from '../../domain/currency';
 import { getOverviewModel, type OverviewModel } from '../overview/overview-queries';
 import { OverviewDashboard } from '../overview/overview-dashboard';
+import { displayOverviewCurrency } from '../overview/overview-currency';
 import { AccountList } from '../accounts/account-list';
 import { AccountLink as Link } from '../../components/shell/account-link';
 import { TransactionTable } from '../transactions/transaction-table';
@@ -26,10 +27,25 @@ function useDemoOverview(selectedAccount?: string) {
 }
 export function LiveOverview({account}:{account?:string}){
   const overview=useDemoOverview(account);
-  return overview?<div className="space-y-4"><div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-blue-200 bg-blue-50 p-4">
-  <p className="text-sm text-blue-950"><strong>Explore the new authenticated banking lab.</strong> Test persistent fictional balances, secure approvals, and banking records in Supabase.</p>
-  <Link href="/banking" className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Open banking lab →</Link></div><OverviewDashboard overview={overview}/></div>:
-  <p role="status" className="p-5 text-sm text-slate-600">Preparing simulated overview…</p>;
+  const {snapshot}=useDemo();
+  const [reportingCurrency,setReportingCurrency]=useState<CurrencyCode>('CNY');
+  const displayed=useMemo(()=>overview?displayOverviewCurrency(overview,reportingCurrency,snapshot.exchangeRates):null,
+    [overview,reportingCurrency,snapshot.exchangeRates]);
+  return displayed?<div className="space-y-4">
+    <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-blue-200 bg-blue-50 p-4">
+      <div><p className="text-sm text-blue-950"><strong>International finance dashboard.</strong> Compare fictional balances across all four account currencies, or try persistent banking in Supabase.</p>
+        <label className="mt-3 flex flex-wrap items-center gap-2 text-sm font-semibold text-blue-950">Display summary in
+          <select aria-label="Dashboard reporting currency" value={reportingCurrency}
+            onChange={e=>setReportingCurrency(e.target.value as CurrencyCode)}
+            className="min-h-11 rounded-xl border border-blue-200 bg-white px-3 text-sm font-bold text-blue-950">
+            {Object.keys(CURRENCY_MINOR_DIGITS).map(code=><option value={code} key={code}>{code}</option>)}
+          </select>
+        </label><p className="mt-2 text-xs text-blue-800">Totals use the explicitly labeled fictional fallback FX fixtures; account balances remain unchanged.</p>
+      </div>
+      <Link href="/banking" className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Open banking lab →</Link>
+    </div>
+    <OverviewDashboard overview={displayed} />
+  </div>:<p role="status" className="p-5 text-sm text-slate-600">Preparing simulated overview…</p>;
 }
 export function LiveAccounts(){
   const {snapshot}=useDemo();

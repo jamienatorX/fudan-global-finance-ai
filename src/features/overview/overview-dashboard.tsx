@@ -116,11 +116,11 @@ export function OverviewDashboard({ overview }: Readonly<{ overview: OverviewMod
       <BankingShortcuts />
       <section aria-label="Financial summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Consolidated net worth" value={formatMoney(overview.totalNetWorth)} detail={`Includes ${formatMoney(overview.investedValue)} simulated investments`} icon={<TrendingUp size={20} aria-hidden />} />
-        <MetricCard label="Available cash" value={formatMoney(overview.availableCash)} detail="Converted using seeded reference rates" icon={<WalletCards size={20} aria-hidden />} />
+        <MetricCard label="Available cash" value={formatMoney(overview.availableCash)} detail="Selected reporting currency · illustrative FX rates" icon={<WalletCards size={20} aria-hidden />} />
         <MetricCard label="Monthly expenses" value={formatMoney(overview.monthlyExpenses)} detail={`${usedPercent}% of your living budget`} tone={usedPercent >= 100 ? 'warning' : 'neutral'} icon={<ArrowUpRight size={20} aria-hidden />} />
         <MetricCard label="Cash runway" value={`${overview.cashRunwayMonths.toFixed(1)} months`} detail="After the upcoming tuition installment" tone="positive" icon={<PiggyBank size={20} aria-hidden />} />
       </section>
-      {overview.selectedAccount ? <Card aria-label="Selected account" className="border-blue-200 bg-blue-50/50 p-5 sm:p-6"><div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-600">Selected account</p><p className="mt-1 text-sm font-medium text-slate-600">{overview.selectedAccount.label}</p></div><div className="sm:text-right"><p className="text-2xl font-bold tabular-nums text-slate-950">{formatMoney(overview.selectedAccount.amount)}</p>{overview.selectedAccount.amount.currency !== 'CNY' ? <p className="mt-1 text-xs text-slate-500">≈ {formatMoney(overview.selectedAccount.reportingAmount)} reporting value</p> : <p className="mt-1 text-xs text-slate-500">Reporting currency</p>}</div></div></Card> : null}
+      {overview.selectedAccount ? <Card aria-label="Selected account" className="border-blue-200 bg-blue-50/50 p-5 sm:p-6"><div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-600">Selected account</p><p className="mt-1 text-sm font-medium text-slate-600">{overview.selectedAccount.label}</p></div><div className="sm:text-right"><p className="text-2xl font-bold tabular-nums text-slate-950">{formatMoney(overview.selectedAccount.amount)}</p>{overview.selectedAccount.amount.currency !== overview.selectedAccount.reportingAmount.currency ? <p className="mt-1 text-xs text-slate-500">≈ {formatMoney(overview.selectedAccount.reportingAmount)} reporting value</p> : <p className="mt-1 text-xs text-slate-500">Original currency (no conversion)</p>}</div></div></Card> : null}
       <Card>
         <CardHeader title="Multi-currency balances" eyebrow={`${overview.accountBalances.length} active accounts`} action={<Link href="/accounts" className="text-xs font-semibold text-blue-600">View accounts</Link>} />
         <div className="grid gap-3 p-5 sm:grid-cols-2 sm:p-6 lg:grid-cols-5">
@@ -128,7 +128,7 @@ export function OverviewDashboard({ overview }: Readonly<{ overview: OverviewMod
             <div key={account.id} className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
               <p className="text-xs font-medium text-slate-500">{account.label}</p>
               <p className="mt-2 text-base font-bold tabular-nums text-slate-950">{formatMoney(account.amount)}</p>
-              {account.amount.currency !== 'CNY' ? <p className="mt-1 text-[11px] text-slate-500">≈ {formatMoney(account.reportingAmount)} fallback</p> : null}
+              {account.amount.currency !== account.reportingAmount.currency ? <p className="mt-1 text-[11px] text-slate-500">≈ {formatMoney(account.reportingAmount)} reference equivalent</p> : null}
             </div>
           ))}
         </div>

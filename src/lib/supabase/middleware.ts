@@ -23,7 +23,7 @@ export async function updateSession(request: NextRequest) {
     });
     return redirect;
   };
-  if (publicSimulation(request.nextUrl.pathname)) return response;
+  if (publicSimulation(request.nextUrl.pathname) || (process.env.COMPETITION_PUBLIC_DEMO === '1' && (request.nextUrl.pathname === '/api/fx/rate' || request.nextUrl.pathname === '/api/fx/currencies'))) return response;
   if (!isSupabaseConfigured()) {
     const localBrowserDemo = process.env.NODE_ENV !== 'production' && process.env.PLAYWRIGHT_DEMO_MODE === '1';
     return publicRoute(request.nextUrl.pathname) || localBrowserDemo ? response : login();

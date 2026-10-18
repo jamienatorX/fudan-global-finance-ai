@@ -9,7 +9,13 @@ describe('demo international planning',()=>{
    expect(parseMajorAmount('100.25','CNY')).toBe('10025');
    expect(()=>parseMajorAmount('1.2','IDR')).toThrow();
    expect(referenceConversion(money(10_000_000n,'IDR'),'CNY',s.exchangeRates)).toMatchObject({amount:money(454_545n,'CNY')});
-   expect(()=>referenceConversion(money(5_000n,'USD'),'SGD',s.exchangeRates)).toThrow(/unavailable/i);
+   expect(referenceConversion(money(5_000n,'USD'),'SGD',s.exchangeRates).amount).toEqual(money(6574n,'SGD'));
+   expect(referenceConversion(money(1_000_000n,'IDR'),'USD',s.exchangeRates).amount).toEqual(money(6402n,'USD'));
+   for(const from of ['CNY','IDR','USD','SGD'] as const){
+     for(const to of ['CNY','IDR','USD','SGD'] as const){
+       expect(referenceConversion(money(100000000n,from),to,s.exchangeRates).amount.currency).toBe(to);
+     }
+   }
  });
  it('makes runway one-off tuition separate from recurring caps',()=>{
    const p=projectedRunway(s);

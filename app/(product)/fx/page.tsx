@@ -1,2 +1,2 @@
-import { FxWorkspace } from '../../../src/features/demo/scenario-workspaces';
-export default function Page() { return <FxWorkspace />; }
+import { FxWorkspace } from '../../../src/features/fx/fx-workspace';
+export default function Page() { return <FxWorkspace/>; }
