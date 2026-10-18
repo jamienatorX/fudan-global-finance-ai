@@ -52,7 +52,7 @@ export function LiveTransactions({initialAccount,initialCurrency,initialMonth,in
   const [currency,setCurrency]=useState<CurrencyCode>(initialCurrency&&Object.hasOwn(CURRENCY_MINOR_DIGITS,initialCurrency)?initialCurrency as CurrencyCode:'CNY');
   const [month,setMonth]=useState(initialMonth&&/^\d{4}-(0[1-9]|1[0-2])$/.test(initialMonth)?initialMonth:snapshot.asOf.slice(0,7));
   const [search,setSearch]=useState(initialSearch??'');
-  const [query,setQuery]=useState('');
+  const [query,setQuery]=useState(initialSearch??'');
   const owned=account?snapshot.accounts.some(a=>a.id===account):true;
   const report=useMemo(()=>buildSpendingReport(snapshot.transactions,month,prevMonth(month),currency,owned?account||undefined:undefined),[snapshot,month,currency,account,owned]);
   const transactions=useMemo(()=>snapshot.transactions.filter(t=>

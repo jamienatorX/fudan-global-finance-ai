@@ -1,9 +1,9 @@
 'use client';
 
-import { Bell, Menu, Search } from 'lucide-react';
+import { Bell, Menu } from 'lucide-react';
+import { GlobalSearch } from '../../features/search/global-search';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useState, type RefObject } from 'react';
-import { Badge } from '../ui/badge';
 import { SimulationBadge } from '../ui/simulation-badge';
 
 export type ShellAccountOption = Readonly<{ id: string; label: string }>;
@@ -21,11 +21,7 @@ export function Topbar({ accounts, userName, alerts, onOpenNavigation, navigatio
     <header className="sticky top-0 z-20 border-b border-[var(--color-border)] bg-white/90 backdrop-blur-xl">
       <div className="flex min-h-18 flex-wrap items-center gap-x-3 px-4 py-3 sm:flex-nowrap sm:px-6 lg:px-8">
         <button ref={navigationButtonRef} type="button" onClick={onOpenNavigation} aria-label="Open navigation" className="grid size-10 place-items-center rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 lg:hidden"><Menu size={20} aria-hidden /></button>
-        <div className="hidden min-w-0 flex-1 items-center gap-2 md:flex">
-          <Search size={18} className="text-slate-400" aria-hidden />
-          <span className="text-sm text-slate-500">Search coming in Phase 2</span>
-          <Badge tone="neutral">Coming next</Badge>
-        </div>
+        <div className="order-last w-full sm:order-none sm:min-w-0 sm:flex-1"><GlobalSearch accounts={accounts} /></div>
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
           <label className="sr-only" htmlFor="active-account">Active account</label>
           <select id="active-account" aria-label="Active account" value={selectedAccount} onChange={(event) => {

@@ -34,6 +34,7 @@ test.describe('overview dashboard', () => {
     await expect(page.getByRole('combobox', { name: 'Active account' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Notifications' })).toBeVisible();
     await expect(page.getByRole('link', { name: /Transfer money/ })).toBeVisible();
+    await expect(page.getByRole('searchbox', { name: 'Search banking' })).toBeVisible();
   });
 
   test('switches account context through URL state and updates the selected balance', async ({ page }) => {

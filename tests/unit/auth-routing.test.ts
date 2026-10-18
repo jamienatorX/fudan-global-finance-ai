@@ -14,6 +14,7 @@ describe('local browser demo routing', () => {
     expect((await updateSession(new NextRequest('https://app.example/copilot'))).status).toBe(307);
     expect((await updateSession(new NextRequest('https://app.example/competition'))).status).toBe(307);
     expect((await updateSession(new NextRequest('https://app.example/overview'))).status).toBe(200);
+    expect((await updateSession(new NextRequest('https://app.example/showcase'))).status).toBe(200);
     expect((await updateSession(new NextRequest('https://app.example/api/private'))).headers.get('location')).toBe('https://app.example/login');
   });
 
