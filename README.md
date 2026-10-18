@@ -1,4 +1,4 @@
-# Fudan Global Finance — Banking Simulation
+# Fu(福） bank
 
 An international-student finance **simulation** built with Next.js 16, React 19, TypeScript, Supabase Auth/PostgreSQL/RLS and Vercel.
 
@@ -38,3 +38,4 @@ For unconfigured local development, `PLAYWRIGHT_DEMO_MODE=1 npm run dev` enables
 The AI work is not active in this release. It can be recovered from <https://github.com/jamienatorX/fudan-global-finance-ai/pull/3> or the Git history rather than being rebuilt from scratch. Until a model is connected and a full agent journey is validated, **this version should not be represented as satisfying an AI-agent competition requirement**.
 
 See [Authenticated Banking Lab](docs/authenticated-banking-lab.md) and [Simulation Guide](docs/competition-demo-guide.md).
+
