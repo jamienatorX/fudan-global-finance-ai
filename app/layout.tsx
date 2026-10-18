@@ -3,6 +3,8 @@ import type { ReactNode } from 'react';
 import { inter } from '../src/styles/fonts';
 import './globals.css';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: '福 bank',
   description: 'Your money, clearly in view.',

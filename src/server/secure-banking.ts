@@ -45,3 +45,11 @@ export async function readBankingState(client: SimClient): Promise<BankingState>
     audit:rows('sim_audit').sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at))),
   };
 }
+
+
+export function securityFailure(message: string) {
+  for (const code of ['MFA_REQUIRED','REAUTH_REQUIRED','SESSION_EXPIRED','RATE_LIMITED','AUTH_REQUIRED']) {
+    if (message.includes(code)) return {code, status:code==='RATE_LIMITED'?429:code==='AUTH_REQUIRED'||code==='SESSION_EXPIRED'?401:403};
+  }
+  return null;
+}
