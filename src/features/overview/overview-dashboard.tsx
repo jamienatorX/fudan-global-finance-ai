@@ -27,6 +27,7 @@ function BankingShortcuts() {
     { href: '/planner', title: 'Plan tuition', detail: 'Budgets and cash runway' },
     { href: '/transactions', title: 'Review spending', detail: 'Transactions and trends' },
     { href: '/subscriptions', title: 'Manage subscriptions', detail: 'Review recurring costs' },
+    { href: '/showcase', title: 'Explore the product', detail: 'Phase 6 guided walkthrough' },
   ] as const;
   return (
     <section aria-label="Banking shortcuts" className="rounded-3xl bg-[var(--color-navy)] px-5 py-6 text-white shadow-[var(--shadow-elevated)] sm:px-8 sm:py-8">
