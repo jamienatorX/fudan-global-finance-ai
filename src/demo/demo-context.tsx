@@ -97,6 +97,11 @@ export function DemoProvider({ children }: Readonly<{ children: ReactNode }>) {
   return <Context.Provider value={{ snapshot: state.snapshot, version: state.version, pending, notice, results, request, approve, reject, executeBatch, reset }}>{children}</Context.Provider>;
 }
 
+/** Search and reusable shell components may render outside a demo provider in tests. */
+export function useOptionalDemo(): DemoContextValue | null {
+  return useContext(Context);
+}
+
 export function useDemo(): DemoContextValue {
   const value = useContext(Context);
   if (!value) throw new Error('DemoProvider is required for simulation pages');
