@@ -7,10 +7,10 @@ export function AuthShell({ children }: Readonly<{ children: ReactNode }>) {
     <main className="auth-page">
       <a href="#auth-form" className="auth-skip">Skip to sign-in form</a>
       <div className="auth-layout">
-        <section className="auth-story" aria-label="Fu(福） bank introduction">
-          <Link href="/" className="auth-brand" aria-label="Fu(福） bank home">
+        <section className="auth-story" aria-label="福 bank introduction">
+          <Link href="/" className="auth-brand" aria-label="福 bank home">
             <span className="auth-brand-mark"><span className="fu-logo" aria-hidden>福</span></span>
-            <span><strong>Fu(福） bank</strong><span className="auth-brand-caption">PERSONAL BANKING</span></span>
+            <span><strong>福 bank</strong><span className="auth-brand-caption">PERSONAL BANKING</span></span>
           </Link>
           <div className="auth-story-content">
             <p className="auth-eyebrow"><span />A WORLD OF POSSIBILITIES</p>
@@ -34,7 +34,7 @@ export function AuthShell({ children }: Readonly<{ children: ReactNode }>) {
         <section className="auth-form-panel" aria-label="Account access">
           <header className="auth-panel-header"><Link href="/" className="auth-back"><ArrowLeft size={16} aria-hidden />Back to overview</Link><span className="auth-environment">PERSONAL BANKING</span></header>
           <div id="auth-form" tabIndex={-1} className="auth-form-content">{children}</div>
-          <footer className="auth-panel-footer"><span>Fu(福） bank</span><Link href="/" aria-label="Open your banking overview">Your overview<ArrowUpRight size={14} aria-hidden /></Link></footer>
+          <footer className="auth-panel-footer"><span>福 bank</span><Link href="/" aria-label="Open your banking overview">Your overview<ArrowUpRight size={14} aria-hidden /></Link></footer>
         </section>
       </div>
     </main>

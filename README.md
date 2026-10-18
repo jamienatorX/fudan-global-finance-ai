@@ -1,4 +1,4 @@
-# Fu(福） bank
+# 福 bank
 
 An international-student finance **simulation** built with Next.js 16, React 19, TypeScript, Supabase Auth/PostgreSQL/RLS and Vercel.
 

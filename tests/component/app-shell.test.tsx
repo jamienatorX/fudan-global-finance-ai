@@ -87,7 +87,7 @@ describe('AppShell', () => {
     navigation.query = `account=${usdId}&unrelated=omit`;
     const model = await getOverviewModel(new DemoFinancialRepository(), DEMO_USER_ID, usdId);
     const { rerender } = render(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><OverviewDashboard overview={model} /></AppShell>);
-    for (const name of [/Fu.*bank/, 'View accounts', /Transfer money/, /Plan tuition/]) {
+    for (const name of [/福.*bank/, 'View accounts', /Transfer money/, /Plan tuition/]) {
       const href = screen.getByRole('link', { name }).getAttribute('href')!;
       const url = new URL(href, 'http://localhost');
       expect(url.searchParams.get('account')).toBe(usdId);

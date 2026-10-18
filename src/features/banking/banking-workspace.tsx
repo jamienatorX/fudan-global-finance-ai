@@ -119,7 +119,7 @@ export function BankingWorkspace(){
  return <div className="min-h-screen bg-slate-50 text-slate-900">
    <header className="border-b border-slate-200 bg-white">
      <div className="mx-auto flex max-w-[1480px] flex-wrap items-center justify-between gap-3 px-5 py-5 sm:px-8">
-      <div><p className="text-xl font-black tracking-tight text-blue-950"><span className="fu-logo mr-2" aria-hidden>福</span>Fu(福） bank</p>
+      <div><p className="text-xl font-black tracking-tight text-blue-950"><span className="fu-logo mr-2" aria-hidden>福</span>福 bank</p>
         <p className="text-xs font-semibold tracking-widest text-slate-500">PERSONAL BANKING · DEMO</p></div>
       <div className="flex items-center gap-2"><Link href="/overview" className={sec}>Overview</Link>
        <button className={sec} onClick={async()=>{await createBrowserSupabaseClient().auth.signOut();window.location.assign('/login');}}>Sign out</button></div>
@@ -185,7 +185,7 @@ export function BankingWorkspace(){
        </Pane></div>}
      {tab==='cards'&&<div className="grid gap-5 md:grid-cols-2">{state.cards.map(c=><Pane key={String(c.id)} title={String(c.label)}>
        <div className="rounded-2xl bg-gradient-to-br from-slate-950 to-blue-800 px-6 py-5 text-white">
-        <p className="text-sm font-semibold">福 · Fu bank</p><p className="mt-12 font-mono text-xl tracking-widest">{String(c.masked_number)}</p>
+        <p className="text-sm font-semibold">福 bank</p><p className="mt-12 font-mono text-xl tracking-widest">{String(c.masked_number)}</p>
         <p className="mt-3 text-xs">{c.frozen?'FROZEN':'ACTIVE'}</p></div>
        <p className="mt-4 text-sm text-slate-600">Monthly limit: <strong>{money(c.monthly_limit_minor)}</strong></p>
        <div className="mt-4 flex flex-wrap gap-2"><button className={cta} onClick={()=>void prepare({type:'card',cardId:String(c.id),mode:c.frozen?'unfreeze':'freeze'})}>

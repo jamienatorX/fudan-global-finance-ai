@@ -27,7 +27,7 @@ export function BankingShowcase() {
     .reduce((sum,t)=>sum+t.amount.amountMinor-t.paidAmount.amountMinor,0n);
   return <div className="space-y-7 pb-16">
     <header className="overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-blue-950 to-blue-700 p-6 text-white sm:p-9">
-      <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-200">Fu(福） bank</p>
+      <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-200">福 bank</p>
       <div className="mt-4 grid gap-6 lg:grid-cols-[1.5fr_1fr] lg:items-end">
         <div><h1 className="max-w-3xl text-3xl font-bold tracking-tight sm:text-4xl">One financial home for international students</h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-blue-100">

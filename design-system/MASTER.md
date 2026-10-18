@@ -1,4 +1,4 @@
-# Fu(福） bank design system
+# 福 bank design system
 
 International student banking simulation. The visual direction is calm, distinctive and financial, with a prominent snapshot and clear paths to everyday tasks.
 

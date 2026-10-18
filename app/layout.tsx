@@ -4,7 +4,7 @@ import { inter } from '../src/styles/fonts';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Fu(福） bank',
+  title: '福 bank',
   description: 'Your money, clearly in view.',
 };
 

@@ -80,7 +80,7 @@ function PageBody({ section }: { section: Page }) {
       </div>)}</Panel></div>}
     {section==='cards' && <div className="grid gap-5 md:grid-cols-2">{snapshot.cards.map(c=><Panel key={c.id} title={c.purpose.replaceAll('-',' ')+' virtual card'}>
       <div className="rounded-2xl bg-gradient-to-br from-slate-950 to-blue-800 p-6 text-white">
-        <p className="text-sm font-semibold">福 · Fu bank</p><p className="mt-12 font-mono text-2xl tracking-widest">{c.maskedNumber}</p>
+        <p className="text-sm font-semibold">福 bank</p><p className="mt-12 font-mono text-2xl tracking-widest">{c.maskedNumber}</p>
         <p className="mt-3 text-sm capitalize">{c.freezeState}</p>
       </div><p className="mt-4 text-sm">Daily limit: {formatMoney(c.dailyLimit)}</p><p className="mt-1 text-sm">Monthly limit: {formatMoney(c.monthlyLimit)}</p>
       <div className="mt-4"><button className={button} onClick={()=>submit(()=>({type:'card',cardId:c.id,mode:c.freezeState==='frozen'?'unfreeze':'freeze'}))}>{c.freezeState==='frozen'?'Review unfreeze':'Review freeze'}</button></div>
