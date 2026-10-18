@@ -51,7 +51,7 @@ export function CsvImportPreview() {
       {preview ? (
         <div className="mt-4 space-y-3" aria-live="polite">
           <p className="text-sm font-semibold text-slate-900">{preview.validRows.length} valid / {preview.errors.length} invalid out of {preview.totalRows} rows</p>
-          <p className="text-xs text-amber-800">Preview only. No rows are saved or transferred. Import execution requires a separate approval and deduplication workflow.</p>
+          <p className="text-xs text-amber-800">Preview only. Your transactions have not changed.</p>
           {preview.errors.length > 0 ? <ul className="list-disc space-y-1 pl-5 text-sm text-red-700">{preview.errors.slice(0, 20).map((issue) => <li key={issue.line}>Record {issue.line}: {issue.message}</li>)}</ul> : null}
           {preview.validRows.length > 0 ? <div className="max-h-56 overflow-auto rounded-xl border border-slate-200">
             <table className="w-full min-w-[460px] text-left text-xs"><thead className="sticky top-0 bg-slate-50"><tr><th className="p-2">Date</th><th className="p-2">Merchant</th><th className="p-2">Direction</th><th className="p-2">Minor units</th><th className="p-2">Currency</th></tr></thead>
@@ -64,3 +64,4 @@ export function CsvImportPreview() {
     </Card>
   );
 }
+
