@@ -19,7 +19,7 @@ export function parseMajorAmount(text: string, currency: CurrencyCode): string {
 export function referenceConversion(value: Money, target: CurrencyCode, rates: readonly ExchangeRate[]) {
   if (value.currency === target) return { amount: value, source: 'identity', referenceAt: '' };
   const parseRate = (raw: string) => {
-    if (!/^\\d+(?:\\.\\d+)?$/.test(raw)) return null;
+    if (!/^\d+(?:\.\d+)?$/.test(raw)) return null;
     const [whole,fraction=''] = raw.split('.');
     const numerator = BigInt(whole+fraction),denominator = 10n ** BigInt(fraction.length);
     return numerator > 0n ? { numerator,denominator } : null;
