@@ -4,9 +4,9 @@ test.describe('banking simulation critical paths (AI features paused)', () => {
   test('a simulated card freeze requires human confirmation and survives reload',async({page})=>{
     await page.goto('/cards');
     await page.getByRole('button',{name:'Review freeze'}).first().click();
-    const modal=page.getByRole('region',{name:'Simulation approval and result'});
+    const modal=page.getByRole('region',{name:'Review and confirmation'});
     await expect(modal).toContainText('approval required');
-    await page.getByRole('button',{name:'Approve simulation'}).click();
+    await page.getByRole('button',{name:'Confirm'}).click();
     await page.reload();
     await expect(page.getByRole('button',{name:'Review unfreeze'}).first()).toBeVisible();
   });
@@ -18,15 +18,15 @@ test.describe('banking simulation critical paths (AI features paused)', () => {
     await page.getByLabel('CSV contents').fill('date,merchant,amount,currency\n2026-02-30,Bad,-12.00,CNY\n2026-10-11,Valid,-2.50,CNY');
     await page.getByRole('button',{name:'Validate and preview'}).click();
     await expect(page.getByText('1 valid / 1 invalid out of 2 rows')).toBeVisible();
-    await expect(page.getByText('Preview only.')).toBeVisible();
+    await expect(page.getByText('Preview only. Your transactions have not changed.')).toBeVisible();
   });
   test('reset removes all simulated mutations',async({page})=>{
     await page.goto('/cards');
     await page.getByRole('button',{name:'Review freeze'}).first().click();
-    await page.getByRole('button',{name:'Approve simulation'}).click();
+    await page.getByRole('button',{name:'Confirm'}).click();
     await page.goto('/settings');
     await page.getByRole('textbox',{name:'Type RESET DEMO'}).fill('RESET DEMO');
-    await page.getByRole('button',{name:'Reset browser-local simulation'}).click();
+    await page.getByRole('button',{name:'Reset data'}).click();
     await page.goto('/cards');
     await expect(page.getByRole('button',{name:'Review freeze'}).first()).toBeVisible();
   });
@@ -36,3 +36,4 @@ test.describe('banking simulation critical paths (AI features paused)', () => {
     await expect(page.getByRole('link', { name: 'Ask AI banker' })).toHaveCount(0);
   });
 });
+
