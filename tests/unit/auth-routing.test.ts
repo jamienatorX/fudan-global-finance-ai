@@ -16,7 +16,7 @@ describe('local browser demo routing', () => {
     expect((await updateSession(new NextRequest('https://app.example/overview',{headers:{cookie:'bank-demo=1'}}))).status).toBe(200);
     expect((await updateSession(new NextRequest('https://app.example/showcase',{headers:{cookie:'bank-demo=1'}}))).status).toBe(200);
     expect((await updateSession(new NextRequest('https://app.example/api/fx/ticker'))).status).toBe(200);
-    expect((await updateSession(new NextRequest('https://app.example/api/banking/state'))).status).toBe(307);
+    expect((await updateSession(new NextRequest('https://app.example/api/banking/state'))).status).toBe(401);
     expect((await updateSession(new NextRequest('https://app.example/overview'))).status).toBe(307);
     expect((await updateSession(new NextRequest('https://app.example/api/private'))).headers.get('location')).toBe('https://app.example/login');
   });

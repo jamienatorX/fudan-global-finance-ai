@@ -16,7 +16,9 @@ export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
   response.headers.set('Cache-Control', 'private, no-store');
   const login = () => {
-    const redirect = new NextResponse(null,{status:307,headers:{Location:requestOrigin(request)+'/login'}});
+    const redirect = request.nextUrl.pathname.startsWith('/api/banking/')
+      ? NextResponse.json({error:'AUTH_REQUIRED'},{status:401})
+      : new NextResponse(null,{status:307,headers:{Location:requestOrigin(request)+'/login'}});
     response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
     response.headers.forEach((value, name) => {
       if (!['set-cookie', 'location', 'x-middleware-next', 'x-middleware-override-headers'].includes(name) && !name.startsWith('x-middleware-request-')) redirect.headers.set(name, value);
