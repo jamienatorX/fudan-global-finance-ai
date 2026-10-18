@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeftRight, ArrowRight, Clock3, Globe2, RefreshCw, ShieldCheck, TrendingUp } from 'lucide-react';
+import { ArrowLeftRight, ArrowRight, Clock3, Globe2, RefreshCw, TrendingUp } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useDemo } from '../../demo/demo-context';
 import { CURRENCY_MINOR_DIGITS, type CurrencyCode } from '../../domain/currency';
@@ -58,7 +58,7 @@ function localQuote(base: string, quote: string, rates: Parameters<typeof refere
     const targetScale=10**CURRENCY_MINOR_DIGITS[to];
     return {base,quote,rate:Number(output.amount.amountMinor)/targetScale/100_000_000,
       date: output.referenceAt.slice(0,10),source:base===quote?'identity':'fallback',
-      provider:base===quote?'Identity conversion':'Fictional seed via '+('via' in output && typeof output.via === 'number' && output.via>1?'cross-rate':'direct/inverse rate')};
+      provider:base===quote?'Same currency':'Fictional seed via '+('via' in output && typeof output.via === 'number' && output.via>1?'cross-rate':'direct/inverse rate')};
   } catch {return null;}
 }
 
@@ -107,7 +107,7 @@ export function FxWorkspace() {
       }catch(e){
         if(controller.signal.aborted)return;
         const fallback=localQuote(base,quote,snapshot.exchangeRates);
-        if(fallback){setRate(fallback);setError('Live reference unavailable. Showing the historical fictional demo fixture instead.');}
+        if(fallback){setRate(fallback);setError('Live rates are unavailable. A sample rate is shown.');}
         else setError(e instanceof Error?e.message:'Currency quote unavailable');
       }finally{if(!controller.signal.aborted)setLoading(false);}
     }
@@ -127,12 +127,8 @@ export function FxWorkspace() {
     <header className="overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-blue-950 to-blue-700 p-6 text-white sm:p-9">
       <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-blue-200"><Globe2 size={17}/> Global currency desk</div>
       <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">Convert between global currencies</h1>
-      <p className="mt-3 max-w-3xl text-sm leading-6 text-blue-100">
-        Compare the latest published mid-market reference rates across global currencies, with no API key or subscription.
-        Live reference rates update according to their providers&apos; publication schedules, not on every market tick.
-      </p>
+
       <div className="mt-5 flex flex-wrap gap-2">
-        <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs text-blue-100"><ShieldCheck size={13} className="mr-1 inline"/>No real exchange or remittance</span>
         <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs text-blue-100"><Clock3 size={13} className="mr-1 inline"/>Dated reference quotes</span>
         <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs text-blue-100">{catalogNote}</span>
       </div>
@@ -167,9 +163,9 @@ export function FxWorkspace() {
           </div>
           {rate&&!loading&&<div className="mt-4 space-y-2 border-t border-blue-100 pt-4 text-sm text-slate-700">
             <p>1 {base} ≈ <strong>{niceRate(rate.rate)} {quote}</strong></p>
-            <p className="text-xs text-slate-500">{rate.provider} · Reference date {referenceDate||'not applicable'}</p>
+            <p className="text-xs text-slate-500">{isFallback?'Sample rate':rate.provider} · {referenceDate||'Same currency'}</p>
             <p className={'text-xs font-bold '+(isFallback?'text-amber-800':'text-emerald-700')}>
-              {isFallback?'FALLBACK · fictional historical fixture':rate.source==='identity'?'Identity conversion':'Latest published reference rate · cached up to one hour'}
+              {isFallback?'Sample rate · not live':rate.source==='identity'?'Same currency':'Published reference rate'}
             </p>
           </div>}
         </div>
@@ -191,3 +187,4 @@ export function FxWorkspace() {
     </div>
   </div>;
 }
+
