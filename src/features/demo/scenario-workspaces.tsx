@@ -29,14 +29,14 @@ function PageBody({ section }: { section: Page }) {
     catch (cause) { setError(cause instanceof Error ? cause.message : 'Please check these fields.'); }
   };
   const names: Record<Page, [string,string]> = {
-    transfers: ['Smart transfers', 'Move fictional balances between your own accounts or to verified demo recipients. Approval is mandatory; schedules use Shanghai time.'],
-    cards: ['Card management', 'Freeze, unfreeze and update limits on simulated virtual cards. Only masked numbers are displayed.'],
-    subscriptions: ['Subscription management', 'Review recurring charges and simulate cancellations. Past transactions remain unchanged.'],
-    wealth: ['Wealth management', 'Explore fictional products with illustrative returns and risks. No securities are purchased.'],
-    fx: ['FX & cross-border', 'Reference-only exchange rates. No executable quotes, fees, or live cross-border transfers.'],
-    planner: ['Budget & tuition planner', 'Track student expenses, tuition commitments and cash runway on the same simulated ledger.'],
-    audit: ['Audit & notifications', 'Review recorded demo changes, status, receipts and correlation identifiers.'],
-    settings: ['Settings & demo reset', 'Manage browser-local demonstration data. Reset discards local changes.'],
+    transfers: ['Smart transfers', 'Transfer between your accounts or to a saved recipient.'],
+    cards: ['Card management', ''],
+    subscriptions: ['Subscription management', ''],
+    wealth: ['Wealth management', ''],
+    fx: ['FX & cross-border', ''],
+    planner: ['Budget & tuition planner', ''],
+    audit: ['Audit & notifications', ''],
+    settings: ['Settings', ''],
   };
   const [title,description]=names[section];
   const accountId=val('source',snapshot.accounts[0].id);
@@ -52,7 +52,7 @@ function PageBody({ section }: { section: Page }) {
   }
   const eligibleCny=snapshot.accounts.filter(a=>a.status==='active'&&a.currency==='CNY');
   return <div className="space-y-6">
-    <header><p className="text-xs font-bold uppercase tracking-widest text-blue-700">Interactive · simulated finance</p>
+    <header>
       <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950">{title}</h1>
       <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{description}</p></header>
     {section==='transfers' && <div className="grid gap-5 lg:grid-cols-2">
@@ -61,7 +61,7 @@ function PageBody({ section }: { section: Page }) {
           <Label caption="Source account"><select className={field} value={accountId} onChange={e=>{set('source',e.target.value);set('recipient','');}}>
             {snapshot.accounts.filter(a=>a.status==='active').map(a=><option key={a.id} value={a.id}>{a.currency} {a.type} · {formatMoney(a.availableBalance)}</option>)}</select></Label>
           <Label caption="Recipient"><select className={field} value={val('recipient','')} onChange={e=>set('recipient',e.target.value)}>
-            <option value="">Choose a verified demo recipient</option>
+            <option value="">Choose a recipient</option>
             {snapshot.accounts.filter(a=>a.id!==source.id&&a.currency===source.currency).map(a=><option key={a.id} value={'account:'+a.id}>Own {a.currency} {a.type}</option>)}
             {snapshot.beneficiaries.filter(b=>b.supportedCurrencies.includes(source.currency)).map(b=><option key={b.id} value={'beneficiary:'+b.id}>{b.displayName} · {b.accountAlias}</option>)}
           </select></Label>
@@ -80,7 +80,7 @@ function PageBody({ section }: { section: Page }) {
       </div>)}</Panel></div>}
     {section==='cards' && <div className="grid gap-5 md:grid-cols-2">{snapshot.cards.map(c=><Panel key={c.id} title={c.purpose.replaceAll('-',' ')+' virtual card'}>
       <div className="rounded-2xl bg-gradient-to-br from-slate-950 to-blue-800 p-6 text-white">
-        <p className="text-sm font-semibold">Fudan Global · Demo Virtual</p><p className="mt-12 font-mono text-2xl tracking-widest">{c.maskedNumber}</p>
+        <p className="text-sm font-semibold">福 · Fu bank</p><p className="mt-12 font-mono text-2xl tracking-widest">{c.maskedNumber}</p>
         <p className="mt-3 text-sm capitalize">{c.freezeState}</p>
       </div><p className="mt-4 text-sm">Daily limit: {formatMoney(c.dailyLimit)}</p><p className="mt-1 text-sm">Monthly limit: {formatMoney(c.monthlyLimit)}</p>
       <div className="mt-4"><button className={button} onClick={()=>submit(()=>({type:'card',cardId:c.id,mode:c.freezeState==='frozen'?'unfreeze':'freeze'}))}>{c.freezeState==='frozen'?'Review unfreeze':'Review freeze'}</button></div>
@@ -89,7 +89,7 @@ function PageBody({ section }: { section: Page }) {
     </Panel>)}</div>}
     {section==='subscriptions' && <>
       <Panel title="Recurring commitments"><p className="text-3xl font-bold">{formatMoney(money(totalSubscriptions,'CNY'))} <span className="text-sm font-normal text-slate-500">/ month</span></p>
-      <p className="mt-2 text-xs text-slate-500">Annualized estimate: {formatMoney(money(totalSubscriptions*12n,'CNY'))}. Fictional renewal data.</p></Panel>
+      <p className="mt-2 text-xs text-slate-500">Annualized estimate: {formatMoney(money(totalSubscriptions*12n,'CNY'))}.</p></Panel>
       <div className="grid gap-5 md:grid-cols-2">{snapshot.subscriptions.map(s=><Panel key={s.id} title={s.merchant}>
         <div className="flex justify-between gap-2"><strong className="text-xl">{formatMoney(s.amount)} / {s.cadence}</strong><span className="capitalize text-slate-500">{s.status}</span></div>
         <p className="mt-3 text-sm text-slate-600">Renewal: {s.nextRenewalAt.slice(0,10)}</p>
@@ -97,13 +97,13 @@ function PageBody({ section }: { section: Page }) {
         {s.status==='active'&&<button className={button+' mt-4'} onClick={()=>submit(()=>({type:'subscription',subscriptionId:s.id}))}>Review cancellation</button>}
       </Panel>)}</div></>}
     {section==='wealth' && <div className="grid gap-5 lg:grid-cols-2">
-      <div className="space-y-4"><Panel title="Simulated risk tolerance"><select className={field} value={val('risk','low')} onChange={e=>set('risk',e.target.value)}><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></Panel>
+      <div className="space-y-4"><Panel title="Risk preference"><select className={field} value={val('risk','low')} onChange={e=>set('risk',e.target.value)}><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></Panel>
       {snapshot.investmentProducts.map(p=><Panel key={p.id} title={p.name}>
         <p className="text-sm text-slate-600">{p.category.replaceAll('-',' ')} · {p.simulatedRisk} risk · fee {(p.feeBasisPoints/100).toFixed(2)}% · {p.liquidity}</p>
-        <p className="mt-2 text-xs text-slate-500">Fictional sample return {(p.historicalSimulation.returnBasisPoints/100).toFixed(2)}%; drawdown {(p.historicalSimulation.drawdownBasisPoints/100).toFixed(2)}%. No guaranteed returns.</p>
-        <button className={secondary+' mt-3'} onClick={()=>set('product',p.id)}>Select for simulation</button>
+        <p className="mt-2 text-xs text-slate-500">Illustrative return {(p.historicalSimulation.returnBasisPoints/100).toFixed(2)}%; drawdown {(p.historicalSimulation.drawdownBasisPoints/100).toFixed(2)}%. No guaranteed returns.</p>
+        <button className={secondary+' mt-3'} onClick={()=>set('product',p.id)}>Select product</button>
       </Panel>)}</div>
-      <div className="space-y-4"><Panel title="Simulated investment order">
+      <div className="space-y-4"><Panel title="Investment order">
         <div className="space-y-3">
           <Label caption="Product"><select className={field} value={val('product',snapshot.investmentProducts[0].id)} onChange={e=>set('product',e.target.value)}>{snapshot.investmentProducts.map(p=><option value={p.id} key={p.id}>{p.name}</option>)}</select></Label>
           <Label caption="Order direction"><select className={field} value={val('direction','buy')} onChange={e=>set('direction',e.target.value)}><option value="buy">Buy</option><option value="redeem">Redeem</option></select></Label>
@@ -114,9 +114,9 @@ function PageBody({ section }: { section: Page }) {
             const ranks={low:0,medium:1,high:2};
             if(val('direction','buy')==='buy' && ranks[p.simulatedRisk]>ranks[val('risk','low') as keyof typeof ranks])throw new Error('Product exceeds selected risk tolerance');
             return {type:'investment',productId:p.id,sourceId:val('funding',eligibleCny[0].id),direction:val('direction','buy') as 'buy'|'redeem',amountMinor:parseMajorAmount(val('investmentAmount','1000.00'),'CNY')};
-          })}>Review simulated order</button>
+          })}>Review order</button>
         </div></Panel>
-        <Panel title="Current fictional holdings">{snapshot.holdings.map(h=><p className="mt-3 flex justify-between gap-3 text-sm" key={h.id}><span>{snapshot.investmentProducts.find(p=>p.id===h.productId)?.name}</span><strong>{formatMoney(h.simulatedValue)}</strong></p>)}</Panel>
+        <Panel title="Current holdings">{snapshot.holdings.map(h=><p className="mt-3 flex justify-between gap-3 text-sm" key={h.id}><span>{snapshot.investmentProducts.find(p=>p.id===h.productId)?.name}</span><strong>{formatMoney(h.simulatedValue)}</strong></p>)}</Panel>
       </div></div>}
     {section==='fx' && <div className="grid gap-5 lg:grid-cols-2"><Panel title="Reference conversion">
       <div className="grid grid-cols-2 gap-3">{[['currency',currency],['target',target]].map(([key,current])=><Label key={key} caption={key==='currency'?'From':'To'}><select className={field} value={current} onChange={e=>set(key,e.target.value)}>{Object.keys(CURRENCY_MINOR_DIGITS).map(c=><option key={c}>{c}</option>)}</select></Label>)}</div>
@@ -129,7 +129,7 @@ function PageBody({ section }: { section: Page }) {
       </div>)}</Panel></div>}
     {section==='planner' && <>
       <div className="grid gap-4 sm:grid-cols-3">{[['Available CNY',formatMoney(runway.available)],['Monthly budget',formatMoney(runway.monthly)],['Projected runway',runway.months===null?'Not finite':runway.months+' months']].map(([n,v])=><div key={n} className={card}><p className="text-sm text-slate-500">{n}</p><p className="mt-2 text-2xl font-bold">{v}</p></div>)}</div>
-      <p className="text-sm text-slate-600">Runway = (available CNY − unpaid tuition) ÷ current monthly budget limits, with demo fallback exchange rates.</p>
+
       <div className="grid gap-5 lg:grid-cols-2"><Panel title="Update monthly budget caps">{snapshot.budgets.filter(b=>b.month===snapshot.asOf.slice(0,7)).map(b=><div key={b.id} className="border-b border-slate-100 py-3">
         <p className="text-sm font-semibold capitalize">{b.category}: {formatMoney(b.limit)} <span className="text-slate-500">· spent {formatMoney(b.actualSpend)}</span></p>
         <div className="mt-2 flex gap-2"><input aria-label={'New '+b.category+' budget'} className={field+' !mt-0'} placeholder="New amount CNY" value={val('budget:'+b.id)} onChange={e=>set('budget:'+b.id,e.target.value)}/>
@@ -138,23 +138,23 @@ function PageBody({ section }: { section: Page }) {
       <Panel title="Tuition & emergency fund">{snapshot.tuitionObligations.map(t=><div key={t.id} className="mb-5 space-y-2 text-sm">
         <p><strong>{t.institution}</strong> · {t.installment}</p><p>Due {t.dueAt.slice(0,10)} · <span className="capitalize">{t.status}</span></p>
         <p>Outstanding {formatMoney(money(t.amount.amountMinor-t.paidAmount.amountMinor,t.amount.currency))}</p>
-        {t.status!=='paid' && eligibleCny[0]&&<button className={button} onClick={()=>submit(()=>({type:'tuition',sourceId:eligibleCny[0].id,tuitionId:t.id}))}>Review simulated tuition payment</button>}
+        {t.status!=='paid' && eligibleCny[0]&&<button className={button} onClick={()=>submit(()=>({type:'tuition',sourceId:eligibleCny[0].id,tuitionId:t.id}))}>Review tuition payment</button>}
       </div>)}{snapshot.accounts.filter(a=>a.goal).map(a=><div className="rounded-xl bg-blue-50 p-4" key={a.id}><p className="text-sm font-semibold">Emergency fund</p><p className="mt-1 text-sm">{formatMoney(a.balance)} / {formatMoney(a.goal!)}</p>
       <progress className="mt-2 w-full" value={Number(a.balance.amountMinor)} max={Number(a.goal!.amountMinor)}/></div>)}</Panel></div></>}
     {section==='audit' && <Panel title={'Audit events · '+snapshot.auditEvents.length}><ol className="divide-y divide-slate-100">{snapshot.auditEvents.toReversed().map(e=><li key={e.id} className="py-4 text-sm">
       <div className="flex justify-between gap-3"><strong>{e.eventType}</strong><span className="text-xs text-slate-500">{e.occurredAt.slice(0,19)}</span></div>
-      <p className="mt-1 text-slate-600">{e.afterSummary&&typeof e.afterSummary==='object'&&!Array.isArray(e.afterSummary)&&'summary'in e.afterSummary?String(e.afterSummary.summary):'Fictional action recorded'}</p>
+      <p className="mt-1 text-slate-600">{e.afterSummary&&typeof e.afterSummary==='object'&&!Array.isArray(e.afterSummary)&&'summary'in e.afterSummary?String(e.afterSummary.summary):'Activity recorded'}</p>
       <p className="mt-1 text-xs text-slate-500">Correlation: {e.correlationId} · {e.outcome}</p>
     </li>)}</ol></Panel>}
     {section==='settings' && <div className="grid gap-5 lg:grid-cols-2"><Panel title="Profile and security">
       <p className="text-sm">{snapshot.users[0].profile.displayName} · {snapshot.users[0].profile.institution}</p>
-      <p className="mt-3 text-sm text-slate-600">Data is held in this browser&apos;s local storage only. No real banking credentials, payments or licensed services.</p>
-      <p className="mt-3 text-sm text-slate-600">The separate Supabase database schema is not used for these browser-local demo changes.</p></Panel>
-      <Panel title="Reset demo"><p className="text-sm text-slate-600">Restore the exact baseline fixture. This will overwrite all locally simulated actions and audit records.</p>
+
+      </Panel>
+      <Panel title="Reset data"><p className="text-sm text-slate-600">Resetting removes your activity and restores the starting balances. This cannot be undone.</p>
       <Label caption="Type RESET DEMO"><input className={field} value={val('reset')} onChange={e=>set('reset',e.target.value)}/></Label>
-      <button className={button+' mt-4'} onClick={()=>{if(!reset(val('reset')))setError('Type RESET DEMO exactly.');else{set('reset','');setError(null);}}}>Reset browser-local simulation</button></Panel></div>}
+      <button className={button+' mt-4'} onClick={()=>{if(!reset(val('reset')))setError('Type RESET DEMO exactly.');else{set('reset','');setError(null);}}}>Reset data</button></Panel></div>}
     {error&&<p role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-red-800">{error}</p>}
-    <p className="text-xs text-slate-500">Competition prototype. All transactions, card settings, holdings, transfers and account balances are fictional. Explicit approval is required before applying any proposed demo change.</p>
+
   </div>;
 }
 export function TransfersWorkspace(){return <PageBody section="transfers"/>}
@@ -165,3 +165,4 @@ export function FxWorkspace(){return <PageBody section="fx"/>}
 export function PlannerWorkspace(){return <PageBody section="planner"/>}
 export function AuditWorkspace(){return <PageBody section="audit"/>}
 export function SettingsWorkspace(){return <PageBody section="settings"/>}
+
