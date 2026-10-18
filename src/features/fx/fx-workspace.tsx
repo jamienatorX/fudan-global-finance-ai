@@ -174,7 +174,6 @@ export function FxWorkspace() {
           </div>}
         </div>
         {error&&<p role={isFallback?'status':'alert'} className="mt-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">{error}</p>}
-        <p className="mt-4 text-xs leading-5 text-slate-500">Indicative only: real exchange providers apply spreads, fees, cutoffs, and verification. No payment or money transfer is initiated.</p>
       </section>
       <section className={panel}>
         <div className="flex items-center gap-2 text-blue-700"><TrendingUp size={20}/><h2 className="text-xl font-bold text-slate-950">Popular currency pairs</h2></div>
@@ -187,13 +186,6 @@ export function FxWorkspace() {
             <span className="font-semibold text-slate-900">{from} <ArrowRight size={14} className="mx-1 inline text-blue-600"/> {to}</span>
             <span className="text-xs text-slate-500">{base===from&&quote===to?'Selected':'View rate'}</span>
           </button>)}
-        </div>
-        <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-xs font-bold uppercase tracking-wider text-amber-900">Offline support</p>
-          <p className="mt-1 text-sm leading-6 text-amber-900">
-            When the provider is unavailable, CNY, IDR, USD, and SGD pairs remain convertible using clearly marked fictional
-            reference data. Other currencies display an unavailable status rather than an invented price.
-          </p>
         </div>
       </section>
     </div>
