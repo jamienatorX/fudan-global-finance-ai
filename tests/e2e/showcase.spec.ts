@@ -6,12 +6,13 @@ test.describe('Phase 6 manual banking presentation',()=>{
     await expect(page.getByRole('region',{name:'Guided product tour'}).getByRole('button')).toHaveCount(8+1);
     await page.getByRole('button',{name:/Tuition & budgeting/}).click();
     await expect(page.getByRole('heading',{name:'Tuition & budgeting'})).toBeVisible();
-    await page.getByRole('link',{name:'Open working module'}).click();
+    await page.getByRole('link',{name:'Open service'}).click();
     await expect(page).toHaveURL(/\/planner/);
   });
   test('does not offer an AI banking agent or real money',async({page})=>{
     await page.goto('/showcase');
-    await expect(page.getByText(/AI banking is intentionally paused/)).toBeVisible();
-    await expect(page.getByText(/does not claim to fulfill AI-agent-track requirements/)).toBeVisible();
+    await expect(page.getByText('Demo').first()).toBeVisible();
+    await expect(page.getByText(/Supabase|AI-agent-track requirements/)).toHaveCount(0);
   });
 });
+

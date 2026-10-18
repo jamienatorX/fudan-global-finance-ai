@@ -23,8 +23,8 @@ test('presents a usable sign-in page and a matching registration page', async ({
   await page.setViewportSize({ width: 375, height: 812 });
   await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.getByRole('link', { name: 'Create a simulated banking account' }).click();
-  await expect(page.getByRole('form', { name: 'Create a simulated account' })).toBeVisible();
+  await page.getByRole('link', { name: 'Create an account' }).click();
+  await expect(page.getByRole('form', { name: 'Create an account' })).toBeVisible();
   await expect(page.getByLabel('Password', { exact: true })).toHaveAttribute('minlength', '12');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   if (testInfo.project.name === 'desktop-chromium') {

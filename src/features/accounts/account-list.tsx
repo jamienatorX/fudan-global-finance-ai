@@ -19,7 +19,7 @@ export function AccountList({ accounts, reportingBalances }: Readonly<{
           {conversions.has(account.id) ? <p className="mt-2 text-xs text-slate-500">CNY reference: {formatMoney(conversions.get(account.id)!)}</p> : null}
           {account.goal ? <p className="mt-2 text-xs text-slate-500">Savings goal: {formatMoney(account.goal)}</p> : null}
           <div className="mt-5 flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
-            <span className="text-xs capitalize text-slate-500">{account.status} · Simulated</span>
+            <span className="text-xs capitalize text-slate-500">{account.status}</span>
             <Link href={`/transactions?account=${encodeURIComponent(account.id)}&currency=${account.currency}`}
               className="rounded-xl bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100 focus-visible:outline-2 focus-visible:outline-blue-500">View transactions</Link>
           </div>
@@ -28,3 +28,4 @@ export function AccountList({ accounts, reportingBalances }: Readonly<{
     </div>
   );
 }
+

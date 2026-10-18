@@ -4,8 +4,8 @@ import { inter } from '../src/styles/fonts';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Fudan Global Finance AI',
-  description: 'Your Intelligent Banking Companion',
+  title: 'Fu(福） bank',
+  description: 'Your money, clearly in view.',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
@@ -15,3 +15,4 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     </html>
   );
 }
+

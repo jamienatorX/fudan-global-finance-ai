@@ -60,7 +60,7 @@ describe('AppShell', () => {
     ]);
     expect(screen.getByRole('combobox', { name: 'Active account' })).toHaveValue(snapshot.accounts[0].id);
     expect(screen.getByRole('button', { name: 'Notifications' })).toBeInTheDocument();
-    expect(screen.getAllByText('Simulated data').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Demo').length).toBeGreaterThan(0);
     expect(screen.queryByRole('link', { name: 'Ask AI banker' })).not.toBeInTheDocument();
     expect(screen.getByRole('searchbox', { name: 'Search banking' })).toBeInTheDocument();
     expect(screen.queryByText('Search coming in Phase 2')).not.toBeInTheDocument();
@@ -76,12 +76,12 @@ describe('AppShell', () => {
 
   it('keeps the simulation label exposed in the shell and mobile drawer', () => {
     render(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><p>Accounts</p></AppShell>);
-    const badge = within(screen.getByRole('banner')).getByText('Simulated data');
+    const badge = within(screen.getByRole('banner')).getByText('Demo');
     for (let element: HTMLElement | null = badge; element && element.tagName !== 'HEADER'; element = element.parentElement) {
       expect(element.className).not.toMatch(/(?:^|\s)(?:hidden|\w+:hidden)(?:\s|$)/);
     }
     fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }));
-    expect(within(screen.getByRole('dialog', { name: 'Mobile navigation' })).getByText('Simulated data')).toBeInTheDocument();
+    expect(within(screen.getByRole('dialog', { name: 'Mobile navigation' })).getByText('Demo')).toBeInTheDocument();
   });
 
   it('preserves account context in brand, banking shortcuts, and placeholder links', async () => {
@@ -89,7 +89,7 @@ describe('AppShell', () => {
     navigation.query = `account=${usdId}&unrelated=omit`;
     const model = await getOverviewModel(new DemoFinancialRepository(), DEMO_USER_ID, usdId);
     const { rerender } = render(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><OverviewDashboard overview={model} /></AppShell>);
-    for (const name of [/Fudan Global/, 'View accounts', /Transfer money/, /Plan tuition/]) {
+    for (const name of [/Fu.*bank/, 'View accounts', /Transfer money/, /Plan tuition/]) {
       const href = screen.getByRole('link', { name }).getAttribute('href')!;
       const url = new URL(href, 'http://localhost');
       expect(url.searchParams.get('account')).toBe(usdId);
@@ -243,3 +243,4 @@ describe('AppShell', () => {
     expect(desktopViewport.listeners.size).toBe(0);
   });
 });
+

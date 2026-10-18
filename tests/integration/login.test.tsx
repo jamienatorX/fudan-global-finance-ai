@@ -40,7 +40,7 @@ describe('fictional account login', () => {
     auth.configured = false;
     render(<LoginPage />);
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeDisabled();
-    expect(screen.getByRole('link', { name: 'Open local demo' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'Explore overview' })).toHaveAttribute('href', '/');
   });
   it('displays a generic allowlisted callback failure', () => {
     auth.query = 'error=auth&details=private-provider-information';
