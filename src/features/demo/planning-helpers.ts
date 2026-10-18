@@ -12,20 +12,53 @@ export function parseMajorAmount(text: string, currency: CurrencyCode): string {
   if (amount <= 0n) throw new Error('Amount must be positive');
   return amount.toString();
 }
+/** Reference converter for every pair of the four seeded account currencies.
+ * An exact rational cross-rate is accumulated through the graph; rounding occurs
+ * only once in target minor units, avoiding false 'rate unavailable' and drift.
+ */
 export function referenceConversion(value: Money, target: CurrencyCode, rates: readonly ExchangeRate[]) {
   if (value.currency === target) return { amount: value, source: 'identity', referenceAt: '' };
-  const direct = rates.find(r => r.base === value.currency && r.quote === target);
-  const inverse = rates.find(r => r.quote === value.currency && r.base === target);
-  const r = direct ?? inverse;
-  if (!r || !/^\d+(?:\.\d+)?$/.test(r.rate)) throw new Error('RATE_UNAVAILABLE: no supported reference rate');
-  const [whole, fraction = ''] = r.rate.split('.');
-  const n = BigInt(whole + fraction), scale = 10n ** BigInt(fraction.length);
-  if (n === 0n) throw new Error('Invalid zero FX rate');
-  const sourceScale = 10n ** BigInt(CURRENCY_MINOR_DIGITS[value.currency]);
-  const targetScale = 10n ** BigInt(CURRENCY_MINOR_DIGITS[target]);
-  const numerator = direct ? value.amountMinor * n * targetScale : value.amountMinor * scale * targetScale;
-  const denominator = direct ? sourceScale * scale : sourceScale * n;
-  return { amount: money((numerator + denominator / 2n) / denominator, target), source: r.source + ': ' + r.provider, referenceAt: r.referenceAt };
+  const parseRate = (raw: string) => {
+    if (!/^\\d+(?:\\.\\d+)?$/.test(raw)) return null;
+    const [whole,fraction=''] = raw.split('.');
+    const numerator = BigInt(whole+fraction),denominator = 10n ** BigInt(fraction.length);
+    return numerator > 0n ? { numerator,denominator } : null;
+  };
+  type Leg = { to: CurrencyCode; numerator: bigint; denominator: bigint; rate: ExchangeRate };
+  const graph = new Map<CurrencyCode, Leg[]>();
+  for (const rate of rates) {
+    const parsed=parseRate(rate.rate);
+    if (!parsed) continue;
+    graph.set(rate.base,[...(graph.get(rate.base)??[]),{to:rate.quote,...parsed,rate}]);
+    graph.set(rate.quote,[...(graph.get(rate.quote)??[]),{
+      to:rate.base,numerator:parsed.denominator,denominator:parsed.numerator,rate
+    }]);
+  }
+  const queue:{code: CurrencyCode; numerator: bigint; denominator: bigint; legs: readonly ExchangeRate[]}[]=[
+    {code:value.currency,numerator:1n,denominator:1n,legs:[]}
+  ];
+  const visited=new Set<CurrencyCode>([value.currency]);
+  for (let i=0;i<queue.length;i++) {
+    const step=queue[i];
+    for (const leg of graph.get(step.code)??[]) {
+      if (visited.has(leg.to))continue;
+      const next={code:leg.to,numerator:step.numerator*leg.numerator,
+        denominator:step.denominator*leg.denominator,legs:[...step.legs,leg.rate]};
+      if (next.code===target) {
+        const sourceScale=10n**BigInt(CURRENCY_MINOR_DIGITS[value.currency]);
+        const targetScale=10n**BigInt(CURRENCY_MINOR_DIGITS[target]);
+        const numerator=value.amountMinor*next.numerator*targetScale;
+        const denominator=next.denominator*sourceScale;
+        const rounded=(numerator+denominator/2n)/denominator;
+        return {amount:money(rounded,target),
+          source:next.legs.length===1?next.legs[0].source+': '+next.legs[0].provider:
+            'cross-rate via '+(next.legs.map(r=>r.source).every(x=>x==='fallback')?'fallback fixtures':'reference rates'),
+          referenceAt:next.legs.map(r=>r.referenceAt).toSorted()[0],via:next.legs.length};
+      }
+      visited.add(next.code);queue.push(next);
+    }
+  }
+  throw new Error('RATE_UNAVAILABLE: no supported reference rate');
 }
 export function projectedRunway(snapshot: FinancialSnapshot) {
   const toCny = (m: Money) => referenceConversion(m, 'CNY', snapshot.exchangeRates).amount.amountMinor;
