@@ -12,7 +12,7 @@ describe('registration feedback', () => {
     render(<RegisterPage />);
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'demo@example.test' } });
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'fictional-password' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Register for sandbox' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
   }
   it('provides a next step after an account request', async () => {
     submit();
