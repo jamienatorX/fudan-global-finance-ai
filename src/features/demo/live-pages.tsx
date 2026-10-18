@@ -32,17 +32,16 @@ export function LiveOverview({account}:{account?:string}){
   const displayed=useMemo(()=>overview?displayOverviewCurrency(overview,reportingCurrency,snapshot.exchangeRates):null,
     [overview,reportingCurrency,snapshot.exchangeRates]);
   return displayed?<div className="space-y-4">
-    <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-blue-200 bg-blue-50 p-4">
-      <div><p className="text-sm text-blue-950"><strong>International finance dashboard.</strong> Compare fictional balances across all four account currencies, or try persistent banking in Supabase.</p>
-        <label className="mt-3 flex flex-wrap items-center gap-2 text-sm font-semibold text-blue-950">Display summary in
+    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-border)] pb-4">
+        <label className="flex flex-wrap items-center gap-3 text-xs font-medium text-[var(--color-text-muted)]">Reporting currency
           <select aria-label="Dashboard reporting currency" value={reportingCurrency}
             onChange={e=>setReportingCurrency(e.target.value as CurrencyCode)}
             className="min-h-11 rounded-xl border border-blue-200 bg-white px-3 text-sm font-bold text-blue-950">
             {Object.keys(CURRENCY_MINOR_DIGITS).map(code=><option value={code} key={code}>{code}</option>)}
           </select>
-        </label><p className="mt-2 text-xs text-blue-800">Totals use the explicitly labeled fictional fallback FX fixtures; account balances remain unchanged.</p>
-      </div>
-      <Link href="/banking" className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Open banking lab →</Link>
+        </label>
+      <p className="order-last w-full text-xs leading-5 text-[var(--color-text-muted)] sm:order-none sm:w-auto sm:flex-1">Reference FX · Original account balances stay unchanged.</p>
+      <Link href="/banking" className="inline-flex min-h-11 items-center rounded-full border border-[var(--color-border)] bg-white px-4 text-xs font-semibold text-[var(--color-primary)] hover:bg-[var(--color-info-soft)]">Open banking lab →</Link>
     </div>
     <OverviewDashboard overview={displayed} />
   </div>:<p role="status" className="p-5 text-sm text-slate-600">Preparing simulated overview…</p>;
@@ -101,3 +100,4 @@ export function LiveTransactions({initialAccount,initialCurrency,initialMonth,in
     <CsvImportPreview/>
   </div>;
 }
+
