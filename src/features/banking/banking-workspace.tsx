@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createBrowserSupabaseClient } from '../../lib/supabase/browser';
 import type { BankingState,TableItem } from '../../server/secure-banking';
+import { searchPrivateBanking } from './private-search';
 type BankProposal = Readonly<{type: 'transfer'|'tuition'|'budget'|'subscription'|'card'|'investment'; [key:string]:string}>;
 
 type Tab='overview'|'transfers'|'cards'|'budgets'|'subscriptions'|'wealth'|'activity';
@@ -51,6 +52,7 @@ const empty={enrolled:false,version:0,accounts:[],budgets:[],subscriptions:[],ca
 export function BankingWorkspace(){
  const router=useRouter();
  const [state,setState]=useState<BankingState>(empty);
+ const [bankSearch,setBankSearch]=useState('');
  const [tab,setTab]=useState<Tab>('overview');
  const [loading,setLoading]=useState(true);
  const [busy,setBusy]=useState(false);
@@ -112,6 +114,7 @@ export function BankingWorkspace(){
  const totalBudget=state.budgets.reduce((sum,b)=>sum+BigInt(String(b.limit_minor)),0n);
  const monthlySubscriptions=state.subscriptions.filter(s=>s.active).reduce((sum,s)=>sum+BigInt(String(s.monthly_minor)),0n);
  const latest=useMemo(()=>state.ledger.slice(0,12),[state.ledger]);
+ const searchResults=useMemo(()=>searchPrivateBanking(state,bankSearch),[state,bankSearch]);
  if(loading)return <main className="grid min-h-screen place-items-center bg-slate-50"><p role="status">Opening your authenticated banking sandbox…</p></main>;
  return <div className="min-h-screen bg-slate-50 text-slate-900">
    <header className="border-b border-slate-200 bg-white">
@@ -136,6 +139,20 @@ export function BankingWorkspace(){
        <div className="flex gap-2"><button className={sec} onClick={()=>void run(refresh)} disabled={busy}>Refresh ledger</button>
        <button className={cta} onClick={()=>setTab('transfers')}>New transfer</button></div>
      </div>
+     <section aria-label="Search your banking records" className="mb-5 rounded-2xl border border-slate-200 bg-white p-4">
+       <label htmlFor="private-bank-search" className="block text-sm font-semibold text-slate-900">Search your banking records</label>
+       <input id="private-bank-search" type="search" className={input} value={bankSearch}
+         onChange={e=>setBankSearch(e.target.value)} placeholder="Accounts, payments, subscriptions, cards…" />
+       {bankSearch.trim() ? <div role="region" aria-label="Private banking search results" className="mt-3 space-y-2">
+         <p className="text-xs text-slate-500">{searchResults.length ? searchResults.length+' matching records':'No matching records found'}</p>
+         <div className="grid max-h-64 gap-2 overflow-y-auto sm:grid-cols-2">
+           {searchResults.map(item=><button key={item.id} type="button" onClick={()=>{setTab(item.tab);setBankSearch('');}}
+             className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-left text-sm hover:border-blue-300 hover:bg-blue-50">
+             <strong className="block truncate">{item.title}</strong><span className="mt-1 block truncate text-xs text-slate-500">{item.category} · {item.detail}</span>
+           </button>)}
+         </div>
+       </div> : null}
+     </section>
      <nav aria-label="Banking modules" className="mb-6 flex flex-wrap gap-2">
       {TABS.map(item=><button type="button" key={item.id} aria-current={tab===item.id?'page':undefined}
        onClick={()=>setTab(item.id)} className={'rounded-xl px-4 py-2.5 text-sm font-semibold '+(tab===item.id?'bg-blue-600 text-white':'bg-white text-slate-600 hover:bg-blue-50')}>
