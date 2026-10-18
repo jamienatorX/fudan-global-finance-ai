@@ -1,8 +1,9 @@
+import { requestOrigin } from '../security/request-origin';
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { isSupabaseConfigured, supabaseConfig } from './config';
 
-const publicRoute = (path: string) => path === '/' || path === '/login' || path === '/register' || path.startsWith('/auth/');
+const publicRoute = (path: string) => path === '/' || path === '/login' || path === '/register' || path === '/demo' || path.startsWith('/auth/');
 // Only fictional browser-local competition surfaces are public when explicitly enabled.
 // Server data APIs, Supabase functions, and future private pages remain authentication-gated.
 const demoRoutes = new Set([
@@ -15,15 +16,14 @@ export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
   response.headers.set('Cache-Control', 'private, no-store');
   const login = () => {
-    const destination = new URL('/login', request.url);
-    const redirect = NextResponse.redirect(destination);
+    const redirect = new NextResponse(null,{status:307,headers:{Location:requestOrigin(request)+'/login'}});
     response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
     response.headers.forEach((value, name) => {
       if (!['set-cookie', 'location', 'x-middleware-next', 'x-middleware-override-headers'].includes(name) && !name.startsWith('x-middleware-request-')) redirect.headers.set(name, value);
     });
     return redirect;
   };
-  if (publicSimulation(request.nextUrl.pathname) || (process.env.COMPETITION_PUBLIC_DEMO === '1' && (request.nextUrl.pathname === '/api/fx/rate' || request.nextUrl.pathname === '/api/fx/currencies' || request.nextUrl.pathname === '/api/fx/ticker'))) return response;
+  if ((publicSimulation(request.nextUrl.pathname) && request.cookies.get('bank-demo')?.value === '1') || (process.env.COMPETITION_PUBLIC_DEMO === '1' && (request.nextUrl.pathname === '/api/fx/rate' || request.nextUrl.pathname === '/api/fx/currencies' || request.nextUrl.pathname === '/api/fx/ticker'))) return response;
   if (!isSupabaseConfigured()) {
     const localBrowserDemo = process.env.NODE_ENV !== 'production' && process.env.PLAYWRIGHT_DEMO_MODE === '1';
     return publicRoute(request.nextUrl.pathname) || localBrowserDemo ? response : login();
@@ -45,6 +45,12 @@ export async function updateSession(request: NextRequest) {
   });
   const { data, error } = await supabase.auth.getClaims();
   if ((error || !data?.claims.sub) && !publicRoute(request.nextUrl.pathname)) return login();
+  if (data?.claims.sub && request.nextUrl.pathname === '/banking' && data.claims.aal !== 'aal2') {
+    const target = new NextResponse(null,{status:307,headers:{Location:requestOrigin(request)+'/security'}});
+    response.cookies.getAll().forEach(cookie => target.cookies.set(cookie));
+    target.headers.set('Cache-Control', 'private, no-store');
+    return target;
+  }
   return response;
 }
 

@@ -56,11 +56,11 @@ describe('financial migration executed by PostgreSQL', () => {
   it('has only invoker RPCs in the exposed schema and no anonymous grants', async () => {
     await asUser(db, A);
     const functions = await db.query<{ proname: string; prosecdef: boolean }>(`select proname, prosecdef from pg_proc p join pg_namespace n on p.pronamespace=n.oid where n.nspname='public'`);
-    expect(functions.rows).toHaveLength(5);
+    expect(functions.rows).toHaveLength(6);
     expect(functions.rows.every((fn) => !fn.prosecdef)).toBe(true);
-    const privateFunction = await db.query<{ prosecdef: boolean; proconfig: string[]; anon: boolean }>(`select p.prosecdef, p.proconfig, has_function_privilege('anon',p.oid,'EXECUTE') as anon from pg_proc p join pg_namespace n on p.pronamespace=n.oid where n.nspname='private'`);
-    expect(privateFunction.rows).toHaveLength(4);
-    expect(privateFunction.rows.every(fn => fn.prosecdef && !fn.anon && fn.proconfig?.includes('search_path=""'))).toBe(true);
+    const privateFunction = await db.query<{ proname:string; prosecdef: boolean; proconfig: string[]; anon: boolean }>(`select p.proname,p.prosecdef, p.proconfig, has_function_privilege('anon',p.oid,'EXECUTE') as anon from pg_proc p join pg_namespace n on p.pronamespace=n.oid where n.nspname='private'`);
+    expect(privateFunction.rows).toHaveLength(7);
+    expect(privateFunction.rows.every(fn => (fn.prosecdef || fn.proname==='bank_recent_mfa') && !fn.anon && fn.proconfig?.includes('search_path=""'))).toBe(true);
     const updates = await db.query<{ polqual: unknown; polwithcheck: unknown }>(`select polqual, polwithcheck from pg_policy where polcmd='w'`);
     expect(updates.rows).toHaveLength(0);
     const grants = await db.query(`select * from information_schema.role_table_grants where table_schema='public' and grantee in ('anon','PUBLIC')`);
@@ -89,3 +89,4 @@ describe('financial migration executed by PostgreSQL', () => {
     await db.exec('reset enable_seqscan');
   });
 });
+

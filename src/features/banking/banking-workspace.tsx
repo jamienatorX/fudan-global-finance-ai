@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createBrowserSupabaseClient } from '../../lib/supabase/browser';
 import type { BankingState,TableItem } from '../../server/secure-banking';
+import { SessionControls } from './session-controls';
 import { searchPrivateBanking } from './private-search';
 type BankProposal = Readonly<{type: 'transfer'|'tuition'|'budget'|'subscription'|'card'|'investment'; [key:string]:string}>;
 
@@ -65,9 +66,10 @@ export function BankingWorkspace(){
  const refresh=useCallback(async()=>{
    const response=await fetch('/api/banking/state',{cache:'no-store'});
    if(response.status===401){router.replace('/login');return;}
-   if(!response.ok)throw new Error('Could not load persistent financial records');
+   if(response.status===403){router.replace('/security');return;}
+   if(!response.ok)throw new Error('Could not load financial records');
    setState(await response.json() as BankingState);
- },[]);
+ },[router]);
  useEffect(()=>{
    let active=true;
    void (async()=>{
@@ -80,7 +82,9 @@ export function BankingWorkspace(){
  async function post(payload:Record<string,unknown>,route='/api/banking/action'){
    const response=await fetch(route,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
    const result=await response.json() as Record<string,unknown>;
-   if(!response.ok)throw new Error(typeof result.message==='string'?result.message:typeof result.error==='string'?result.error:'Banking request failed');
+   if(response.status===401){router.replace('/login');throw new Error('Your session ended. Please sign in again.');}
+   if(result.error==='MFA_REQUIRED'||result.error==='REAUTH_REQUIRED'){router.replace('/security');throw new Error('Verify again, then review your action.');}
+   if(!response.ok)throw new Error(response.status===429?'Too many requests. Please wait a minute.':'This action could not be completed. Review your details and try again.');
    return result;
  }
  async function run(work:()=>Promise<void>){
@@ -121,11 +125,11 @@ export function BankingWorkspace(){
      <div className="mx-auto flex max-w-[1480px] flex-wrap items-center justify-between gap-3 px-5 py-5 sm:px-8">
       <div><p className="text-xl font-black tracking-tight text-blue-950"><span className="fu-logo mr-2" aria-hidden>福</span>福 bank</p>
         <p className="text-xs font-semibold tracking-widest text-slate-500">PERSONAL BANKING · DEMO</p></div>
-      <div className="flex items-center gap-2"><Link href="/overview" className={sec}>Overview</Link>
-       <button className={sec} onClick={async()=>{await createBrowserSupabaseClient().auth.signOut();window.location.assign('/login');}}>Sign out</button></div>
+      <div className="flex items-center gap-2"><Link href="/security" className={sec}>Security</Link>
+       <button className={sec} onClick={async()=>{await createBrowserSupabaseClient().auth.signOut();router.replace('/login');router.refresh();}}>Sign out</button></div>
      </div>
    </header>
-   <div className="mx-auto max-w-[1480px] px-5 py-7 sm:px-8">
+   <div className="mx-auto max-w-[1480px] px-5 py-7 sm:px-8"><SessionControls/>
     {!state.enrolled?<Pane title="Set up your accounts" description="Choose your accounts in CNY, USD, SGD and IDR.">
       <button className={cta} disabled={busy} onClick={initialize}>Set up accounts</button>
 
