@@ -40,20 +40,20 @@ export function LiveOverview({account}:{account?:string}){
             {Object.keys(CURRENCY_MINOR_DIGITS).map(code=><option value={code} key={code}>{code}</option>)}
           </select>
         </label>
-      <p className="order-last w-full text-xs leading-5 text-[var(--color-text-muted)] sm:order-none sm:w-auto sm:flex-1">Reference FX · Original account balances stay unchanged.</p>
-      <Link href="/banking" className="inline-flex min-h-11 items-center rounded-full border border-[var(--color-border)] bg-white px-4 text-xs font-semibold text-[var(--color-primary)] hover:bg-[var(--color-info-soft)]">Open banking lab →</Link>
+
+      <Link href="/banking" className="inline-flex min-h-11 items-center rounded-full border border-[var(--color-border)] bg-white px-4 text-xs font-semibold text-[var(--color-primary)] hover:bg-[var(--color-info-soft)]">My account →</Link>
     </div>
     <OverviewDashboard overview={displayed} />
-  </div>:<p role="status" className="p-5 text-sm text-slate-600">Preparing simulated overview…</p>;
+  </div>:<p role="status" className="p-5 text-sm text-slate-600">Loading overview…</p>;
 }
 export function LiveAccounts(){
   const {snapshot}=useDemo();
   const overview=useDemoOverview();
-  return <div className="space-y-6"><header><p className="text-xs font-bold uppercase tracking-wider text-blue-700">Live browser-local simulation</p>
-    <h1 className="mt-1 text-3xl font-bold">Accounts & balances</h1><p className="mt-2 text-sm text-slate-600">Balances change after approved demo actions. Each account keeps its original currency. CNY equivalents use fixed fallback fixtures, not live prices.</p></header>
-    <section className="rounded-2xl bg-[var(--color-navy)] p-6 text-white"><p className="text-sm text-blue-200">Total available demo cash · CNY reference</p>
+  return <div className="space-y-6"><header>
+    <h1 className="mt-1 text-3xl font-bold">Accounts & balances</h1></header>
+    <section className="rounded-2xl bg-[var(--color-navy)] p-6 text-white"><p className="text-sm text-blue-200">Total available cash · CNY</p>
       <p className="mt-2 text-3xl font-bold">{overview?formatMoney(overview.availableCash):'Calculating…'}</p>
-      <p className="mt-2 text-xs text-blue-100">Fictional demo fixture · {snapshot.accounts.length} accounts</p></section>
+      <p className="mt-2 text-xs text-blue-100">Your accounts · {snapshot.accounts.length} accounts</p></section>
     <AccountList accounts={snapshot.accounts} reportingBalances={overview?.accountBalances??[]}/>
     <Link href="/overview" className="inline-flex rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-blue-700">Back to overview</Link></div>;
 }
@@ -75,8 +75,8 @@ export function LiveTransactions({initialAccount,initialCurrency,initialMonth,in
     t.occurredAt.startsWith(month+'-')&&(!query||t.merchant.toLowerCase().includes(query.toLowerCase())||t.category.includes(query.toLowerCase()))
   ).toSorted((a,b)=>b.occurredAt.localeCompare(a.occurredAt)||b.id.localeCompare(a.id)),[snapshot,account,currency,month,query]);
   return <div className="space-y-6">
-    <header><p className="text-xs font-bold uppercase tracking-widest text-blue-700">Interactive · transaction reporting</p><h1 className="mt-1 text-3xl font-bold">Transactions & bill analysis</h1>
-      <p className="mt-2 text-sm text-slate-600">Income and consumption totals exclude internal transfers and asset movements. Currency-specific totals do not mix FX rates. Approved actions appear on this page without reloading.</p></header>
+    <header><p className="text-xs font-bold uppercase tracking-widest text-blue-700">Your activity</p><h1 className="mt-1 text-3xl font-bold">Transactions & bill analysis</h1>
+      </header>
     <form onSubmit={e=>{e.preventDefault();setQuery(search)}} className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-5 sm:grid-cols-2 lg:grid-cols-4">
       <label className="text-sm font-semibold">Account<select className="mt-1 block min-h-11 w-full rounded-xl border border-slate-200 px-3" value={account} onChange={e=>{setAccount(e.target.value);if(e.target.value){const found=snapshot.accounts.find(a=>a.id===e.target.value);if(found)setCurrency(found.currency);}}}>
         <option value="">All accounts</option>{snapshot.accounts.map(a=><option key={a.id} value={a.id}>{a.currency} {a.type}</option>)}</select></label>
