@@ -1,7 +1,7 @@
 'use client';
 
 import { ArrowLeftRight, ArrowRight, Clock3, Globe2, RefreshCw, ShieldCheck, TrendingUp } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useDemo } from '../../demo/demo-context';
 import { CURRENCY_MINOR_DIGITS, type CurrencyCode } from '../../domain/currency';
 import { money } from '../../domain/money';
@@ -30,7 +30,7 @@ const panel = 'rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7
 const input = 'mt-2 min-h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-base font-semibold text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100';
 
 function decimalPlaces(code: string): number {
-  try {return new Intl.NumberFormat('en-US',{style:'currency',currency:code}).resolvedOptions().maximumFractionDigits;}
+  try {return new Intl.NumberFormat('en-US',{style:'currency',currency:code}).resolvedOptions().maximumFractionDigits ?? 2;}
   catch {return 2;}
 }
 function format(value: number, code: string) {
