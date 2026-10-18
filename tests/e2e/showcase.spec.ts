@@ -11,7 +11,7 @@ test.describe('Phase 6 manual banking presentation',()=>{
   });
   test('does not offer an AI banking agent or real money',async({page})=>{
     await page.goto('/showcase');
-    await expect(page.getByText('Demo').first()).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Currency market ticker' })).toBeVisible();
     await expect(page.getByText(/Supabase|AI-agent-track requirements/)).toHaveCount(0);
   });
 });

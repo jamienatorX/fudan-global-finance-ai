@@ -57,7 +57,7 @@ export function GlobalSearch({ accounts }: Readonly<{ accounts: readonly { id: s
         <input type="search" aria-label="Search banking" aria-autocomplete="list" aria-controls={listId} aria-expanded={visible}
           aria-activedescendant={visible && results[selected] ? 'bank-result-' + results[selected].id : undefined}
           className="w-full min-w-0 bg-transparent py-2 text-sm text-slate-900 outline-none placeholder:text-slate-500"
-          placeholder="Search payments, merchants, cards…" value={value}
+          placeholder="Search banking…" value={value}
           onChange={e => { setValue(e.target.value); setOpen(true); setSelected(0); }}
           onFocus={() => { if (term) setOpen(true); }}
           onKeyDown={keyDown}
