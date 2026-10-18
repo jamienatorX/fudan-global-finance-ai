@@ -14,7 +14,7 @@ test.describe('keyless worldwide FX converter',()=>{
    await page.goto('/fx');
    await page.getByRole('combobox',{name:'To currency'}).selectOption('SGD');
    await expect(page.getByText('SGD 130.00')).toBeVisible();
-   await expect(page.getByText('Reference date 2026-10-16')).toBeVisible();
+   await expect(page.getByText('Frankfurter fixture · 2026-10-16')).toBeVisible();
    await page.getByRole('button',{name:'Swap currencies'}).click();
    await expect(page.getByRole('combobox',{name:'From currency'})).toHaveValue('SGD');
    await expect(page.getByText('USD 76.92')).toBeVisible();
