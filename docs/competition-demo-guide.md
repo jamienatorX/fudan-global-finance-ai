@@ -8,7 +8,7 @@ The current deployed application is a fictional banking simulator. It supports a
 
 ## Try the public demo
 
-1. Open `/overview`; use the shortcuts to explore simulated transfers, the spending overview and the tuition planner.
+1. Open `/overview`; use the shortcuts to explore simulated transfers, spending, and tuition planning. Select **Explore the product** to launch `/showcase`, a Phase 6 guided demonstration linked to current fictional state.
 2. Create an approval-gated fictional transfer, freeze a virtual card or review a subscription cancellation.
 3. Visit `/audit` for local action receipts.
 4. In `/settings`, type `RESET DEMO` to restore the seeded fictional state. The public demo is browser-local and is **not** the secure backend.
