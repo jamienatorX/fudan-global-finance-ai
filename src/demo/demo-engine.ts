@@ -116,7 +116,7 @@ export function applyDemoAction(snapshot: FinancialSnapshot, action: DemoAction,
       next = { ...snapshot, budgets: snapshot.budgets.map(b => b.id === current.id ? {
         ...b, limit: money(limit, b.currency), status: b.actualSpend.amountMinor > limit ? 'over-limit' as const : 'within-limit' as const,
       } : b) };
-      message = 'Budget limit updated for ' + action.category + ' (simulated).';
+      message = 'Budget limit updated for ' + action.category + '.';
       break;
     }
     case 'card': {
@@ -188,3 +188,4 @@ export function runApprovedDemoBatch(snapshot: FinancialSnapshot, steps: readonl
   }
   return { snapshot: current, results };
 }
+
