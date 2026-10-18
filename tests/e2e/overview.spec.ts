@@ -8,7 +8,7 @@ test.describe('overview dashboard', () => {
   test('presents the simulated financial overview and all product destinations', async ({ page }, testInfo) => {
     await expect(page.getByRole('heading', { name: /Good morning, Ayu/ })).toBeVisible();
     await expect(page.getByText('CNY 40,201.36')).toBeVisible();
-    await expect(page.getByText('Demo').first()).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Currency market ticker' })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Banking shortcuts' })).toBeVisible();
 
     if (testInfo.project.name === 'mobile-chromium') {
@@ -43,7 +43,7 @@ test.describe('overview dashboard', () => {
     await expect(page.getByRole('region', { name: 'Selected account' })).toContainText('USD 650.00');
     await page.getByRole('link', { name: 'View accounts' }).click();
     await expect(page).toHaveURL(/\/accounts\?account=00000000-0000-4000-8000-000000000013/);
-    await expect(page.getByText('Demo')).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Currency market ticker' })).toBeVisible();
     await page.getByRole('link', { name: 'Back to overview' }).click();
     await expect(page.getByRole('combobox', { name: 'Active account' })).toHaveValue('00000000-0000-4000-8000-000000000013');
     await expect(page.getByRole('region', { name: 'Selected account' })).toContainText('USD 650.00');
