@@ -5,7 +5,7 @@ import { SimulationBadge } from '../ui/simulation-badge';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, type ComponentType, type KeyboardEvent, type RefObject } from 'react';
 import {
-  ArrowLeftRight, Bell, ChartNoAxesCombined, ChevronLeft, Landmark,
+  ArrowLeftRight, Bell, ChartNoAxesCombined, ChevronLeft,
   CreditCard, GraduationCap, LayoutDashboard, ReceiptText, Repeat2, SendHorizontal,
   Settings2, WalletCards, X,
 } from 'lucide-react';
@@ -29,8 +29,8 @@ export const NAV_ITEMS: readonly Readonly<{ href: string; label: string; shortLa
 function ProductMark({ compact = false }: Readonly<{ compact?: boolean }>) {
   return (
     <Link href="/overview" className="flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-400">
-      <span className="grid size-10 shrink-0 place-items-center rounded-2xl border border-white/20 bg-white/10 text-emerald-200"><Landmark size={22} strokeWidth={1.7} aria-hidden /></span>
-      {!compact ? <span className="min-w-0"><span className="block truncate text-sm font-bold text-white">Fudan Global</span><span className="block truncate text-[10px] uppercase tracking-[0.2em] text-teal-200/80">Finance Lab</span></span> : null}
+      <span className="grid size-10 shrink-0 place-items-center rounded-2xl border border-white/20 bg-white/10 text-emerald-200"><span className="fu-logo" aria-hidden>福</span></span>
+      {!compact ? <span className="min-w-0"><span className="block truncate text-sm font-bold text-white">Fu(福） bank</span><span className="block truncate text-[10px] uppercase tracking-[0.2em] text-teal-200/80">PERSONAL BANKING</span></span> : null}
     </Link>
   );
 }
@@ -68,7 +68,7 @@ export function Sidebar({ collapsed, onToggle }: Readonly<{ collapsed: boolean; 
       </div>
       {collapsed ? <button type="button" onClick={onToggle} aria-label="Expand sidebar" aria-expanded="false" className="mb-3 grid min-h-11 place-items-center rounded-xl text-slate-300 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-blue-300"><ChevronLeft className="rotate-180" size={18} aria-hidden /></button> : null}
       <div className="min-h-0 flex-1 overflow-y-auto"><Navigation compact={collapsed} /></div>
-      {!collapsed ? <div className="mt-4 rounded-2xl border border-white/10 bg-white/6 p-4"><p className="text-xs font-semibold text-blue-200">A workspace for your world</p><p className="mt-1 text-xs leading-5 text-slate-300">Plan confidently. Every simulated financial action stays in your control.</p></div> : null}
+      {!collapsed ? <div className="mt-4 rounded-2xl border border-white/10 bg-white/6 p-4"><p className="text-xs font-semibold text-blue-200">A workspace for your world</p><p className="mt-1 text-xs leading-5 text-slate-300">Your world, in balance.</p></div> : null}
     </aside>
   );
 }
