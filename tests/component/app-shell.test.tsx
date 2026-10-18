@@ -60,7 +60,7 @@ describe('AppShell', () => {
     ]);
     expect(screen.getByRole('combobox', { name: 'Active account' })).toHaveValue(snapshot.accounts[0].id);
     expect(screen.getByRole('button', { name: 'Notifications' })).toBeInTheDocument();
-    expect(screen.getAllByText('Demo').length).toBeGreaterThan(0);
+    expect(within(screen.getByRole('banner')).queryByText('Demo')).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Ask AI banker' })).not.toBeInTheDocument();
     expect(screen.getByRole('searchbox', { name: 'Search banking' })).toBeInTheDocument();
     expect(screen.queryByText('Search coming in Phase 2')).not.toBeInTheDocument();
@@ -74,12 +74,10 @@ describe('AppShell', () => {
     expect(screen.getByRole('link', { name: 'Overview' })).not.toHaveAttribute('aria-current');
   });
 
-  it('keeps the simulation label exposed in the shell and mobile drawer', () => {
+  it('keeps the header clear and retains the demo label in mobile navigation', () => {
     render(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><p>Accounts</p></AppShell>);
-    const badge = within(screen.getByRole('banner')).getByText('Demo');
-    for (let element: HTMLElement | null = badge; element && element.tagName !== 'HEADER'; element = element.parentElement) {
-      expect(element.className).not.toMatch(/(?:^|\s)(?:hidden|\w+:hidden)(?:\s|$)/);
-    }
+    expect(within(screen.getByRole('banner')).queryByText('Demo')).not.toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Currency market ticker' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }));
     expect(within(screen.getByRole('dialog', { name: 'Mobile navigation' })).getByText('Demo')).toBeInTheDocument();
   });
