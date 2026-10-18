@@ -26,7 +26,7 @@ test.describe('keyless worldwide FX converter',()=>{
    await page.route('**/api/fx/rate?*',route=>route.fulfill({status:503,contentType:'application/json',body:'{"error":"offline"}'}));
    await page.goto('/fx');
    await page.getByRole('combobox',{name:'To currency'}).selectOption('SGD');
-   await expect(page.getByText('FALLBACK · fictional historical fixture')).toBeVisible();
+   await expect(page.getByText('Sample rate · not live')).toBeVisible();
    await expect(page.getByText('SGD 131.48')).toBeVisible();
    await page.getByRole('combobox',{name:'From currency'}).selectOption('EUR');
    await expect(page.getByText('Conversion unavailable for this selection.')).toBeVisible();
@@ -40,3 +40,4 @@ test.describe('keyless worldwide FX converter',()=>{
    await expect(page.getByRole('region',{name:'Financial summary'})).toContainText('IDR');
  });
 });
+
