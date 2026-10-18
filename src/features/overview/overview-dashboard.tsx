@@ -1,17 +1,17 @@
 import { AccountLink as Link } from '../../components/shell/account-link';
-import { ArrowDownRight, ArrowUpRight, CalendarClock, CircleAlert, PiggyBank, TrendingUp, WalletCards } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, CalendarClock, CircleAlert, PiggyBank, WalletCards, ArrowRight, SendHorizontal, GraduationCap, ReceiptText, Repeat2, Compass, ShieldCheck, Globe2 } from 'lucide-react';
 import { Badge } from '../../components/ui/badge';
 import { Card, CardHeader } from '../../components/ui/card';
 import { formatMoney, type Money } from '../../domain/money';
 import type { OverviewModel } from './overview-queries';
 
-const CATEGORY_COLORS: Record<string, string> = { rent: '#2563EB', food: '#10B981', transportation: '#F59E0B', shopping: '#8B5CF6', other: '#94A3B8' };
+const CATEGORY_COLORS: Record<string, string> = { rent: 'var(--color-chart-rent)', food: 'var(--color-chart-food)', transportation: 'var(--color-chart-transportation)', shopping: 'var(--color-chart-shopping)', other: 'var(--color-chart-other)' };
 
 function MetricCard({ label, value, detail, tone = 'neutral', icon }: Readonly<{ label: string; value: string; detail: string; tone?: 'neutral' | 'positive' | 'warning'; icon: React.ReactNode }>) {
   const toneClass = tone === 'positive' ? 'text-emerald-700 bg-emerald-50' : tone === 'warning' ? 'text-amber-700 bg-amber-50' : 'text-blue-700 bg-blue-50';
   return (
-    <Card className="p-5 sm:p-6">
-      <div className="flex items-start justify-between gap-4"><div><p className="text-sm font-medium text-slate-500">{label}</p><p className="mt-2 text-2xl font-bold tracking-tight text-slate-950">{value}</p></div><span className={`grid size-10 place-items-center rounded-xl ${toneClass}`}>{icon}</span></div>
+    <Card className="metric-card p-5 sm:p-6">
+      <div className="flex items-start justify-between gap-4"><div><p className="text-sm font-medium text-slate-500">{label}</p><p className="mt-2 text-[1.75rem] font-semibold tracking-[-0.04em] tabular-nums text-[var(--color-navy)]">{value}</p></div><span className={`grid size-11 place-items-center rounded-2xl ${toneClass}`}>{icon}</span></div>
       <p className="mt-3 text-xs leading-5 text-slate-500">{detail}</p>
     </Card>
   );
@@ -21,23 +21,51 @@ function SignedMoney({ amount, direction }: Readonly<{ amount: Money; direction:
   return <span className={`font-semibold tabular-nums ${direction === 'credit' ? 'text-emerald-700' : 'text-slate-900'}`}>{direction === 'credit' ? '+' : '−'}{formatMoney(amount)}</span>;
 }
 
+function BalanceHero({ overview }: Readonly<{ overview: OverviewModel }>) {
+  const cashShare = overview.totalNetWorth.amountMinor > 0n
+    ? Math.min(100, Math.max(0, Number(overview.availableCash.amountMinor * 10000n / overview.totalNetWorth.amountMinor) / 100))
+    : 0;
+  return (
+    <section aria-label="Your financial snapshot" className="grid min-w-0 gap-4 xl:grid-cols-[1.8fr_1fr]">
+      <div className="balance-hero relative isolate overflow-hidden rounded-3xl p-6 text-white sm:p-8">
+        <div className="relative z-10">
+          <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-xs font-medium tracking-wide text-[var(--color-hero-muted)]">Consolidated net worth</p><span className="flex items-center gap-1.5 rounded-full border border-white/20 px-2.5 py-1 text-[10px] text-[var(--color-hero-muted)]"><Globe2 size={12} aria-hidden />Global view</span></div>
+          <p className="balance-number mt-5 break-words text-[clamp(2rem,4vw,3.5rem)] font-semibold leading-tight tracking-[-0.055em] tabular-nums">{formatMoney(overview.totalNetWorth)}</p>
+          <p className="mt-2 text-xs leading-5 text-[var(--color-hero-muted)]">Across {overview.accountBalances.length} accounts · {overview.holdingsCount} simulated holdings</p>
+          <div className="mt-8 max-w-lg">
+            <div className="flex justify-between gap-4 text-xs text-[var(--color-hero-muted)]"><span>Cash allocation</span><span className="tabular-nums">{cashShare.toFixed(1)}%</span></div>
+            <div className="mt-2 flex h-1.5 overflow-hidden rounded-full bg-white/15" aria-hidden="true"><span className="h-full rounded-full bg-[var(--color-hero-accent)]" style={{ width: `${cashShare}%` }} /></div>
+          </div>
+          <div className="mt-7 flex flex-wrap items-center justify-between gap-4 border-t border-white/15 pt-5"><span className="flex items-center gap-2 text-xs text-[var(--color-hero-muted)]"><ShieldCheck size={15} aria-hidden />Simulated balances · reference FX</span><Link href="/accounts" className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[var(--color-hero-accent)] px-5 text-xs font-semibold text-[var(--color-navy)] transition-colors hover:bg-white">View your accounts<ArrowUpRight size={15} aria-hidden /></Link></div>
+        </div>
+      </div>
+      <div className="rounded-3xl border border-[var(--color-planning-border)] bg-[var(--color-planning-surface)] p-6 sm:p-7">
+        <div className="flex items-center justify-between gap-3"><span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-planning-label)]">Looking ahead</span><GraduationCap size={22} className="text-[var(--color-planning-icon)]" aria-hidden /></div>
+        <h2 className="mt-5 text-xl font-semibold tracking-tight text-[var(--color-navy)]">Your next chapter,<br />already in the plan.</h2>
+        <p className="mt-3 text-sm leading-6 text-[var(--color-planning-text)]">Keep tuition and everyday living in balance with a clear view of what comes next.</p>
+        <div className="mt-5 flex items-center gap-2 border-t border-[var(--color-planning-divider)] pt-5 text-xs text-[var(--color-planning-text)]"><CalendarClock size={16} aria-hidden /><span>{overview.tuition.next ? `Next tuition due ${new Date(overview.tuition.next.dueAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}` : 'Review your upcoming commitments'}</span></div>
+        <Link href="/planner" className="mt-4 inline-flex min-h-11 items-center gap-3 text-sm font-semibold text-[var(--color-navy)] underline decoration-[var(--color-planning-underline)] underline-offset-4">Open your planner<ArrowRight size={16} aria-hidden /></Link>
+      </div>
+    </section>
+  );
+}
+
 function BankingShortcuts() {
   const shortcuts = [
-    { href: '/transfers', title: 'Transfer money', detail: 'Between simulated accounts' },
-    { href: '/planner', title: 'Plan tuition', detail: 'Budgets and cash runway' },
-    { href: '/transactions', title: 'Review spending', detail: 'Transactions and trends' },
-    { href: '/subscriptions', title: 'Manage subscriptions', detail: 'Review recurring costs' },
-    { href: '/showcase', title: 'Explore the product', detail: 'Phase 6 guided walkthrough' },
+    { href: '/transfers', title: 'Transfer money', detail: 'Move between accounts', icon: SendHorizontal },
+    { href: '/planner', title: 'Plan tuition', detail: 'Prepare for what is next', icon: GraduationCap },
+    { href: '/transactions', title: 'Review spending', detail: 'Understand your activity', icon: ReceiptText },
+    { href: '/subscriptions', title: 'Manage subscriptions', detail: 'Keep recurring costs clear', icon: Repeat2 },
+    { href: '/showcase', title: 'Explore the product', detail: 'Take the guided tour', icon: Compass },
   ] as const;
   return (
-    <section aria-label="Banking shortcuts" className="rounded-3xl bg-[var(--color-navy)] px-5 py-6 text-white shadow-[var(--shadow-elevated)] sm:px-8 sm:py-8">
-      <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">Manage your finances</h2>
-      <p className="mt-2 text-sm leading-6 text-slate-300">Explore simulated banking services. You control each action and must approve changes before they take effect.</p>
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {shortcuts.map(({ href, title, detail }) => (
-          <Link key={href} href={href} className="rounded-2xl border border-white/15 bg-white/10 p-4 hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300">
-            <span className="block text-sm font-semibold text-white">{title}</span>
-            <span className="mt-1 block text-xs text-blue-100">{detail}</span>
+    <section aria-label="Banking shortcuts">
+      <div className="mb-3 flex items-center gap-3"><h2 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">Your everyday essentials</h2><span className="h-px flex-1 bg-[var(--color-border)]" /></div>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+        {shortcuts.map(({ href, title, detail, icon: Icon }) => (
+          <Link key={href} href={href} className="shortcut-card group flex min-w-0 items-center gap-3 rounded-2xl border border-[var(--color-border)] bg-white px-4 py-4 transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-info-soft)] xl:flex-col xl:items-start 2xl:flex-row 2xl:items-center">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[var(--color-info-soft)] text-[var(--color-primary)]"><Icon size={19} strokeWidth={1.7} aria-hidden /></span>
+            <span className="min-w-0"><span className="block text-xs font-semibold leading-5 text-[var(--color-text)]">{title}</span><span className="mt-0.5 block text-[11px] leading-4 text-[var(--color-text-muted)]">{detail}</span></span>
           </Link>
         ))}
       </div>
@@ -112,23 +140,23 @@ export function OverviewDashboard({ overview }: Readonly<{ overview: OverviewMod
     : null;
   return (
     <div className="space-y-6 pb-20 sm:space-y-8">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><div className="mb-2 flex flex-wrap items-center gap-2"><Badge tone="info">Student finance cockpit</Badge><span className="text-xs text-slate-500">As of {new Date(overview.asOf).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}</span></div><h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Good morning, {overview.userName}</h1><p className="mt-2 text-sm text-slate-600 sm:text-base">Your finances across Shanghai and home, in one verified view.</p></div><div className="flex items-center gap-2 text-xs text-slate-500"><span className={`size-2 rounded-full ${overview.fxSource.source === 'live' ? 'bg-emerald-500' : 'bg-amber-500'}`} />{overview.fxSource.source === 'live' ? 'Live FX' : 'Fallback FX'} · {overview.fxSource.referenceAt.slice(0, 10)}</div></header>
-      <BankingShortcuts />
-      <section aria-label="Financial summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Consolidated net worth" value={formatMoney(overview.totalNetWorth)} detail={`Includes ${formatMoney(overview.investedValue)} simulated investments`} icon={<TrendingUp size={20} aria-hidden />} />
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><div className="mb-2 flex flex-wrap items-center gap-2"><span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--color-primary)]">Your global workspace</span><span className="text-xs text-slate-500">As of {new Date(overview.asOf).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}</span></div><h1 className="text-3xl font-semibold tracking-[-0.045em] text-[var(--color-navy)] sm:text-4xl">Good morning, {overview.userName}</h1><p className="mt-2 text-sm text-slate-600 sm:text-base">Your finances across Shanghai and home, in one verified view.</p></div><div className="flex items-center gap-2 text-xs text-slate-500"><span className={`size-2 rounded-full ${overview.fxSource.source === 'live' ? 'bg-emerald-500' : 'bg-amber-500'}`} />{overview.fxSource.source === 'live' ? 'Live FX' : 'Fallback FX'} · {overview.fxSource.referenceAt.slice(0, 10)}</div></header>
+      <BalanceHero overview={overview} />
+      <section aria-label="Financial summary" className="grid gap-4 md:grid-cols-3">
         <MetricCard label="Available cash" value={formatMoney(overview.availableCash)} detail="Selected reporting currency · illustrative FX rates" icon={<WalletCards size={20} aria-hidden />} />
         <MetricCard label="Monthly expenses" value={formatMoney(overview.monthlyExpenses)} detail={`${usedPercent}% of your living budget`} tone={usedPercent >= 100 ? 'warning' : 'neutral'} icon={<ArrowUpRight size={20} aria-hidden />} />
         <MetricCard label="Cash runway" value={`${overview.cashRunwayMonths.toFixed(1)} months`} detail="After the upcoming tuition installment" tone="positive" icon={<PiggyBank size={20} aria-hidden />} />
       </section>
+      <BankingShortcuts />
       {overview.selectedAccount ? <Card aria-label="Selected account" className="border-blue-200 bg-blue-50/50 p-5 sm:p-6"><div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-600">Selected account</p><p className="mt-1 text-sm font-medium text-slate-600">{overview.selectedAccount.label}</p></div><div className="sm:text-right"><p className="text-2xl font-bold tabular-nums text-slate-950">{formatMoney(overview.selectedAccount.amount)}</p>{overview.selectedAccount.amount.currency !== overview.selectedAccount.reportingAmount.currency ? <p className="mt-1 text-xs text-slate-500">≈ {formatMoney(overview.selectedAccount.reportingAmount)} reporting value</p> : <p className="mt-1 text-xs text-slate-500">Original currency (no conversion)</p>}</div></div></Card> : null}
       <Card>
         <CardHeader title="Multi-currency balances" eyebrow={`${overview.accountBalances.length} active accounts`} action={<Link href="/accounts" className="text-xs font-semibold text-blue-600">View accounts</Link>} />
-        <div className="grid gap-3 p-5 sm:grid-cols-2 sm:p-6 lg:grid-cols-5">
+        <div className="grid gap-3 p-5 sm:grid-cols-2 sm:p-6 lg:grid-cols-3 2xl:grid-cols-5">
           {overview.accountBalances.map((account) => (
             <div key={account.id} className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
               <p className="text-xs font-medium text-slate-500">{account.label}</p>
               <p className="mt-2 text-base font-bold tabular-nums text-slate-950">{formatMoney(account.amount)}</p>
-              {account.amount.currency !== account.reportingAmount.currency ? <p className="mt-1 text-[11px] text-slate-500">≈ {formatMoney(account.reportingAmount)} reference equivalent</p> : null}
+              {account.amount.currency !== account.reportingAmount.currency ? <p className="mt-1 text-xs leading-5 text-slate-500">≈ {formatMoney(account.reportingAmount)} reference equivalent</p> : null}
             </div>
           ))}
         </div>
@@ -149,3 +177,4 @@ export function OverviewDashboard({ overview }: Readonly<{ overview: OverviewMod
     </div>
   );
 }
+
