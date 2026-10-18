@@ -10,7 +10,7 @@ test.describe('global banking search and file chooser', () => {
     await results.getByRole('option', { name: /Campus Dining/ }).click();
     await expect(page).toHaveURL(/\/transactions\?/);
     await expect(page.getByRole('heading', { name: 'Transactions & bill analysis' })).toBeVisible();
-    await expect(page.getByRole('textbox', { name: 'Merchant search' })).toHaveValue('Campus Dining');
+    await expect(page.getByRole('searchbox', { name: 'Merchant search' })).toHaveValue('Campus Dining');
     await expect(page.getByText('Campus Dining').first()).toBeVisible();
   });
 
