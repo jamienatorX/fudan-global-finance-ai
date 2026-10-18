@@ -81,6 +81,7 @@ export function GlobalSearch({ accounts }: Readonly<{ accounts: readonly { id: s
       </button>)}
       {results.length===0 ? <p className="px-3 pb-2 text-xs text-slate-500">Try a merchant, amount, category, currency, or account type.</p> : null}
     </div> : null}
-    {path==='/overview' ? <span className="sr-only">Search covers this browser&apos;s simulated banking data.</span> : null}
+    {path==='/overview' ? <span className="sr-only">Search your accounts and activity.</span> : null}
   </div>;
 }
+
