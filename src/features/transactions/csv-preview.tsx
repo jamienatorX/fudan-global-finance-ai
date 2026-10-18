@@ -6,6 +6,7 @@ import { Card, CardHeader } from '../../components/ui/card';
 
 export function CsvImportPreview() {
   const [csv, setCsv] = useState('');
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -13,6 +14,7 @@ export function CsvImportPreview() {
     const file = event.target.files?.[0];
     setPreview(null);
     setError(null);
+    setSelectedFile(file?.name ?? null);
     if (!file) return;
     if (file.size > MAX_CSV_BYTES) { setError('CSV file must be 1 MB or smaller.'); return; }
     try { setCsv(await file.text()); }
@@ -31,8 +33,14 @@ export function CsvImportPreview() {
       <CardHeader title="CSV import preview" eyebrow="Read-only, no changes to your account" />
       <p className="mt-3 text-sm leading-6 text-slate-600">Select a CSV file or paste its contents. Required headers: <code>date,merchant,amount,currency</code>. Use YYYY-MM-DD dates, positive amounts for credits, and negative amounts for debits. Each row is checked separately.</p>
       <form className="mt-4 space-y-3" onSubmit={onSubmit}>
-        <label htmlFor="transaction-csv-file" className="block text-sm font-medium text-slate-700">Choose a CSV file (1 MB maximum)</label>
-        <input id="transaction-csv-file" type="file" accept=".csv,text/csv" onChange={onFileChange} className="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:font-semibold file:text-blue-700" />
+        <p className="text-sm font-medium text-slate-700">Choose a CSV file (1 MB maximum)</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <label htmlFor="transaction-csv-file" className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 hover:bg-blue-100">
+            Choose CSV file
+          </label>
+          <input id="transaction-csv-file" type="file" accept=".csv,text/csv" onChange={onFileChange} aria-label="Choose a CSV file" className="sr-only peer" />
+          {selectedFile ? <span className="max-w-xs truncate text-xs text-slate-600" title={selectedFile}>{selectedFile}</span> : null}
+        </div>
         <label htmlFor="transaction-csv-text" className="block text-sm font-medium text-slate-700">CSV contents</label>
         <textarea id="transaction-csv-text" value={csv} onChange={(event) => { setCsv(event.target.value); setPreview(null); }} rows={4}
           placeholder={'date,merchant,amount,currency\n2026-10-12,Campus Dining,-25.50,CNY'}
