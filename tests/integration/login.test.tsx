@@ -9,6 +9,17 @@ vi.mock('@/lib/supabase/browser', () => ({ createBrowserSupabaseClient: () => ({
 
 describe('fictional account login', () => {
   beforeEach(() => { auth.error = false; auth.configured = true; auth.query = ''; });
+  it('lets a user reveal and hide their password without clearing it', () => {
+    render(<LoginPage />);
+    const password = screen.getByLabelText('Password');
+    fireEvent.change(password, { target: { value: 'fictional-password' } });
+    expect(password).toHaveAttribute('type', 'password');
+    fireEvent.click(screen.getByRole('button', { name: 'Show password' }));
+    expect(password).toHaveAttribute('type', 'text');
+    expect(password).toHaveValue('fictional-password');
+    fireEvent.click(screen.getByRole('button', { name: 'Hide password' }));
+    expect(password).toHaveAttribute('type', 'password');
+  });
   it('signs in with user-entered credentials and communicates success', async () => {
     render(<LoginPage />);
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'demo@example.test' } });
@@ -44,3 +55,4 @@ describe('fictional account login', () => {
     expect(screen.queryByText(/private-provider-information/)).not.toBeInTheDocument();
   });
 });
+

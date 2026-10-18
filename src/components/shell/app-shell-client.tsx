@@ -30,10 +30,11 @@ export function AppShellClient({ accounts, userName, alerts, children }: Readonl
               if (!window.matchMedia('(min-width: 64rem)').matches) setMobileOpen(true);
             }} navigationButtonRef={navigationButtonRef} />
           </Suspense>
-          <main id="main-content" tabIndex={-1} className="mx-auto min-h-[calc(100vh-4.5rem)] w-full max-w-[1600px] px-4 py-6 outline-none sm:px-6 lg:px-8 lg:py-8">{children}</main>
+          <main id="main-content" tabIndex={-1} className="mx-auto min-h-[calc(100vh-4.5rem)] w-full max-w-[1600px] px-4 py-6 outline-none sm:px-6 lg:px-8 lg:py-9 xl:px-10">{children}</main>
         </div>
       </div>
       {mobileOpen ? <MobileNavigation onClose={() => setMobileOpen(false)} returnFocusRef={navigationButtonRef} /> : null}
     </div>
   );
 }
+

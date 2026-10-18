@@ -1,5 +1,20 @@
 @import "tailwindcss";
 @import "../src/styles/tokens.css";
+@import "../src/styles/auth.css";
+
+@theme inline {
+  --color-blue-50: #edf6f2;
+  --color-blue-100: #dcefe7;
+  --color-blue-200: #b9ded2;
+  --color-blue-300: #8bcab9;
+  --color-blue-400: #53b29d;
+  --color-blue-500: #24927e;
+  --color-blue-600: #087f70;
+  --color-blue-700: #096758;
+  --color-blue-800: #125448;
+  --color-blue-900: #16463e;
+  --color-blue-950: #102f2a;
+}
 
 :root {
   color-scheme: light;
@@ -23,6 +38,7 @@ body {
   background: var(--color-background);
   color: var(--color-text);
   text-rendering: optimizeLegibility;
+  font-family: var(--font-inter, ui-sans-serif), system-ui, sans-serif;
 }
 
 button,
@@ -31,7 +47,92 @@ input {
   font: inherit;
 }
 
+button, a, select, summary {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button:not(:disabled), select, summary {
+  cursor: pointer;
+}
+
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
+}
+
+:where(a, button, select, input) {
+  transition: background-color 180ms ease-out, border-color 180ms ease-out, box-shadow 180ms ease-out;
+}
+
+.balance-hero {
+  background: radial-gradient(ellipse at 100% 0%, #315862 0%, transparent 65%), var(--color-navy);
+}
+
+.balance-hero::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  right: -4rem;
+  top: -8rem;
+  width: 27rem;
+  aspect-ratio: 1;
+  border: 1px solid rgb(255 255 255 / 0.09);
+  border-radius: 50%;
+  box-shadow: 0 0 0 3rem rgb(255 255 255 / 0.035), 0 0 0 6rem rgb(255 255 255 / 0.025);
+  pointer-events: none;
+}
+
+.metric-card {
+  border-top: 2px solid #cbded6;
+}
+
+.finance-card-action > a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  margin-block: -10px;
+}
+
+.balance-hero a:focus-visible {
+  outline-color: white;
+}
+
+.shortcut-card:active {
+  background: var(--color-info-soft);
+}
+
+.shortcut-card > span {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.finance-card strong, .balance-number {
+  font-variant-numeric: tabular-nums;
+}
+
+.finance-card {
+  overflow-wrap: anywhere;
+}
+
+.metric-card > div > div {
+  min-width: 0;
+}
+
+.metric-card > div > span {
+  flex-shrink: 0;
+}
+
+@media (max-width: 30rem) {
+  .shortcut-card {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 1rem;
+  }
+}
+
 ::selection {
-  background: #bfdbfe;
+  background: #b9ded2;
   color: var(--color-navy);
 }
+

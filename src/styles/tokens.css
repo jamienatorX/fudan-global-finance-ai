@@ -1,15 +1,39 @@
 :root {
-  --color-navy: #101d3a;
-  --color-primary: #2563eb;
-  --color-background: #f6f8fc;
+  --color-navy: #102b32;
+  --color-primary: #087f70;
+  --color-action-hover: #096758;
+  --color-action-active: #125448;
+  --color-control-border: #85958F;
+  --color-danger-text: #B91C1C;
+  --color-auth-hero-highlight: #254C53;
+  --color-auth-currency: #21444A;
+  --color-background: #f7f8f5;
   --color-surface: #ffffff;
-  --color-text: #101d3a;
-  --color-text-muted: #64748b;
-  --color-border: #dfe5ef;
+  --color-text: #17343a;
+  --color-text-muted: #5e7074;
+  --color-border: #e2e7e2;
   --color-positive: #047857;
   --color-warning: #b45309;
   --color-danger: #dc2626;
-  --color-info-soft: #eff6ff;
+  --color-info-soft: #edf6f2;
+  --color-accent: #b88732;
+  --color-planning-surface: #f3eee2;
+  --color-planning-border: #e7dec9;
+  --color-planning-text: #655c49;
+  --color-planning-label: #74613d;
+  --color-planning-icon: #8c6b30;
+  --color-planning-divider: #ded5c2;
+  --color-planning-underline: #bca77e;
+  --color-nav-active: #c6ecdf;
+  --color-nav-active-text: #143d37;
+  --color-chart-rent: #087f70;
+  --color-chart-food: #2c5969;
+  --color-chart-transportation: #b88732;
+  --color-chart-shopping: #77628f;
+  --color-chart-other: #70818b;
+  --color-on-primary: #ffffff;
+  --color-hero-muted: #c0d6d5;
+  --color-hero-accent: #8be3cd;
   --color-positive-soft: #ecfdf5;
   --color-warning-soft: #fffbeb;
   --color-danger-soft: #fef2f2;
@@ -30,7 +54,7 @@
   --radius-xl: 1.5rem;
   --radius-full: 9999px;
 
-  --shadow-card: 0 1px 2px rgb(16 29 58 / 0.04), 0 8px 24px rgb(16 29 58 / 0.06);
+  --shadow-card: 0 2px 3px rgb(21 48 44 / 0.02), 0 8px 28px rgb(21 48 44 / 0.025);
   --shadow-elevated: 0 16px 48px rgb(16 29 58 / 0.16);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
@@ -43,3 +67,4 @@
     animation-iteration-count: 1 !important;
   }
 }
+
