@@ -12,6 +12,7 @@ An international-student finance **simulation** built with Next.js 16, React 19,
 - Simulated virtual card freeze/limits, subscriptions, fictional investments, tuition, monthly budgets and cash-runway calculations.
 - FX **reference-only** conversions using labeled illustrative fallback data.
 - Public, browser-local simulation at `/overview` with reset under `/settings`.
+- Phase 6 manual banking walkthrough at `/showcase`, showing live fictional account state, eight module links and safe operation explanations.
 - Authenticated Supabase banking simulation at `/banking`, with server-checked approval, expiry, atomic database writes, audit logs and persistent owner-isolated fictional accounts.
 
 No actual deposits, real payment rails, card issuing, securities or bank credentials are involved. Financial data in the public demo is local to the user's browser; data in the authenticated sandbox persists in Supabase.
