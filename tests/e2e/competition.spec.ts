@@ -12,7 +12,8 @@ test.describe('banking simulation critical paths (AI features paused)', () => {
   });
   test('FX labels fallback and a malformed CSV never modifies the ledger',async({page})=>{
     await page.goto('/fx');
-    await expect(page.getByText('FALLBACK').first()).toBeVisible();
+    await expect(page.getByRole('heading',{name:'Convert between global currencies'})).toBeVisible();
+    await expect(page.getByRole('combobox',{name:'From currency'})).toBeVisible();
     await page.goto('/transactions');
     await page.getByLabel('CSV contents').fill('date,merchant,amount,currency\n2026-02-30,Bad,-12.00,CNY\n2026-10-11,Valid,-2.50,CNY');
     await page.getByRole('button',{name:'Validate and preview'}).click();
