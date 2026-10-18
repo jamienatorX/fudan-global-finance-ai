@@ -58,7 +58,7 @@ export function DemoProvider({ children }: Readonly<{ children: ReactNode }>) {
   const approve = useCallback(() => {
     if (!pending) return;
     if (Date.now() > pending.expiresAt || state.version !== pending.version) {
-      setNotice('Approval expired or account state changed. Review a fresh proposal.');
+      setNotice('This confirmation has expired. Please review the details again.');
       setPending(null); return;
     }
     try {
@@ -67,17 +67,17 @@ export function DemoProvider({ children }: Readonly<{ children: ReactNode }>) {
       setNotice(result.message);
       setResults([{ id: pending.id, action: pending.action, status: 'executed', message: result.message }]);
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : 'Simulation could not complete this action');
+      setNotice(error instanceof Error ? error.message : 'Could not complete this action. Please try again.');
       setResults([{ id: pending.id, action: pending.action, status: 'failed', message: error instanceof Error ? error.message : 'Failed' }]);
     }
     setPending(null);
   }, [pending, state]);
 
-  const reject = useCallback(() => { setPending(null); setNotice('Proposal rejected. No changes were made.'); }, []);
+  const reject = useCallback(() => { setPending(null); setNotice('Cancelled. No changes were made.'); }, []);
 
   const executeBatch = useCallback((steps: readonly DemoBatchStep[], expectedVersion: number, expiresAt: number) => {
     if (Date.now() > expiresAt || state.version !== expectedVersion) {
-      setNotice('This plan expired or the financial state changed. Generate a new plan.'); return;
+      setNotice('This confirmation has expired. Please review the details again.'); return;
     }
     const outcome = runApprovedDemoBatch(state.snapshot, steps);
     setState({ snapshot: outcome.snapshot, version: state.version + 1 });
@@ -87,10 +87,10 @@ export function DemoProvider({ children }: Readonly<{ children: ReactNode }>) {
   }, [state]);
 
   const reset = useCallback((confirmation: string) => {
-    if (confirmation !== 'RESET DEMO') { setNotice('Enter RESET DEMO exactly to reset the simulation.'); return false; }
+    if (confirmation !== 'RESET DEMO') { setNotice('Enter RESET DEMO to confirm.'); return false; }
     const snapshot = createSeedSnapshot(DEFAULT_SEED_VERSION);
     setState({ snapshot, version: state.version + 1 });
-    setPending(null); setResults([]); setNotice('Demo restored to its original fictional balances and records.');
+    setPending(null); setResults([]); setNotice('Your data has been reset.');
     return true;
   }, [state.version]);
 
@@ -107,3 +107,4 @@ export function useDemo(): DemoContextValue {
   if (!value) throw new Error('DemoProvider is required for simulation pages');
   return value;
 }
+
