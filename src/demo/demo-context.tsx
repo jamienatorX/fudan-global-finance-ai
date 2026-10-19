@@ -88,6 +88,7 @@ export function DemoProvider({ children }: Readonly<{ children: ReactNode }>) {
 
   const reset = useCallback((confirmation: string) => {
     if (confirmation !== 'RESET DEMO') { setNotice('Enter RESET DEMO to confirm.'); return false; }
+    window.dispatchEvent(new Event('fu-bank:reset'));
     const snapshot = createSeedSnapshot(DEFAULT_SEED_VERSION);
     setState({ snapshot, version: state.version + 1 });
     setPending(null); setResults([]); setNotice('Your data has been reset.');

@@ -60,7 +60,7 @@ export type Subscription = Readonly<{
   cadence: Cadence; nextRenewalAt: ISODate; lastUsageAt: ISODate | null; status: 'active' | 'cancelled';
 }>;
 export type InvestmentProduct = Readonly<{
-  id: EntityId; name: string; fictional: true; category: 'money-market' | 'bond' | 'balanced' | 'equity-index';
+  id: EntityId; name: string; fictional: true; category: 'money-market' | 'bond' | 'balanced' | 'equity-index' | 'stock' | 'forex' | 'crypto';
   simulatedRisk: 'low' | 'medium' | 'high'; feeBasisPoints: number; liquidity: 'daily' | 't-plus-2';
   historicalSimulation: Readonly<{ period: string; returnBasisPoints: number; drawdownBasisPoints: number }>;
   disclaimer: string;

@@ -1,7 +1,9 @@
 import type { Account, AuditEvent, FinancialSnapshot, Transaction } from '../domain/entities';
 import { money } from '../domain/money';
+import { marketOrderQuote, parseUnits, formatUnits } from '../features/investing/market-catalog';
 
 export type DemoAction =
+ | Readonly<{ type: 'market-order'; instrumentId: string; sourceId: string; direction: 'buy' | 'sell'; quantity: string }>
  | Readonly<{ type: 'transfer'; sourceId: string; destinationId?: string; beneficiaryId?: string; amountMinor: string; scheduledAt?: string }>
  | Readonly<{ type: 'tuition'; sourceId: string; tuitionId: string }>
  | Readonly<{ type: 'budget'; category: 'rent' | 'food' | 'transportation' | 'shopping' | 'other'; limitMinor: string }>
@@ -62,6 +64,35 @@ export function applyDemoAction(snapshot: FinancialSnapshot, action: DemoAction,
   let next: FinancialSnapshot;
   let message = '';
   switch (action.type) {
+    case 'market-order': {
+      const source = accountFor(snapshot, action.sourceId);
+      if (source.currency !== 'CNY') throw new Error('Choose an active CNY funding account.');
+      if (action.direction !== 'buy' && action.direction !== 'sell') throw new Error('Invalid order direction.');
+      const { instrument, units, amountMinor } = marketOrderQuote(action.instrumentId, action.quantity);
+      const productId = 'market:' + instrument.id;
+      const holding = snapshot.holdings.find(h => h.ownerId === source.ownerId && h.productId === productId);
+      const owned = holding && Number(holding.units) > 0 ? parseUnits(holding.units) : 0n;
+      if (action.direction === 'sell' && units > owned) throw new Error('Insufficient simulated holdings.');
+      const delta = action.direction === 'buy' ? units : -units;
+      const accounts = action.direction === 'buy' ? withDebit(snapshot, source.id, amountMinor) : snapshot.accounts.map(a => a.id === source.id ? {
+        ...a, balance: money(a.balance.amountMinor + amountMinor, 'CNY'), availableBalance: money(a.availableBalance.amountMinor + amountMinor, 'CNY'),
+      } : a);
+      const newUnits = owned + delta;
+      const cost = action.direction === 'buy' ? (holding?.costBasis.amountMinor ?? 0n) + amountMinor : holding!.costBasis.amountMinor * newUnits / owned;
+      const updated = { id: holding?.id ?? id + '-holding', ownerId: source.ownerId, productId, units: formatUnits(newUnits), costBasis: money(cost, 'CNY'), simulatedValue: money(newUnits * instrument.priceMinor / 100_000_000n, 'CNY') };
+      const category = instrument.assetClass === 'Stocks' ? 'stock' as const : instrument.assetClass === 'Forex' ? 'forex' as const : instrument.assetClass === 'Crypto' ? 'crypto' as const : 'bond' as const;
+      next = { ...snapshot, accounts,
+        investmentProducts: snapshot.investmentProducts.some(p => p.id === productId) ? snapshot.investmentProducts : [...snapshot.investmentProducts, {
+          id: productId, name: instrument.name + ' (simulation)', fictional: true, category, simulatedRisk: instrument.risk, feeBasisPoints: 0, liquidity: 'daily',
+          historicalSimulation: { period: 'Fictional fixture', returnBasisPoints: 0, drawdownBasisPoints: 0 }, disclaimer: 'Simulated instrument; no real assets traded.',
+        }],
+        holdings: holding ? snapshot.holdings.map(h => h.id === holding.id ? updated : h) : [...snapshot.holdings, updated],
+        investmentOrders: [...snapshot.investmentOrders, { id, ownerId: source.ownerId, productId, direction: action.direction === 'buy' ? 'buy' : 'redeem', amount: money(amountMinor, 'CNY'), status: 'completed', idempotencyKey: id, initiatedBy: source.ownerId, planId: null, actionId: null, createdAt: now, updatedAt: now, auditEventId: id }],
+        transactions: [...snapshot.transactions, ledger(snapshot, id + '-txn', source, action.direction === 'buy' ? 'debit' : 'credit', amountMinor, 'asset-movement', 'investment', instrument.name + ' (simulation)', null, id)],
+      };
+      message = 'Simulated ' + action.direction + ': ' + action.quantity + ' ' + instrument.symbol + '. Receipt DEMO-' + id.slice(0, 8).toUpperCase() + '. No real assets traded.';
+      break;
+    }
     case 'transfer': {
       const source = accountFor(snapshot, action.sourceId);
       const amount = positive(action.amountMinor);
@@ -141,7 +172,7 @@ export function applyDemoAction(snapshot: FinancialSnapshot, action: DemoAction,
     case 'investment': {
       const source = accountFor(snapshot, action.sourceId);
       const product = snapshot.investmentProducts.find(p => p.id === action.productId);
-      if (!product || !product.fictional || source.currency !== 'CNY') throw new Error('Fictional CNY product not available');
+      if (!product || !product.fictional || product.id.startsWith('market:') || source.currency !== 'CNY') throw new Error('Fictional CNY product not available');
       const amount = positive(action.amountMinor);
       const matching = snapshot.holdings.find(h => h.ownerId === source.ownerId && h.productId === product.id);
       if (action.direction === 'redeem' && (!matching || matching.simulatedValue.amountMinor < amount)) throw new Error('Insufficient simulated holdings');

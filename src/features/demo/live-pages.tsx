@@ -6,6 +6,8 @@ import type { FinancialRepository } from '../../domain/financial-repository';
 import { formatMoney } from '../../domain/money';
 import { CURRENCY_MINOR_DIGITS, type CurrencyCode } from '../../domain/currency';
 import { getOverviewModel, type OverviewModel } from '../overview/overview-queries';
+import { CardReminders } from '../cards/card-reminders';
+import { InvestingHomeSection } from '../investing/investing-workspace';
 import { OverviewDashboard } from '../overview/overview-dashboard';
 import { displayOverviewCurrency } from '../overview/overview-currency';
 import { AccountList } from '../accounts/account-list';
@@ -44,6 +46,8 @@ export function LiveOverview({account}:{account?:string}){
       <Link href="/banking" className="inline-flex min-h-11 items-center rounded-full border border-[var(--color-border)] bg-white px-4 text-xs font-semibold text-[var(--color-primary)] hover:bg-[var(--color-info-soft)]">My account →</Link>
     </div>
     <OverviewDashboard overview={displayed} />
+    <CardReminders compact />
+    <InvestingHomeSection />
   </div>:<p role="status" className="p-5 text-sm text-slate-600">Loading overview…</p>;
 }
 export function LiveAccounts(){

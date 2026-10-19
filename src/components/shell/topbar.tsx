@@ -4,11 +4,18 @@ import { Bell, Menu } from 'lucide-react';
 import { GlobalSearch } from '../../features/search/global-search';
 import { useState, type RefObject } from 'react';
 import { CurrencyTicker } from './currency-ticker';
+import { useInvestingPreferences } from '../../features/investing/investing-preferences';
+import { useShanghaiDate } from '../../features/cards/use-shanghai-date';
+import { reminderStatus } from '../../features/cards/reminder-model';
 
 export type ShellAccountOption = Readonly<{ id: string; label: string }>;
 
 export function Topbar({ accounts, userName, alerts, onOpenNavigation, navigationButtonRef }: Readonly<{ accounts: readonly ShellAccountOption[]; userName: string; alerts: readonly string[]; onOpenNavigation: () => void; navigationButtonRef: RefObject<HTMLButtonElement | null> }>) {
   const [showNotifications, setShowNotifications] = useState(false);
+  const preferences = useInvestingPreferences()?.preferences;
+  const today = useShanghaiDate();
+  const reminderAlerts = today ? (preferences?.reminders ?? []).filter(b => !b.paid && reminderStatus(b, today) !== 'Upcoming').map(b => `${b.name} ending ${b.lastFour}: CNY ${Number(b.amount).toFixed(2)} due ${b.dueDate} (${reminderStatus(b, today).toLowerCase()}).`) : [];
+  const allAlerts = [...alerts, ...reminderAlerts];
   const initials = userName.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
 
   return (
@@ -19,8 +26,8 @@ export function Topbar({ accounts, userName, alerts, onOpenNavigation, navigatio
         <CurrencyTicker />
         <div className="bank-header-actions flex items-center justify-end gap-2">
           <div className="relative">
-            <button type="button" aria-label="Notifications" aria-expanded={showNotifications} onClick={() => setShowNotifications((open) => !open)} className="relative grid size-11 place-items-center rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"><Bell size={19} aria-hidden />{alerts.length ? <span className="absolute right-2 top-2 size-1.5 rounded-full bg-amber-500" /> : null}</button>
-            {showNotifications ? <div role="status" className="absolute right-0 top-12 w-72 rounded-2xl border border-slate-200 bg-white p-4 shadow-[var(--shadow-elevated)]"><p className="text-sm font-semibold text-slate-900">{alerts.length} financial {alerts.length === 1 ? 'alert' : 'alerts'}</p>{alerts.length ? <ul className="mt-1 space-y-2 text-xs leading-5 text-slate-600">{alerts.map((alert, index) => <li key={`${index}:${alert}`}>{alert}</li>)}</ul> : <p className="mt-1 text-xs text-slate-600">No financial alerts</p>}</div> : null}
+            <button type="button" aria-label="Notifications" aria-expanded={showNotifications} onClick={() => setShowNotifications((open) => !open)} className="relative grid size-11 place-items-center rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"><Bell size={19} aria-hidden />{allAlerts.length ? <span className="absolute right-2 top-2 size-1.5 rounded-full bg-amber-500" /> : null}</button>
+            {showNotifications ? <div role="status" className="absolute right-0 top-12 w-72 rounded-2xl border border-slate-200 bg-white p-4 shadow-[var(--shadow-elevated)]"><p className="text-sm font-semibold text-slate-900">{allAlerts.length} financial {allAlerts.length === 1 ? 'alert' : 'alerts'}</p>{allAlerts.length ? <ul className="mt-1 space-y-2 text-xs leading-5 text-slate-600">{allAlerts.map((alert, index) => <li key={`${index}:${alert}`}>{alert}</li>)}</ul> : <p className="mt-1 text-xs text-slate-600">No financial alerts</p>}</div> : null}
           </div>
           <div className="grid size-11 place-items-center rounded-xl bg-[var(--color-navy)] text-xs font-bold text-white" title={userName}>{initials}</div>
         </div>

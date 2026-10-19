@@ -1,5 +1,6 @@
 'use client';
 import { useState, type ReactNode } from 'react';
+import { CardReminders } from '../cards/card-reminders';
 import { useDemo } from '../../demo/demo-context';
 import type { DemoAction } from '../../demo/demo-engine';
 import type { CurrencyCode } from '../../domain/currency';
@@ -80,13 +81,14 @@ function PageBody({ section }: { section: Page }) {
       </div>)}</Panel></div>}
     {section==='cards' && <div className="grid gap-5 md:grid-cols-2">{snapshot.cards.map(c=><Panel key={c.id} title={c.purpose.replaceAll('-',' ')+' virtual card'}>
       <div className="rounded-2xl bg-gradient-to-br from-slate-950 to-blue-800 p-6 text-white">
-        <p className="text-sm font-semibold">福 bank</p><p className="mt-12 font-mono text-2xl tracking-widest">{c.maskedNumber}</p>
+        <p className="text-sm font-semibold">福 Bank</p><p className="mt-12 font-mono text-2xl tracking-widest">{c.maskedNumber}</p>
         <p className="mt-3 text-sm capitalize">{c.freezeState}</p>
       </div><p className="mt-4 text-sm">Daily limit: {formatMoney(c.dailyLimit)}</p><p className="mt-1 text-sm">Monthly limit: {formatMoney(c.monthlyLimit)}</p>
       <div className="mt-4"><button className={button} onClick={()=>submit(()=>({type:'card',cardId:c.id,mode:c.freezeState==='frozen'?'unfreeze':'freeze'}))}>{c.freezeState==='frozen'?'Review unfreeze':'Review freeze'}</button></div>
       <div className="mt-4"><Label caption="Change monthly limit (CNY)"><input className={field} value={val('limit:'+c.id)} placeholder="1000.00" onChange={e=>set('limit:'+c.id,e.target.value)}/></Label>
       <button className={secondary+' mt-2'} onClick={()=>submit(()=>({type:'card',cardId:c.id,mode:'limit',limitMinor:parseMajorAmount(val('limit:'+c.id),'CNY')}))}>Review limit change</button></div>
     </Panel>)}</div>}
+    {section==='cards' && <div id="reminders"><CardReminders /></div>}
     {section==='subscriptions' && <>
       <Panel title="Recurring commitments"><p className="text-3xl font-bold">{formatMoney(money(totalSubscriptions,'CNY'))} <span className="text-sm font-normal text-slate-500">/ month</span></p>
       <p className="mt-2 text-xs text-slate-500">Annualized estimate: {formatMoney(money(totalSubscriptions*12n,'CNY'))}.</p></Panel>
@@ -98,14 +100,14 @@ function PageBody({ section }: { section: Page }) {
       </Panel>)}</div></>}
     {section==='wealth' && <div className="grid gap-5 lg:grid-cols-2">
       <div className="space-y-4"><Panel title="Risk preference"><select className={field} value={val('risk','low')} onChange={e=>set('risk',e.target.value)}><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></Panel>
-      {snapshot.investmentProducts.map(p=><Panel key={p.id} title={p.name}>
+      {snapshot.investmentProducts.filter(p=>!p.id.startsWith('market:')).map(p=><Panel key={p.id} title={p.name}>
         <p className="text-sm text-slate-600">{p.category.replaceAll('-',' ')} · {p.simulatedRisk} risk · fee {(p.feeBasisPoints/100).toFixed(2)}% · {p.liquidity}</p>
         <p className="mt-2 text-xs text-slate-500">Illustrative return {(p.historicalSimulation.returnBasisPoints/100).toFixed(2)}%; drawdown {(p.historicalSimulation.drawdownBasisPoints/100).toFixed(2)}%. No guaranteed returns.</p>
         <button className={secondary+' mt-3'} onClick={()=>set('product',p.id)}>Select product</button>
       </Panel>)}</div>
       <div className="space-y-4"><Panel title="Investment order">
         <div className="space-y-3">
-          <Label caption="Product"><select className={field} value={val('product',snapshot.investmentProducts[0].id)} onChange={e=>set('product',e.target.value)}>{snapshot.investmentProducts.map(p=><option value={p.id} key={p.id}>{p.name}</option>)}</select></Label>
+          <Label caption="Product"><select className={field} value={val('product',snapshot.investmentProducts[0].id)} onChange={e=>set('product',e.target.value)}>{snapshot.investmentProducts.filter(p=>!p.id.startsWith('market:')).map(p=><option value={p.id} key={p.id}>{p.name}</option>)}</select></Label>
           <Label caption="Order direction"><select className={field} value={val('direction','buy')} onChange={e=>set('direction',e.target.value)}><option value="buy">Buy</option><option value="redeem">Redeem</option></select></Label>
           <Label caption="Funding account"><select className={field} value={val('funding',eligibleCny[0].id)} onChange={e=>set('funding',e.target.value)}>{eligibleCny.map(a=><option key={a.id} value={a.id}>{a.type} · {formatMoney(a.availableBalance)}</option>)}</select></Label>
           <Label caption="Amount CNY"><input className={field} inputMode="decimal" value={val('investmentAmount','1000.00')} onChange={e=>set('investmentAmount',e.target.value)}/></Label>

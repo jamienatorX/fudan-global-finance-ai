@@ -18,6 +18,7 @@ export const NAV_ITEMS: readonly Readonly<{ href: string; label: string; shortLa
   { href: '/transfers', label: 'Smart Transfers', shortLabel: 'Transfers', icon: SendHorizontal },
   { href: '/transactions', label: 'Transactions & Bill Analysis', shortLabel: 'Transactions', icon: ReceiptText },
   { href: '/wealth', label: 'Wealth Management', shortLabel: 'Wealth', icon: ChartNoAxesCombined },
+  { href: '/investing', label: 'Investing', shortLabel: 'Investing', icon: ChartNoAxesCombined },
   { href: '/cards', label: 'Card Management', shortLabel: 'Cards', icon: CreditCard },
   { href: '/subscriptions', label: 'Subscription Management', shortLabel: 'Subscriptions', icon: Repeat2 },
   { href: '/fx', label: 'Currency Exchange & Cross-Border', shortLabel: 'FX & Cross-border', icon: ArrowLeftRight },
@@ -41,7 +42,7 @@ function Navigation({ compact = false, onNavigate }: Readonly<{ compact?: boolea
     <nav aria-label={onNavigate ? 'Mobile product navigation' : 'Primary navigation'} className="space-y-1">
       {NAV_ITEMS.map(({ href, label, shortLabel, icon: Icon }, index) => (
         <div key={href}>
-          {!compact && [0, 4, 9].includes(index) ? <p className={`px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400 ${index ? "mt-7" : "mt-2"}`}>{index === 0 ? "Everyday banking" : index === 4 ? "Plan & manage" : "Your workspace"}</p> : null}
+          {!compact && [0, 4, 10].includes(index) ? <p className={`px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400 ${index ? "mt-7" : "mt-2"}`}>{index === 0 ? "Everyday banking" : index === 4 ? "Plan & manage" : "Your workspace"}</p> : null}
         <Link
           key={href}
           href={href}

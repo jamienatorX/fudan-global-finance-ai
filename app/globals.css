@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "../src/styles/tokens.css";
 @import "../src/styles/auth.css";
+@import "../src/styles/investing.css";
 
 @theme inline {
   --color-blue-50: #edf6f2;

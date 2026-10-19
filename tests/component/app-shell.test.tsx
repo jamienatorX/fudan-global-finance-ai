@@ -44,7 +44,7 @@ describe('AppShell', () => {
     });
   });
 
-  it('exposes all eleven product destinations and the persistent banking controls', () => {
+  it('exposes all twelve product destinations and the persistent banking controls', () => {
     render(
       <AppShell accounts={snapshot.accounts} user={snapshot.users[0]}>
         <p>Dashboard content</p>
@@ -53,12 +53,12 @@ describe('AppShell', () => {
 
     const primaryNavigation = screen.getByRole('navigation', { name: 'Primary navigation' });
     const destinations = within(primaryNavigation).getAllByRole('link');
-    expect(destinations).toHaveLength(11);
+    expect(destinations).toHaveLength(12);
     expect(destinations.map((link) => link.getAttribute('href'))).toEqual([
-      '/overview', '/accounts', '/transfers', '/transactions', '/wealth', '/cards',
+      '/overview', '/accounts', '/transfers', '/transactions', '/wealth', '/investing', '/cards',
       '/subscriptions', '/fx', '/planner', '/audit', '/settings',
     ]);
-    expect(screen.getByRole('combobox', { name: 'Active account' })).toHaveValue(snapshot.accounts[0].id);
+    expect(screen.queryByRole('combobox', { name: 'Active account' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Notifications' })).toBeInTheDocument();
     expect(within(screen.getByRole('banner')).queryByText('Demo')).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Ask AI banker' })).not.toBeInTheDocument();
@@ -87,7 +87,7 @@ describe('AppShell', () => {
     navigation.query = `account=${usdId}&unrelated=omit`;
     const model = await getOverviewModel(new DemoFinancialRepository(), DEMO_USER_ID, usdId);
     const { rerender } = render(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><OverviewDashboard overview={model} /></AppShell>);
-    for (const name of [/福.*bank/, 'View accounts', /Transfer money/, /Plan tuition/]) {
+    for (const name of [/福.*Bank/, 'View accounts', /Transfer money/, /Plan tuition/]) {
       const href = screen.getByRole('link', { name }).getAttribute('href')!;
       const url = new URL(href, 'http://localhost');
       expect(url.searchParams.get('account')).toBe(usdId);
@@ -119,16 +119,12 @@ describe('AppShell', () => {
     expect(screen.getByRole('status')).not.toHaveTextContent('December tuition');
   });
 
-  it('writes account selection to dashboard URL state', () => {
-    const usdAccount = snapshot.accounts.find((account) => account.currency === 'USD')!;
+  it('keeps the removed account selector out of the header', () => {
     render(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><p>Dashboard</p></AppShell>);
-
-    fireEvent.change(screen.getByRole('combobox', { name: 'Active account' }), { target: { value: usdAccount.id } });
-
-    expect(navigation.pushes).toEqual([`/overview?account=${usdAccount.id}`]);
+    expect(screen.queryByRole('combobox', { name: 'Active account' })).not.toBeInTheDocument();
   });
 
-  it('keeps account query, selector, and overview balance synchronized across route navigation', async () => {
+  it('keeps account query and overview balance synchronized across route navigation', async () => {
     const usdAccount = snapshot.accounts.find((account) => account.currency === 'USD')!;
     const repository = new DemoFinancialRepository();
     const { rerender } = render(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><p>Overview</p></AppShell>);
@@ -137,24 +133,20 @@ describe('AppShell', () => {
       navigation.pathname = url.pathname;
       navigation.query = url.search.slice(1);
     };
-    fireEvent.change(screen.getByRole('combobox', { name: 'Active account' }), { target: { value: usdAccount.id } });
-    navigate(navigation.pushes[0]);
+    navigate(`/overview?account=${usdAccount.id}`);
     const overview = await getOverviewModel(repository, DEMO_USER_ID, new URLSearchParams(navigation.query).get('account') ?? undefined);
     rerender(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><OverviewDashboard overview={overview} /></AppShell>);
 
-    expect(screen.getByRole('combobox', { name: 'Active account' })).toHaveValue(usdAccount.id);
     expect(screen.getByRole('region', { name: 'Selected account' })).toHaveTextContent('USD 650.00');
     expect(screen.getByRole('link', { name: 'Accounts' })).toHaveAttribute('href', `/accounts?account=${usdAccount.id}`);
 
     navigate(screen.getByRole('link', { name: 'Accounts' }).getAttribute('href')!);
     rerender(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><p>Accounts route</p></AppShell>);
-    expect(screen.getByRole('combobox', { name: 'Active account' })).toHaveValue(usdAccount.id);
     expect(screen.getByRole('link', { name: 'Overview' })).toHaveAttribute('href', `/overview?account=${usdAccount.id}`);
 
     navigate(screen.getByRole('link', { name: 'Overview' }).getAttribute('href')!);
     const returnedOverview = await getOverviewModel(repository, DEMO_USER_ID, new URLSearchParams(navigation.query).get('account') ?? undefined);
     rerender(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><OverviewDashboard overview={returnedOverview} /></AppShell>);
-    expect(screen.getByRole('combobox', { name: 'Active account' })).toHaveValue(usdAccount.id);
     expect(screen.getByRole('region', { name: 'Selected account' })).toHaveTextContent('USD 650.00');
 
     fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }));
@@ -166,16 +158,13 @@ describe('AppShell', () => {
     const usdAccount = snapshot.accounts.find((account) => account.currency === 'USD')!;
     const repository = new DemoFinancialRepository();
     const { rerender } = render(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><p>Overview</p></AppShell>);
-    fireEvent.change(screen.getByRole('combobox', { name: 'Active account' }), { target: { value: usdAccount.id } });
     navigation.query = `account=${usdAccount.id}`;
     rerender(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><p>USD selected</p></AppShell>);
-    expect(screen.getByRole('combobox', { name: 'Active account' })).toHaveValue(usdAccount.id);
 
     for (const query of ['', 'account=unknown']) {
       navigation.query = query;
       const overview = await getOverviewModel(repository, DEMO_USER_ID, new URLSearchParams(query).get('account') ?? undefined);
       rerender(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><OverviewDashboard overview={overview} /></AppShell>);
-      expect(screen.getByRole('combobox', { name: 'Active account' })).toHaveValue(overview.selectedAccount!.id);
       expect(screen.getByRole('region', { name: 'Selected account' })).toHaveTextContent('CNY Daily account');
     }
   });
@@ -196,7 +185,7 @@ describe('AppShell', () => {
     fireEvent.click(opener);
     const drawer = screen.getByRole('dialog', { name: 'Mobile navigation' });
     const mobileNavigation = within(drawer).getByRole('navigation', { name: 'Mobile product navigation' });
-    expect(within(mobileNavigation).getAllByRole('link')).toHaveLength(11);
+    expect(within(mobileNavigation).getAllByRole('link')).toHaveLength(12);
     expect(screen.getByTestId('shell-background')).toHaveAttribute('inert');
 
     const close = within(drawer).getByRole('button', { name: 'Close navigation' });
