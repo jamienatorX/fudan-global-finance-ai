@@ -199,16 +199,16 @@ button:not(:disabled), select, summary {
 main h1 { font-size: var(--heading-display); font-weight: 800; line-height: 1.14; letter-spacing: -0.035em; }
 main h2 { font-size: var(--heading-page); font-weight: 750; line-height: 1.25; letter-spacing: -0.025em; }
 main h3 { font-size: var(--heading-section); font-weight: 700; line-height: 1.35; }
-html[data-theme="dark"] { color-scheme: dark; --color-background: #0b1b20; --color-surface: #162b31; --color-text: #edf6f4; --color-text-muted: #b0c3c5; --color-border: #345058; --color-info-soft: #234b4c; --color-primary: #8be3cd; --color-nav-active: #255e57; --color-nav-active-text: #f1fffb; --color-planning-surface: #273334; --color-planning-border: #4a5350; --color-planning-text: #e2dbca; --color-planning-label: #d5c49b; --color-positive-soft: #123e34; --color-warning-soft: #3b301d; --color-danger-soft: #3d2227; }
-html[data-theme="dark"] .bank-header :is(select, button):not(.fx-ticker-pause) { border-color: var(--color-border); }
-html[data-theme="dark"] .bank-header select, html[data-theme="dark"] .bank-header button:not(.fx-ticker-pause) { background-color: var(--color-surface); color: var(--color-text); }
-html[data-theme="dark"] .bank-header select option { background: #162b31; color: #edf6f4; }
-html[data-theme="dark"] .bg-white { background-color: var(--color-surface); }
-html[data-theme="dark"] .bg-slate-50 { background-color: #20383e; }
-html[data-theme="dark"] :is(.text-slate-900,.text-slate-800,.text-slate-700) { color: var(--color-text); }
-html[data-theme="dark"] :is(.text-slate-600,.text-slate-500) { color: var(--color-text-muted); }
-html[data-theme="dark"] :is(.border-slate-200,.border-slate-100) { border-color: var(--color-border); }
-html[data-theme="dark"] .balance-hero { background: radial-gradient(ellipse at 100% 0%, #315862 0%, transparent 65%), #102b32; }
+html[data-theme="dark-disabled"] { color-scheme: dark; --color-background: #0b1b20; --color-surface: #162b31; --color-text: #edf6f4; --color-text-muted: #b0c3c5; --color-border: #345058; --color-info-soft: #234b4c; --color-primary: #8be3cd; --color-nav-active: #255e57; --color-nav-active-text: #f1fffb; --color-planning-surface: #273334; --color-planning-border: #4a5350; --color-planning-text: #e2dbca; --color-planning-label: #d5c49b; --color-positive-soft: #123e34; --color-warning-soft: #3b301d; --color-danger-soft: #3d2227; }
+html[data-theme="dark-disabled"] .bank-header :is(select, button):not(.fx-ticker-pause) { border-color: var(--color-border); }
+html[data-theme="dark-disabled"] .bank-header select, html[data-theme="dark-disabled"] .bank-header button:not(.fx-ticker-pause) { background-color: var(--color-surface); color: var(--color-text); }
+html[data-theme="dark-disabled"] .bank-header select option { background: #162b31; color: #edf6f4; }
+html[data-theme="dark-disabled"] .bg-white { background-color: var(--color-surface); }
+html[data-theme="dark-disabled"] .bg-slate-50 { background-color: #20383e; }
+html[data-theme="dark-disabled"] :is(.text-slate-900,.text-slate-800,.text-slate-700) { color: var(--color-text); }
+html[data-theme="dark-disabled"] :is(.text-slate-600,.text-slate-500) { color: var(--color-text-muted); }
+html[data-theme="dark-disabled"] :is(.border-slate-200,.border-slate-100) { border-color: var(--color-border); }
+html[data-theme="dark-disabled"] .balance-hero { background: radial-gradient(ellipse at 100% 0%, #315862 0%, transparent 65%), #102b32; }
 
 /* Frosted glass dashboard surfaces with restrained aurora gradients */
 main { position: relative; isolation: isolate; }
@@ -219,7 +219,33 @@ main::before { content:""; position:absolute; inset:0; z-index:-1; pointer-event
 .bank-header-account { display:none; }
 @media(min-width:640px) { .bank-header { grid-template-columns:44px minmax(140px,180px) minmax(0,1fr) auto; } .bank-header-actions { grid-column:4; } }
 @media(min-width:1024px) { .bank-header { grid-template-columns:minmax(120px,190px) minmax(0,1fr) auto; } .fx-ticker { grid-column:2; } .bank-header-actions { grid-column:3; } }
-html[data-theme="dark"] main::before { background:radial-gradient(ellipse at 15% 8%,rgba(24,125,120,.25),transparent 48%),radial-gradient(ellipse at 88% 32%,rgba(55,82,135,.2),transparent 50%); }
-html[data-theme="dark"] :is(.finance-card,.metric-card,main .shortcut-card,main .rounded-3xl.border,main .rounded-2xl.border) { background:linear-gradient(145deg,rgba(31,64,70,.84),rgba(19,42,51,.72)); border-color:rgba(142,219,210,.16); box-shadow:0 12px 34px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.07); }
-html[data-theme="dark"] .balance-hero { background:radial-gradient(ellipse at 85% 5%,rgba(69,160,155,.25),transparent 52%),linear-gradient(120deg,#091b24,#12343b 65%,#1a414b); }
+html[data-theme="dark-disabled"] main::before { background:radial-gradient(ellipse at 15% 8%,rgba(24,125,120,.25),transparent 48%),radial-gradient(ellipse at 88% 32%,rgba(55,82,135,.2),transparent 50%); }
+html[data-theme="dark-disabled"] :is(.finance-card,.metric-card,main .shortcut-card,main .rounded-3xl.border,main .rounded-2xl.border) { background:linear-gradient(145deg,rgba(31,64,70,.84),rgba(19,42,51,.72)); border-color:rgba(142,219,210,.16); box-shadow:0 12px 34px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.07); }
+html[data-theme="dark-disabled"] .balance-hero { background:radial-gradient(ellipse at 85% 5%,rgba(69,160,155,.25),transparent 52%),linear-gradient(120deg,#091b24,#12343b 65%,#1a414b); }
 @media(prefers-reduced-transparency:reduce) { .finance-card,.metric-card,main .shortcut-card { backdrop-filter:none; -webkit-backdrop-filter:none; } }
+
+/* Follow device appearance automatically; no in-app theme selector. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme:dark;
+    --color-background:#0b1b20; --color-surface:#162b31; --color-text:#edf6f4;
+    --color-text-muted:#bbd0d1; --color-border:#345058; --color-info-soft:#234b4c;
+    --color-primary:#8be3cd; --color-nav-active:#255e57; --color-nav-active-text:#f1fffb;
+    --color-planning-surface:#273334; --color-planning-border:#4a5350;
+    --color-planning-text:#e2dbca; --color-planning-label:#d5c49b;
+    --color-positive-soft:#123e34; --color-warning-soft:#3b301d; --color-danger-soft:#3d2227;
+  }
+  :root:not([data-theme="light"]) main::before { background:radial-gradient(ellipse at 15% 8%,rgba(24,125,120,.25),transparent 48%),radial-gradient(ellipse at 88% 32%,rgba(55,82,135,.2),transparent 50%); }
+  :root:not([data-theme="light"]) :is(.finance-card,.metric-card,main .shortcut-card,main .rounded-3xl.border,main .rounded-2xl.border) { background:linear-gradient(145deg,rgba(31,64,70,.90),rgba(19,42,51,.83)); border-color:rgba(142,219,210,.2); }
+  :root:not([data-theme="light"]) .balance-hero { background:radial-gradient(ellipse at 85% 5%,rgba(69,160,155,.25),transparent 52%),linear-gradient(120deg,#091b24,#12343b 65%,#1a414b); }
+  :root:not([data-theme="light"]) :is(main,.bank-header) :is(.text-slate-950,.text-slate-900,.text-slate-800,.text-slate-700,.text-blue-950,.text-blue-900,.text-blue-800,.text-blue-700,.text-emerald-700,.text-amber-700,.text-\[var\(--color-navy\)\]) { color:#eaf7f4; }
+  :root:not([data-theme="light"]) :is(main,.bank-header) :is(.text-slate-600,.text-slate-500,.text-slate-400) { color:#bbd0d1; }
+  :root:not([data-theme="light"]) :is(main,.bank-header) :is(.bg-white,.bg-slate-50,.bg-slate-50\/70) { background-color:var(--color-surface); }
+  :root:not([data-theme="light"]) :is(main,.bank-header) :is(.border-slate-100,.border-slate-200) { border-color:var(--color-border); }
+  :root:not([data-theme="light"]) .bank-header button { color:var(--color-text); border-color:var(--color-border); }
+  :root:not([data-theme="light"]) .bank-header .bg-\[var\(--color-navy\)\] { background-color:#254b51; }
+  :root:not([data-theme="light"]) .metric-card p { color:var(--color-text); }
+  :root:not([data-theme="light"]) .metric-card p:last-child { color:var(--color-text-muted); }
+  :root:not([data-theme="light"]) .balance-hero, :root:not([data-theme="light"]) .balance-hero :is(p,span) { color:#f3fbfa; }
+  :root:not([data-theme="light"]) main :is(input,select,textarea) { background-color:var(--color-surface); color:var(--color-text); border-color:var(--color-border); }
+}
