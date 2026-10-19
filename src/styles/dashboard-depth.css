@@ -85,3 +85,25 @@ main .finance-card, main .shortcut-card { box-shadow:0 3px 7px #12393a05,0 14px 
   :root:not([data-theme=light]) .dashboard-planner-callout { box-shadow:0 12px 30px -18px #0009,inset 0 1px 0 #fff1; }
 }
 @media (prefers-reduced-transparency:reduce) { .dashboard-card-panel { background:var(--color-surface); backdrop-filter:none; } .dashboard-planner-callout { background:var(--color-planning-surface); backdrop-filter:none; } }
+
+/* Keep the three financial metrics beside each other at every viewport width. */
+.financial-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; align-items:stretch; }
+.financial-summary .metric-value { overflow-wrap:anywhere; }
+@media (max-width:767px) {
+  .financial-summary { gap:8px; }
+  .financial-summary .metric-card { padding:14px 12px; border-radius:16px; }
+  .financial-summary .metric-card>div { gap:8px; }
+  .financial-summary .metric-label { font-size:11px; line-height:1.4; }
+  .financial-summary .metric-value { font-size:clamp(13px,2.5vw,20px); line-height:1.35; letter-spacing:-.035em; }
+  .financial-summary .metric-detail { font-size:10px; line-height:1.5; margin-top:10px; }
+  .financial-summary .metric-icon { width:28px; height:28px; border-radius:9px; }
+  .financial-summary .metric-icon svg { width:15px; height:15px; }
+}
+@media (max-width:479px) {
+  .financial-summary { gap:6px; }
+  .financial-summary .metric-card { padding:12px 9px; border-radius:13px; }
+  .financial-summary .metric-icon { display:none; }
+  .financial-summary .metric-label { font-size:10px; min-height:28px; }
+  .financial-summary .metric-value { margin-top:6px; font-size:clamp(11px,3.1vw,15px); }
+  .financial-summary .metric-detail { font-size:9px; line-height:1.5; }
+}

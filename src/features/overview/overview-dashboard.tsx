@@ -14,8 +14,8 @@ function MetricCard({ label, value, detail, tone = 'neutral', icon }: Readonly<{
   const toneClass = tone === 'positive' ? 'text-emerald-700 bg-emerald-50' : tone === 'warning' ? 'text-amber-700 bg-amber-50' : 'text-blue-700 bg-blue-50';
   return (
     <Card className="metric-card p-5 sm:p-6">
-      <div className="flex items-start justify-between gap-4"><div><p className="text-sm font-medium text-slate-500">{label}</p><p className="mt-2 text-[1.75rem] font-semibold tracking-[-0.04em] tabular-nums text-[var(--color-navy)]">{value}</p></div><span className={`grid size-11 place-items-center rounded-2xl ${toneClass}`}>{icon}</span></div>
-      <p className="mt-3 text-xs leading-5 text-slate-500">{detail}</p>
+      <div className="flex items-start justify-between gap-4"><div><p className="metric-label text-sm font-medium text-slate-500">{label}</p><p className="metric-value mt-2 text-[1.75rem] font-semibold tracking-[-0.04em] tabular-nums text-[var(--color-navy)]">{value}</p></div><span className={`metric-icon grid size-11 place-items-center rounded-2xl ${toneClass}`}>{icon}</span></div>
+      <p className="metric-detail mt-3 text-xs leading-5 text-slate-500">{detail}</p>
     </Card>
   );
 }
@@ -147,7 +147,7 @@ export function OverviewDashboard({ overview }: Readonly<{ overview: OverviewMod
         <div className="mt-5 flex items-center gap-2 border-t border-[var(--color-planning-divider)] pt-5 text-xs text-[var(--color-planning-text)]"><CalendarClock size={16} aria-hidden /><span>{overview.tuition.next ? `Next tuition due ${new Date(overview.tuition.next.dueAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}` : 'Review your upcoming commitments'}</span></div>
         <Link href="/planner" className="mt-4 inline-flex min-h-11 items-center gap-3 text-sm font-semibold text-[var(--color-navy)] underline decoration-[var(--color-planning-underline)] underline-offset-4">Open your planner<ArrowRight size={16} aria-hidden /></Link>
       </div>
-      <section aria-label="Financial summary" className="grid gap-4 md:grid-cols-3">
+      <section aria-label="Financial summary" className="financial-summary">
         <MetricCard label="Available cash" value={formatMoney(overview.availableCash)} detail="Across your accounts" icon={<WalletCards size={20} aria-hidden />} />
         <MetricCard label="Monthly expenses" value={formatMoney(overview.monthlyExpenses)} detail={`${usedPercent}% of your living budget`} tone={usedPercent >= 100 ? 'warning' : 'neutral'} icon={<ArrowUpRight size={20} aria-hidden />} />
         <MetricCard label="Cash runway" value={`${overview.cashRunwayMonths.toFixed(1)} months`} detail="After the upcoming tuition installment" tone="positive" icon={<PiggyBank size={20} aria-hidden />} />
