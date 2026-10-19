@@ -2,18 +2,12 @@
 
 import { Bell, Menu, Moon, Sun, Monitor } from 'lucide-react';
 import { GlobalSearch } from '../../features/search/global-search';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, type RefObject } from 'react';
 import { CurrencyTicker } from './currency-ticker';
 
 export type ShellAccountOption = Readonly<{ id: string; label: string }>;
 
 export function Topbar({ accounts, userName, alerts, onOpenNavigation, navigationButtonRef }: Readonly<{ accounts: readonly ShellAccountOption[]; userName: string; alerts: readonly string[]; onOpenNavigation: () => void; navigationButtonRef: RefObject<HTMLButtonElement | null> }>) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const accountFromUrl = searchParams.get('account');
-  const selectedAccount = accounts.some((account) => account.id === accountFromUrl) ? accountFromUrl! : accounts[0]?.id ?? '';
   const [showNotifications, setShowNotifications] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
   useEffect(() => {
@@ -35,17 +29,6 @@ export function Topbar({ accounts, userName, alerts, onOpenNavigation, navigatio
         <button ref={navigationButtonRef} type="button" onClick={onOpenNavigation} aria-label="Open navigation" className="bank-header-menu grid size-11 place-items-center rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 lg:hidden"><Menu size={20} aria-hidden /></button>
         <div className="bank-header-search"><GlobalSearch accounts={accounts} /></div>
         <CurrencyTicker />
-        <div className="bank-header-account min-w-0">
-          <label className="sr-only" htmlFor="active-account">Active account</label>
-          <select id="active-account" aria-label="Active account" value={selectedAccount} onChange={(event) => {
-            const accountId = event.target.value;
-            const next = new URLSearchParams(searchParams.toString());
-            next.set('account', accountId);
-            router.push(`${pathname}?${next.toString()}`);
-          }} className="min-h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
-            {accounts.map((account) => <option key={account.id} value={account.id}>{account.label.replace(/^([A-Z]{3}) Daily$/, 'Daily · $1')}</option>)}
-          </select>
-        </div>
         <div className="bank-header-actions flex items-center justify-end gap-2">
           <div className="flex items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-1" role="group" aria-label="Appearance">
             {(['light', 'dark', 'system'] as const).map((mode) => {
