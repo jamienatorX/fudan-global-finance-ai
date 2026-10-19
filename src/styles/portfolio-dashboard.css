@@ -5,8 +5,8 @@
 .card-gallery-item { flex:0 0 clamp(170px,67%,225px); min-width:0; text-align:left; border-radius:18px; scroll-snap-align:start; cursor:pointer; transition:transform .18s; }
 .card-gallery-item:hover { transform:translateY(-4px); }
 .card-gallery-item .bank-card-face { min-height:140px; padding:15px; aspect-ratio:1.4; border-radius:16px; }
-.card-gallery-item[data-variant="1"] .bank-card-face { background:radial-gradient(ellipse at 95% 0%,#afc8ff60,transparent 65%),linear-gradient(125deg,#314b75,#365f8b); }
-.card-gallery-item[data-variant="2"] .bank-card-face { background:radial-gradient(ellipse at 95% 0%,#b2a4e570,transparent 65%),linear-gradient(125deg,#36394f,#655780); }
+.card-gallery-item[data-variant="1"] .bank-card-face,.expanded-card-stage[data-variant="1"] .bank-card-face { background:radial-gradient(ellipse at 95% 0%,#afc8ff60,transparent 65%),linear-gradient(125deg,#314b75,#365f8b); }
+.card-gallery-item[data-variant="2"] .bank-card-face,.expanded-card-stage[data-variant="2"] .bank-card-face { background:radial-gradient(ellipse at 95% 0%,#b2a4e570,transparent 65%),linear-gradient(125deg,#36394f,#655780); }
 .card-gallery-item .bank-card-top strong { font-size:13px; }
 .card-gallery-item .bank-card-top>span { font-size:7px; }
 .card-gallery-item .bank-card-top .fu-logo { width:18px; height:18px; font-size:11px; border-radius:5px; }
