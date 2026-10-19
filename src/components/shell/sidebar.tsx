@@ -30,7 +30,7 @@ function ProductMark({ compact = false }: Readonly<{ compact?: boolean }>) {
   return (
     <Link href="/overview" className="flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-400">
       <span className="grid size-10 shrink-0 place-items-center rounded-2xl border border-white/20 bg-white/10 text-emerald-200"><span className="fu-logo" aria-hidden>福</span></span>
-      {!compact ? <span className="min-w-0"><span className="block truncate text-xl font-extrabold tracking-tight text-white">福 bank</span><span className="block truncate text-[10px] font-semibold uppercase tracking-[0.15em] text-teal-200/80">PERSONAL BANKING</span></span> : null}
+      {!compact ? <span className="min-w-0"><span className="block truncate text-xl font-extrabold tracking-tight text-white">福 Bank</span><span className="block truncate text-[10px] font-semibold uppercase tracking-[0.15em] text-teal-200/80">PERSONAL BANKING</span></span> : null}
     </Link>
   );
 }
