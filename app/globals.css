@@ -193,3 +193,19 @@ button:not(:disabled), select, summary {
   .fx-ticker-window { overflow-x: auto; scrollbar-width: thin; mask-image: none; }
   .fx-ticker-group + .fx-ticker-group { display: none; }
 }
+
+/* Global typography hierarchy and appearance tokens */
+:root { --heading-display: clamp(2rem, 3vw, 2.75rem); --heading-page: 1.75rem; --heading-section: 1.25rem; }
+main h1 { font-size: var(--heading-display); font-weight: 800; line-height: 1.14; letter-spacing: -0.035em; }
+main h2 { font-size: var(--heading-page); font-weight: 750; line-height: 1.25; letter-spacing: -0.025em; }
+main h3 { font-size: var(--heading-section); font-weight: 700; line-height: 1.35; }
+html[data-theme="dark"] { color-scheme: dark; --color-background: #0b1b20; --color-surface: #162b31; --color-text: #edf6f4; --color-text-muted: #b0c3c5; --color-border: #345058; --color-info-soft: #234b4c; --color-primary: #8be3cd; --color-nav-active: #255e57; --color-nav-active-text: #f1fffb; --color-planning-surface: #273334; --color-planning-border: #4a5350; --color-planning-text: #e2dbca; --color-planning-label: #d5c49b; --color-positive-soft: #123e34; --color-warning-soft: #3b301d; --color-danger-soft: #3d2227; }
+html[data-theme="dark"] .bank-header :is(select, button):not(.fx-ticker-pause) { border-color: var(--color-border); }
+html[data-theme="dark"] .bank-header select, html[data-theme="dark"] .bank-header button:not(.fx-ticker-pause) { background-color: var(--color-surface); color: var(--color-text); }
+html[data-theme="dark"] .bank-header select option { background: #162b31; color: #edf6f4; }
+html[data-theme="dark"] .bg-white { background-color: var(--color-surface); }
+html[data-theme="dark"] .bg-slate-50 { background-color: #20383e; }
+html[data-theme="dark"] :is(.text-slate-900,.text-slate-800,.text-slate-700) { color: var(--color-text); }
+html[data-theme="dark"] :is(.text-slate-600,.text-slate-500) { color: var(--color-text-muted); }
+html[data-theme="dark"] :is(.border-slate-200,.border-slate-100) { border-color: var(--color-border); }
+html[data-theme="dark"] .balance-hero { background: radial-gradient(ellipse at 100% 0%, #315862 0%, transparent 65%), #102b32; }
