@@ -209,3 +209,17 @@ html[data-theme="dark"] :is(.text-slate-900,.text-slate-800,.text-slate-700) { c
 html[data-theme="dark"] :is(.text-slate-600,.text-slate-500) { color: var(--color-text-muted); }
 html[data-theme="dark"] :is(.border-slate-200,.border-slate-100) { border-color: var(--color-border); }
 html[data-theme="dark"] .balance-hero { background: radial-gradient(ellipse at 100% 0%, #315862 0%, transparent 65%), #102b32; }
+
+/* Frosted glass dashboard surfaces with restrained aurora gradients */
+main { position: relative; isolation: isolate; }
+main::before { content:""; position:absolute; inset:0; z-index:-1; pointer-events:none; background: radial-gradient(ellipse at 12% 6%,rgba(116,221,200,.20),transparent 45%),radial-gradient(ellipse at 90% 26%,rgba(125,174,223,.14),transparent 48%),radial-gradient(ellipse at 40% 80%,rgba(233,207,160,.11),transparent 50%); }
+.finance-card, .metric-card, main .shortcut-card, main .rounded-3xl.border, main .rounded-2xl.border { background: linear-gradient(145deg,rgba(255,255,255,.82),rgba(237,250,247,.52)); border-color:rgba(255,255,255,.65); box-shadow:0 8px 32px rgba(18,57,58,.07),inset 0 1px 0 rgba(255,255,255,.55); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); }
+.balance-hero { background: radial-gradient(ellipse at 85% 5%,rgba(97,192,185,.36),transparent 52%),linear-gradient(120deg,#0e2a33,#194b50 62%,#274f5b); box-shadow:0 18px 42px rgba(9,47,53,.16),inset 0 1px 0 rgba(255,255,255,.13); }
+.bank-header { grid-template-columns:44px minmax(0,1fr) auto; }
+.bank-header-account { display:none; }
+@media(min-width:640px) { .bank-header { grid-template-columns:44px minmax(140px,180px) minmax(0,1fr) auto; } .bank-header-actions { grid-column:4; } }
+@media(min-width:1024px) { .bank-header { grid-template-columns:minmax(120px,190px) minmax(0,1fr) auto; } .fx-ticker { grid-column:2; } .bank-header-actions { grid-column:3; } }
+html[data-theme="dark"] main::before { background:radial-gradient(ellipse at 15% 8%,rgba(24,125,120,.25),transparent 48%),radial-gradient(ellipse at 88% 32%,rgba(55,82,135,.2),transparent 50%); }
+html[data-theme="dark"] :is(.finance-card,.metric-card,main .shortcut-card,main .rounded-3xl.border,main .rounded-2xl.border) { background:linear-gradient(145deg,rgba(31,64,70,.84),rgba(19,42,51,.72)); border-color:rgba(142,219,210,.16); box-shadow:0 12px 34px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.07); }
+html[data-theme="dark"] .balance-hero { background:radial-gradient(ellipse at 85% 5%,rgba(69,160,155,.25),transparent 52%),linear-gradient(120deg,#091b24,#12343b 65%,#1a414b); }
+@media(prefers-reduced-transparency:reduce) { .finance-card,.metric-card,main .shortcut-card { backdrop-filter:none; -webkit-backdrop-filter:none; } }
