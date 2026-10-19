@@ -17,7 +17,9 @@ it('shows the current tier, all thresholds, and the actual masked virtual card',
   const card = screen.getByRole('region', { name: 'Your virtual bank card' });
   expect(card).toHaveTextContent(model.cards[0].maskedNumber);
   expect(card).toHaveTextContent(model.cardholderName);
-  fireEvent.change(within(card).getByRole('combobox', { name: 'Choose virtual card' }), { target: { value: model.cards[1].id } });
+  fireEvent.click(within(card).getByRole('button', { name: /View online shopping card ending/i }));
+  const expanded = screen.getByRole('dialog', { name: 'Online shopping virtual card' });
+  expect(expanded).toHaveTextContent(model.cards[1].maskedNumber);
   expect(card).toHaveTextContent(model.cards[1].maskedNumber);
   expect(within(card).getByRole('link', { name: 'Manage cards' })).toHaveAttribute('href', '/cards');
 });

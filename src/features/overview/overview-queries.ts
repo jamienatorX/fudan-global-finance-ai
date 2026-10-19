@@ -1,6 +1,7 @@
 import { CURRENCY_MINOR_DIGITS, type CurrencyCode } from '../../domain/currency';
 import type { Budget, Card, ExchangeRate, FinancialSnapshot, Subscription, Transaction, TuitionObligation } from '../../domain/entities';
 import type { FinancialRepository } from '../../domain/financial-repository';
+import { buildCashFlowSeries, type CashFlowDay } from './cash-flow-series';
 import { money, type Money } from '../../domain/money';
 
 const REPORTING_CURRENCY = 'CNY' as const;
@@ -16,6 +17,7 @@ export type OverviewModel = Readonly<{
   cardholderName: string;
   cards: readonly Card[];
   membershipBalanceCny: Money;
+  cashFlowHistory: readonly CashFlowDay[];
   totalNetWorth: Money;
   availableCash: Money;
   investedValue: Money;
@@ -207,6 +209,7 @@ export async function getOverviewModel(repository: FinancialRepository, userId: 
     cardholderName: user.profile.displayName,
     cards: snapshot.cards.filter(card => card.ownerId === userId),
     membershipBalanceCny: totalNetWorth,
+    cashFlowHistory: buildCashFlowSeries(snapshot),
     totalNetWorth,
     availableCash,
     investedValue,

@@ -7,6 +7,8 @@ import type { OverviewModel } from './overview-queries';
 import { MembershipBadge, MembershipProgress } from './membership-progress';
 import { getMembership } from './membership';
 import { DashboardBankCard } from './dashboard-bank-card';
+import { CashFlowCurve } from './cash-flow-curve';
+import { PortfolioQuickActions, PortfolioActivityPanel } from '../investing/portfolio-actions';
 
 const CATEGORY_COLORS: Record<string, string> = { rent: 'var(--color-chart-rent)', food: 'var(--color-chart-food)', transportation: 'var(--color-chart-transportation)', shopping: 'var(--color-chart-shopping)', other: 'var(--color-chart-other)' };
 
@@ -30,11 +32,12 @@ function BalanceHero({ overview }: Readonly<{ overview: OverviewModel }>) {
     : 0;
   return (
     <section aria-label="Your financial snapshot" className="dashboard-hero-grid">
-      <div className="balance-hero relative isolate overflow-hidden rounded-3xl p-6 text-white sm:p-8">
+      <div className="balance-hero portfolio-glass-hero relative isolate overflow-hidden rounded-3xl p-6 text-white sm:p-8">
         <div className="relative z-10">
           <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-xs font-medium tracking-wide text-[var(--color-hero-muted)]">Consolidated net worth</p><MembershipBadge balance={overview.membershipBalanceCny} /></div>
           <p className="balance-number mt-5 break-words text-[clamp(2rem,4vw,3.5rem)] font-semibold leading-tight tracking-[-0.055em] tabular-nums">{formatMoney(overview.totalNetWorth)}</p>
           <p className="mt-2 text-xs leading-5 text-[var(--color-hero-muted)]">Across {overview.accountBalances.length} accounts · {overview.holdingsCount} holdings</p>
+          <PortfolioQuickActions />
           <MembershipProgress balance={overview.membershipBalanceCny} />
           <div className="mt-6 max-w-lg">
             <div className="flex justify-between gap-4 text-xs text-[var(--color-hero-muted)]"><span>Cash allocation</span><span className="tabular-nums">{cashShare.toFixed(1)}%</span></div>
@@ -152,6 +155,7 @@ export function OverviewDashboard({ overview }: Readonly<{ overview: OverviewMod
         <MetricCard label="Monthly expenses" value={formatMoney(overview.monthlyExpenses)} detail={`${usedPercent}% of your living budget`} tone={usedPercent >= 100 ? 'warning' : 'neutral'} icon={<ArrowUpRight size={20} aria-hidden />} />
         <MetricCard label="Cash runway" value={`${overview.cashRunwayMonths.toFixed(1)} months`} detail="After the upcoming tuition installment" tone="positive" icon={<PiggyBank size={20} aria-hidden />} />
       </section>
+      <section className="portfolio-insights-grid"><CashFlowCurve history={overview.cashFlowHistory} /><PortfolioActivityPanel /></section>
       <BankingShortcuts />
       {overview.selectedAccount ? <Card aria-label="Selected account" className="border-blue-200 bg-blue-50/50 p-5 sm:p-6"><div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-600">Selected account</p><p className="mt-1 text-sm font-medium text-slate-600">{overview.selectedAccount.label}</p></div><div className="sm:text-right"><p className="text-2xl font-bold tabular-nums text-slate-950">{formatMoney(overview.selectedAccount.amount)}</p>{overview.selectedAccount.amount.currency !== overview.selectedAccount.reportingAmount.currency ? <p className="mt-1 text-xs text-slate-500">≈ {formatMoney(overview.selectedAccount.reportingAmount)} reporting value</p> : <p className="mt-1 text-xs text-slate-500">Account currency</p>}</div></div></Card> : null}
       <Card>

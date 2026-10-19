@@ -3,6 +3,7 @@ import { money } from '../domain/money';
 import { marketOrderQuote, parseUnits, formatUnits } from '../features/investing/market-catalog';
 
 export type DemoAction =
+ | Readonly<{ type: 'create-card'; sourceId: string; purpose: 'daily' | 'online-shopping' }>
  | Readonly<{ type: 'market-order'; instrumentId: string; sourceId: string; direction: 'buy' | 'sell'; quantity: string }>
  | Readonly<{ type: 'transfer'; sourceId: string; destinationId?: string; beneficiaryId?: string; amountMinor: string; scheduledAt?: string }>
  | Readonly<{ type: 'tuition'; sourceId: string; tuitionId: string }>
@@ -64,6 +65,17 @@ export function applyDemoAction(snapshot: FinancialSnapshot, action: DemoAction,
   let next: FinancialSnapshot;
   let message = '';
   switch (action.type) {
+    case 'create-card': {
+      const source = accountFor(snapshot, action.sourceId);
+      if (source.currency !== 'CNY') throw new Error('Virtual cards require an active CNY account.');
+      if (!['daily', 'online-shopping'].includes(action.purpose)) throw new Error('Choose a supported card purpose.');
+      if (snapshot.cards.filter(c => c.ownerId === source.ownerId).length >= 10) throw new Error('The demo supports up to ten virtual cards.');
+      let suffix = [...id].reduce((sum, char) => (sum * 31 + char.charCodeAt(0)) % 10000, 0);
+      while (snapshot.cards.some(c => c.maskedNumber.endsWith(suffix.toString().padStart(4, '0')))) suffix = (suffix + 1) % 10000;
+      next = { ...snapshot, cards: [...snapshot.cards, { id: id + '-card', ownerId: source.ownerId, accountId: source.id, maskedNumber: '•••• •••• •••• ' + suffix.toString().padStart(4, '0'), cardType: 'virtual', purpose: action.purpose, freezeState: 'active', dailyLimit: money(100000n, 'CNY'), monthlyLimit: money(500000n, 'CNY') }] };
+      message = 'Simulated virtual card created. No real payment card was issued.';
+      break;
+    }
     case 'market-order': {
       const source = accountFor(snapshot, action.sourceId);
       if (source.currency !== 'CNY') throw new Error('Choose an active CNY funding account.');
@@ -175,16 +187,20 @@ export function applyDemoAction(snapshot: FinancialSnapshot, action: DemoAction,
       if (!product || !product.fictional || product.id.startsWith('market:') || source.currency !== 'CNY') throw new Error('Fictional CNY product not available');
       const amount = positive(action.amountMinor);
       const matching = snapshot.holdings.find(h => h.ownerId === source.ownerId && h.productId === product.id);
+      if (action.direction !== 'buy' && action.direction !== 'redeem') throw new Error('Invalid investment direction.');
       if (action.direction === 'redeem' && (!matching || matching.simulatedValue.amountMinor < amount)) throw new Error('Insufficient simulated holdings');
       const accounts = action.direction === 'buy' ? withDebit(snapshot, source.id, amount) :
         snapshot.accounts.map(a => a.id === source.id ? { ...a, balance: money(a.balance.amountMinor + amount, a.currency),
           availableBalance: money(a.availableBalance.amountMinor + amount, a.currency) } : a);
       const delta = action.direction === 'buy' ? amount : -amount;
-      const existingHoldings = snapshot.holdings.map(h => h.id === matching?.id ? {
-        ...h, costBasis: money(h.costBasis.amountMinor + delta, 'CNY'),
-        simulatedValue: money(h.simulatedValue.amountMinor + delta, 'CNY'),
-        units: (Number(h.units) + Number(delta) / 100).toFixed(6),
-      } : h);
+      const existingHoldings = snapshot.holdings.map(h => {
+        if (h.id !== matching?.id) return h;
+        const units = Number(h.units) > 0 ? parseUnits(h.units) : 0n;
+        const remainingValue = h.simulatedValue.amountMinor + delta;
+        const nextUnits = action.direction === 'redeem' ? units * remainingValue / h.simulatedValue.amountMinor : units + (h.simulatedValue.amountMinor > 0n ? amount * units / h.simulatedValue.amountMinor : amount * 100000000n / 100n);
+        const cost = action.direction === 'redeem' ? h.costBasis.amountMinor * remainingValue / h.simulatedValue.amountMinor : h.costBasis.amountMinor + amount;
+        return { ...h, costBasis: money(cost, 'CNY'), simulatedValue: money(remainingValue, 'CNY'), units: formatUnits(nextUnits) };
+      });
       const newHolding = !matching && action.direction === 'buy' ? [{
         id: id + '-holding', ownerId: source.ownerId, productId: product.id, units: (Number(amount) / 100).toFixed(6),
         costBasis: money(amount, 'CNY'), simulatedValue: money(amount, 'CNY') }] : [];

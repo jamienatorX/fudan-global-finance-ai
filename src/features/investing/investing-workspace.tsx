@@ -5,6 +5,7 @@ import { useDemo } from '../../demo/demo-context';
 import { formatMoney, money } from '../../domain/money';
 import { AccountLink as Link } from '../../components/shell/account-link';
 import { MARKET_CATALOG, marketOrderQuote, type AssetClass } from './market-catalog';
+import { PortfolioQuickActions, PortfolioActivityPanel } from './portfolio-actions';
 import { useInvestingPreferences } from './investing-preferences';
 
 const assetIcons = { Stocks: ChartNoAxesCombined, Forex: Globe2, Crypto: Coins, 'China bonds': Landmark };
@@ -55,6 +56,7 @@ export function InvestingWorkspace({ initialAsset, initialInstrument }: { initia
       <div className="invest-panel invest-stat"><span className="invest-asset-icon"><Building2 size={22} aria-hidden /></span><p className="invest-muted">Cost basis</p><strong>{cny(costBasis)}</strong><span className="invest-fineprint">Includes existing wealth holdings</span></div>
       <div className="invest-panel invest-stat"><span className="invest-asset-icon"><ChartNoAxesCombined size={22} aria-hidden /></span><p className="invest-muted">Unrealized gain / loss</p><strong>{cny(total - costBasis)}</strong><span className="invest-fineprint">Illustrative prices; no live revaluation</span></div>
     </section>
+    <PortfolioQuickActions />
     <p className="invest-data-note"><span className="invest-dot" />Demo dataset · fixed CNY-equivalent prices, not live quotes. No fees, leverage or automatic coupon payments are modeled.</p>
     {context?.storageWarning && <p role="status" className="invest-notice">Browser storage is unavailable. Your watchlist may only last this session.</p>}
     <div className="invest-main-grid">
@@ -76,7 +78,7 @@ export function InvestingWorkspace({ initialAsset, initialInstrument }: { initia
         const percent = total > 0n ? Number(value * 10000n / total) / 100 : 0;
         return <div key={asset}><div><span>{asset}</span><strong>{percent.toFixed(1)}%</strong></div><div className="invest-allocation-track"><span style={{ width: percent + '%', background: ['#087f70','#547da1','#9c79b8','#b88732','#6b9292'][index] }} /></div></div>;
       })}</div></section>
-      <section className="invest-panel"><div className="invest-section-heading"><div><p className="invest-eyebrow">Your activity</p><h2>Recent investment orders</h2></div><Link href="/audit" className="invest-text-link">Audit receipts →</Link></div>{snapshot.investmentOrders.toReversed().slice(0, 5).map(order => <div className="reminder-row" key={order.id}><div><strong>{snapshot.investmentProducts.find(p => p.id === order.productId)?.name}</strong><p className="invest-muted">{order.direction === 'redeem' ? 'Sell / redeem' : 'Buy'} · {order.createdAt.slice(0, 10)} · {order.status}</p></div><strong>{formatMoney(order.amount)}</strong></div>)}</section>
+      <PortfolioActivityPanel showHoldings={false} />
       </div>
       <aside className="invest-ticket invest-panel" aria-labelledby="order-ticket-title">
         <p className="invest-eyebrow">Make your next move</p><h2 id="order-ticket-title">Order preview</h2><div className="invest-ticket-asset"><strong>{selected.symbol}</strong><span>{selected.name}</span><p>{cny(selected.priceMinor)} <small>/ unit · demo</small></p></div>
