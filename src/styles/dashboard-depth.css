@@ -1,0 +1,87 @@
+/* Glass surfaces and broad, diffuse elevation inspired by the supplied references. */
+.dashboard-hero-grid { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(0,1fr); gap:24px; align-items:stretch; }
+.dashboard-hero-grid .balance-hero { border:1px solid #ffffff1c; box-shadow:0 3px 6px #0c38361a,0 18px 28px -12px #0c383659,0 38px 64px -24px #0c383670,inset 0 1px 0 #ffffff2b; }
+.dashboard-hero-grid .balance-hero::before { content:""; position:absolute; inset:0; z-index:-1; pointer-events:none; background:linear-gradient(130deg,#ffffff10,transparent 50%); }
+main .finance-card, main .shortcut-card { box-shadow:0 3px 7px #12393a05,0 14px 36px -14px #12393a24,inset 0 1px 0 #ffffffb3; }
+.membership-badge { display:inline-flex; align-items:center; gap:7px; flex-shrink:0; border:1px solid #eccd8180; background:linear-gradient(125deg,#dfbc532b,#ffffff0d); border-radius:100px; padding:8px 12px; color:#fff3cc; font-size:10px; font-weight:700; letter-spacing:.02em; }
+.membership-badge svg { color:#f5d893; }
+.membership-badge[data-tier=bronze] { border-color:#e1a57a80; background:#b878492b; }
+.membership-badge[data-tier=silver] { border-color:#d0dce580; background:#b4c9d32b; }
+.membership-badge[data-tier=platinum] { border-color:#cbd6f180; background:#adb9e12b; }
+.membership-badge[data-tier=vip] { border-color:#efd895; background:#b790342b; }
+.membership-progress { margin-top:28px; padding:20px 0 0; border-top:1px solid #ffffff24; }
+.membership-progress-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; font-size:10px; color:#d4e6e2; }
+.membership-progress-heading strong { color:#f1d693; font-weight:650; }
+.membership-track { height:5px; margin-top:12px; border-radius:30px; overflow:hidden; background:#ffffff24; }
+.membership-track>span { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#d0b46c,#f4dd9e); box-shadow:0 0 12px #ebce8170; }
+.membership-steps { display:flex; justify-content:space-between; gap:5px; list-style:none; margin:12px 0 0; padding:0; }
+.membership-steps li { display:flex; flex-direction:column; align-items:center; gap:7px; color:#d0e2df; font-size:9px; }
+.membership-step-dot { display:grid; place-items:center; width:18px; height:18px; border-radius:50%; border:1px solid #ffffff50; background:#ffffff0d; }
+.membership-steps li[data-state=reached] .membership-step-dot { border-color:#bfdcd3; background:#ffffff20; }
+.membership-steps li[data-state=current] { font-weight:750; color:#ffe6a5; }
+.membership-steps li[data-state=current] .membership-step-dot { border-color:#f4dd9e; background:#ecd18a2b; box-shadow:0 0 0 3px #f2d28412; }
+.membership-next { margin-top:14px; font-size:11px; color:#e5efed; }
+.membership-details { font-size:10px; color:#d0e2df; margin-top:10px; }
+.membership-details summary { display:flex; align-items:center; gap:5px; width:fit-content; cursor:pointer; padding:5px 0; list-style:none; color:#d0e2df; }
+.membership-details summary::-webkit-details-marker { display:none; }
+.membership-details summary:focus-visible { outline:2px solid #e8d293; outline-offset:3px; }
+.membership-details[open] summary svg { transform:rotate(180deg); }
+.membership-details>p { line-height:1.8; padding-top:10px; max-width:420px; }
+.membership-details ul { margin-top:12px; display:grid; gap:8px; }
+.membership-details li { display:flex; justify-content:space-between; gap:10px; }
+.dashboard-card-panel { min-width:0; padding:24px; border:1px solid #ffffffbb; border-radius:24px; background:linear-gradient(140deg,#ffffffb8,#e9f3ef9e); box-shadow:0 18px 50px -20px #153c3c3d,inset 0 1px 0 #ffffffde; backdrop-filter:blur(20px); color:var(--color-text); display:flex; flex-direction:column; justify-content:center; }
+.dashboard-card-heading { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin-bottom:24px; }
+.dashboard-card-heading p { font-size:9px; text-transform:uppercase; font-weight:650; letter-spacing:.12em; color:var(--color-text-muted); }
+.dashboard-card-heading h2 { font-size:1.2rem; margin-top:6px; color:var(--color-text); }
+.dashboard-card-count { border:1px solid var(--color-border); border-radius:30px; padding:6px 9px; font-size:9px; color:var(--color-text-muted); }
+.bank-card-stage { position:relative; padding:0 5px 17px; isolation:isolate; }
+.bank-card-stage::before { content:""; position:absolute; bottom:9px; inset-inline:18px; top:15px; background:linear-gradient(130deg,#c7d8d0,#90afa4); border:1px solid #ffffff70; transform:rotate(-3deg); border-radius:20px; z-index:-1; opacity:.65; }
+.bank-card-face { position:relative; isolation:isolate; overflow:hidden; min-width:0; aspect-ratio:1.586; padding:clamp(16px,1.7vw,25px); border:1px solid #ffffff3b; border-radius:18px; background:radial-gradient(ellipse at 95% 0%,#74b99d50,transparent 65%),linear-gradient(125deg,#113b36,#245a4d 65%,#173e39); color:#f5fbf7; box-shadow:0 9px 18px -9px #0d322c80,0 24px 33px -17px #173d3ba3,inset 0 1px 0 #ffffff33; display:flex; flex-direction:column; justify-content:space-between; }
+.bank-card-face::before { content:""; position:absolute; inset:-80% -35% 20% 30%; z-index:-1; border-radius:45%; background:linear-gradient(110deg,#ffffff03,#ffffff10); transform:rotate(-35deg); border:1px solid #ffffff0b; }
+.bank-card-face::after { content:""; position:absolute; width:130%; height:150%; left:18%; top:30%; z-index:-1; border-radius:50%; border:1px solid #fff2; box-shadow:0 0 0 34px #ffffff03,0 0 0 70px #ffffff03; transform:rotate(-30deg); }
+.bank-card-face[data-tier=bronze] { background:radial-gradient(ellipse at 95% 0%,#dfa77c50,transparent 65%),linear-gradient(125deg,#392c29,#795244); }
+.bank-card-face[data-tier=silver] { background:radial-gradient(ellipse at 95% 0%,#b1ccdd60,transparent 65%),linear-gradient(125deg,#2a3c4c,#526b7e); }
+.bank-card-face[data-tier=platinum] { background:radial-gradient(ellipse at 95% 0%,#9ea8e750,transparent 65%),linear-gradient(125deg,#1e293e,#49556c); }
+.bank-card-face[data-tier=vip] { background:radial-gradient(ellipse at 95% 0%,#b3a16d30,transparent 65%),linear-gradient(125deg,#141b23,#30383b); border-color:#bba46b80; }
+.bank-card-face[data-frozen=true] { filter:saturate(.25); }
+.bank-card-top { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.bank-card-top strong { display:flex; align-items:center; gap:6px; font-size:17px; font-weight:800; letter-spacing:-.04em; }
+.bank-card-top .fu-logo { display:grid; place-items:center; width:24px; height:24px; border-radius:8px; border:1px solid #ffffff35; color:#f6deb2; background:#ffffff0d; font-size:14px; }
+.bank-card-top>span { color:#f4dc9b; font-size:9px; letter-spacing:.16em; text-transform:uppercase; font-weight:750; }
+.bank-card-chip-row { display:flex; align-items:center; gap:14px; padding-top:12px; }
+.bank-card-chip { filter:drop-shadow(0 1px 2px #0003); width:34px; height:25px; }
+.bank-card-contactless { transform:rotate(90deg); color:#e5f1e8c4; }
+.bank-card-number { font-family:ui-monospace,monospace; font-size:clamp(13px,1.4vw,20px); font-weight:500; letter-spacing:.12em; padding:13px 0; white-space:nowrap; }
+.bank-card-bottom { display:flex; align-items:flex-end; gap:14px; justify-content:space-between; }
+.bank-card-bottom>div { display:flex; flex-direction:column; gap:4px; min-width:0; }
+.bank-card-bottom>div:first-child { flex:1; }
+.bank-card-bottom div>span { color:#e2ece0bf; font-size:7px; letter-spacing:.08em; text-transform:uppercase; }
+.bank-card-bottom strong { font-size:10px; font-weight:550; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.bank-card-monogram { color:#f2dfac; font-size:21px; font-style:italic; letter-spacing:-.08em; font-weight:800; }
+.dashboard-card-controls { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:18px; }
+.dashboard-card-controls label { min-width:0; flex:1; }
+.dashboard-card-controls select { min-height:44px; max-width:100%; border:1px solid var(--color-border); border-radius:10px; background:var(--color-surface); color:var(--color-text); font-size:11px; padding:9px; }
+.dashboard-card-status { display:flex; align-items:center; gap:6px; font-size:10px; color:var(--color-text-muted); }
+.dashboard-card-status>span { width:5px; height:5px; background:#087f70; border-radius:50%; }
+.dashboard-card-status[data-frozen=true]>span { background:#d1953c; }
+.dashboard-card-footer { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; padding-top:18px; margin-top:18px; border-top:1px solid var(--color-border); font-size:9px; color:var(--color-text-muted); }
+.dashboard-card-footer>span, .dashboard-card-manage { display:flex; align-items:center; gap:5px; }
+.dashboard-card-manage { color:var(--color-primary); font-size:11px; font-weight:700; min-height:32px; }
+.dashboard-card-controls select:focus-visible, .dashboard-card-manage:focus-visible { outline:2px solid var(--color-primary); outline-offset:3px; }
+.dashboard-card-empty { padding:45px 0; color:var(--color-text-muted); font-size:13px; }
+.dashboard-planner-callout { display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,.7fr); gap:6px 24px; padding:22px 26px; border:1px solid var(--color-planning-border); border-radius:20px; background:linear-gradient(125deg,color-mix(in srgb,var(--color-planning-surface) 92%,transparent),color-mix(in srgb,var(--color-surface) 70%,transparent)); box-shadow:0 10px 26px -18px #473f2d4d,inset 0 1px 0 #fff8; backdrop-filter:blur(18px); }
+.dashboard-planner-callout>div:first-child { grid-column:1 / -1; margin-bottom:5px; }
+.dashboard-planner-callout>h2 { grid-column:1; grid-row:2; font-size:18px; }
+.dashboard-planner-callout>p { grid-column:1; grid-row:3; margin-top:4px; font-size:12px; }
+.dashboard-planner-callout>div:nth-child(4) { grid-column:2; grid-row:3; margin-top:0; border:0; padding:0; justify-content:flex-end; }
+.dashboard-planner-callout>a { grid-column:2; grid-row:2; justify-self:end; margin-top:0; font-size:12px; }
+@media (max-width:1100px) { .dashboard-hero-grid { grid-template-columns:1fr; gap:24px; } .dashboard-card-panel { max-width:none; } .bank-card-stage { width:min(100%,400px); margin-inline:auto; } .bank-card-number { font-size:20px; } .bank-card-face { padding:24px; } .dashboard-card-controls, .dashboard-card-footer { width:min(100%,440px); margin-inline:auto; } }
+@media (max-width:639px) { .dashboard-hero-grid { gap:22px; } .dashboard-card-panel { padding:20px; } .dashboard-planner-callout { display:flex; flex-direction:column; padding:20px; gap:8px; } .dashboard-planner-callout>div:nth-child(4) { justify-content:flex-start; } .dashboard-planner-callout>a { align-self:flex-start; } .bank-card-face { padding:20px; } .bank-card-number { font-size:clamp(13px,4.4vw,20px); letter-spacing:.08em; } .membership-badge { padding:7px 10px; } }
+@media (prefers-color-scheme:dark) {
+  :root:not([data-theme=light]) .dashboard-hero-grid .balance-hero { box-shadow:0 4px 10px #0003,0 20px 36px -12px #0008,0 38px 65px -22px #0009,inset 0 1px 0 #96e9d926; }
+  :root:not([data-theme=light]) main .finance-card, :root:not([data-theme=light]) main .shortcut-card { box-shadow:0 10px 32px -12px #0006,inset 0 1px 0 #b3eee012; }
+  :root:not([data-theme=light]) .dashboard-card-panel { border-color:#9bdcc62b; background:linear-gradient(140deg,#23464fe6,#122d35d9); box-shadow:0 20px 48px -18px #0009,inset 0 1px 0 #ffffff14; }
+  :root:not([data-theme=light]) .bank-card-stage::before { background:linear-gradient(130deg,#345b52,#51766c); border-color:#ffffff20; }
+  :root:not([data-theme=light]) .dashboard-planner-callout { box-shadow:0 12px 30px -18px #0009,inset 0 1px 0 #fff1; }
+}
+@media (prefers-reduced-transparency:reduce) { .dashboard-card-panel { background:var(--color-surface); backdrop-filter:none; } .dashboard-planner-callout { background:var(--color-planning-surface); backdrop-filter:none; } }

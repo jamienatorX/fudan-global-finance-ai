@@ -2,6 +2,7 @@
 @import "../src/styles/tokens.css";
 @import "../src/styles/auth.css";
 @import "../src/styles/investing.css";
+@import "../src/styles/dashboard-depth.css";
 
 @theme inline {
   --color-blue-50: #edf6f2;

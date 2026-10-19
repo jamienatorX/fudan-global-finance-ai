@@ -1,9 +1,12 @@
 import { AccountLink as Link } from '../../components/shell/account-link';
-import { ArrowDownRight, ArrowUpRight, CalendarClock, CircleAlert, PiggyBank, WalletCards, ArrowRight, SendHorizontal, GraduationCap, ReceiptText, Repeat2, Compass, ShieldCheck, Globe2 } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, CalendarClock, CircleAlert, PiggyBank, WalletCards, ArrowRight, SendHorizontal, GraduationCap, ReceiptText, Repeat2, Compass, ShieldCheck } from 'lucide-react';
 import { Badge } from '../../components/ui/badge';
 import { Card, CardHeader } from '../../components/ui/card';
 import { formatMoney, type Money } from '../../domain/money';
 import type { OverviewModel } from './overview-queries';
+import { MembershipBadge, MembershipProgress } from './membership-progress';
+import { getMembership } from './membership';
+import { DashboardBankCard } from './dashboard-bank-card';
 
 const CATEGORY_COLORS: Record<string, string> = { rent: 'var(--color-chart-rent)', food: 'var(--color-chart-food)', transportation: 'var(--color-chart-transportation)', shopping: 'var(--color-chart-shopping)', other: 'var(--color-chart-other)' };
 
@@ -26,26 +29,21 @@ function BalanceHero({ overview }: Readonly<{ overview: OverviewModel }>) {
     ? Math.min(100, Math.max(0, Number(overview.availableCash.amountMinor * 10000n / overview.totalNetWorth.amountMinor) / 100))
     : 0;
   return (
-    <section aria-label="Your financial snapshot" className="grid min-w-0 gap-4 xl:grid-cols-[1.8fr_1fr]">
+    <section aria-label="Your financial snapshot" className="dashboard-hero-grid">
       <div className="balance-hero relative isolate overflow-hidden rounded-3xl p-6 text-white sm:p-8">
         <div className="relative z-10">
-          <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-xs font-medium tracking-wide text-[var(--color-hero-muted)]">Consolidated net worth</p><span className="flex items-center gap-1.5 rounded-full border border-white/20 px-2.5 py-1 text-[10px] text-[var(--color-hero-muted)]"><Globe2 size={12} aria-hidden />Global view</span></div>
+          <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-xs font-medium tracking-wide text-[var(--color-hero-muted)]">Consolidated net worth</p><MembershipBadge balance={overview.membershipBalanceCny} /></div>
           <p className="balance-number mt-5 break-words text-[clamp(2rem,4vw,3.5rem)] font-semibold leading-tight tracking-[-0.055em] tabular-nums">{formatMoney(overview.totalNetWorth)}</p>
           <p className="mt-2 text-xs leading-5 text-[var(--color-hero-muted)]">Across {overview.accountBalances.length} accounts · {overview.holdingsCount} holdings</p>
-          <div className="mt-8 max-w-lg">
+          <MembershipProgress balance={overview.membershipBalanceCny} />
+          <div className="mt-6 max-w-lg">
             <div className="flex justify-between gap-4 text-xs text-[var(--color-hero-muted)]"><span>Cash allocation</span><span className="tabular-nums">{cashShare.toFixed(1)}%</span></div>
             <div className="mt-2 flex h-1.5 overflow-hidden rounded-full bg-white/15" aria-hidden="true"><span className="h-full rounded-full bg-[var(--color-hero-accent)]" style={{ width: `${cashShare}%` }} /></div>
           </div>
           <div className="mt-7 flex flex-wrap items-center justify-between gap-4 border-t border-white/15 pt-5"><span className="flex items-center gap-2 text-xs text-[var(--color-hero-muted)]"><ShieldCheck size={15} aria-hidden />Account overview</span><Link href="/accounts" className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[var(--color-hero-accent)] px-5 text-xs font-semibold text-[var(--color-navy)] transition-colors hover:bg-white">View your accounts<ArrowUpRight size={15} aria-hidden /></Link></div>
         </div>
       </div>
-      <div className="rounded-3xl border border-[var(--color-planning-border)] bg-[var(--color-planning-surface)] p-6 sm:p-7">
-        <div className="flex items-center justify-between gap-3"><span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-planning-label)]">Looking ahead</span><GraduationCap size={22} className="text-[var(--color-planning-icon)]" aria-hidden /></div>
-        <h2 className="mt-5 text-xl font-semibold tracking-tight text-[var(--color-navy)]">Your next chapter,<br />already in the plan.</h2>
-        <p className="mt-3 text-sm leading-6 text-[var(--color-planning-text)]">Keep tuition and everyday living in balance with a clear view of what comes next.</p>
-        <div className="mt-5 flex items-center gap-2 border-t border-[var(--color-planning-divider)] pt-5 text-xs text-[var(--color-planning-text)]"><CalendarClock size={16} aria-hidden /><span>{overview.tuition.next ? `Next tuition due ${new Date(overview.tuition.next.dueAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}` : 'Review your upcoming commitments'}</span></div>
-        <Link href="/planner" className="mt-4 inline-flex min-h-11 items-center gap-3 text-sm font-semibold text-[var(--color-navy)] underline decoration-[var(--color-planning-underline)] underline-offset-4">Open your planner<ArrowRight size={16} aria-hidden /></Link>
-      </div>
+      <DashboardBankCard cards={overview.cards} cardholderName={overview.cardholderName} tier={getMembership(overview.membershipBalanceCny).current} />
     </section>
   );
 }
@@ -142,6 +140,13 @@ export function OverviewDashboard({ overview }: Readonly<{ overview: OverviewMod
     <div className="space-y-6 pb-20 sm:space-y-8">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><div className="mb-2 flex flex-wrap items-center gap-2"><span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--color-primary)]">Your global workspace</span><span className="text-xs text-slate-500">As of {new Date(overview.asOf).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}</span></div><h1 className="text-3xl font-semibold tracking-[-0.045em] text-[var(--color-navy)] sm:text-4xl">Good morning, {overview.userName}</h1><p className="mt-2 text-sm text-slate-600 sm:text-base">Your finances across Shanghai and home, all in one place.</p></div><div className="flex items-center gap-2 text-xs text-slate-500"><span className={`size-2 rounded-full ${overview.fxSource.source === 'live' ? 'bg-emerald-500' : 'bg-amber-500'}`} />{overview.fxSource.source === 'live' ? 'Live FX' : 'Fallback FX'} · {overview.fxSource.referenceAt.slice(0, 10)}</div></header>
       <BalanceHero overview={overview} />
+      <div className="dashboard-planner-callout">
+        <div className="flex items-center justify-between gap-3"><span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-planning-label)]">Looking ahead</span><GraduationCap size={22} className="text-[var(--color-planning-icon)]" aria-hidden /></div>
+        <h2 className="text-xl font-semibold tracking-tight text-[var(--color-navy)]">Your next chapter, already in the plan.</h2>
+        <p className="mt-3 text-sm leading-6 text-[var(--color-planning-text)]">Keep tuition and everyday living in balance with a clear view of what comes next.</p>
+        <div className="mt-5 flex items-center gap-2 border-t border-[var(--color-planning-divider)] pt-5 text-xs text-[var(--color-planning-text)]"><CalendarClock size={16} aria-hidden /><span>{overview.tuition.next ? `Next tuition due ${new Date(overview.tuition.next.dueAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}` : 'Review your upcoming commitments'}</span></div>
+        <Link href="/planner" className="mt-4 inline-flex min-h-11 items-center gap-3 text-sm font-semibold text-[var(--color-navy)] underline decoration-[var(--color-planning-underline)] underline-offset-4">Open your planner<ArrowRight size={16} aria-hidden /></Link>
+      </div>
       <section aria-label="Financial summary" className="grid gap-4 md:grid-cols-3">
         <MetricCard label="Available cash" value={formatMoney(overview.availableCash)} detail="Across your accounts" icon={<WalletCards size={20} aria-hidden />} />
         <MetricCard label="Monthly expenses" value={formatMoney(overview.monthlyExpenses)} detail={`${usedPercent}% of your living budget`} tone={usedPercent >= 100 ? 'warning' : 'neutral'} icon={<ArrowUpRight size={20} aria-hidden />} />
