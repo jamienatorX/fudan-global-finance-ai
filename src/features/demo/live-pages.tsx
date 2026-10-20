@@ -33,7 +33,7 @@ export function LiveOverview({account}:{account?:string}){
   const [reportingCurrency,setReportingCurrency]=useState<CurrencyCode>('CNY');
   const displayed=useMemo(()=>overview?displayOverviewCurrency(overview,reportingCurrency,snapshot.exchangeRates):null,
     [overview,reportingCurrency,snapshot.exchangeRates]);
-  return displayed?<div className="space-y-4">
+  return displayed?<div className="overview-workspace">
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-border)] pb-4">
         <label className="flex flex-wrap items-center gap-3 text-xs font-medium text-[var(--color-text-muted)]">Reporting currency
           <select aria-label="Dashboard reporting currency" value={reportingCurrency}

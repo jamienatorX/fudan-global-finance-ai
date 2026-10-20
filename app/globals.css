@@ -231,14 +231,14 @@ html[data-theme="dark-disabled"] .balance-hero { background:radial-gradient(elli
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme:dark;
-    --color-background:#0b1b20; --color-surface:#162b31; --color-text:#edf6f4;
+    --color-background:#04090e; --color-surface:#162b31; --color-text:#edf6f4;
     --color-text-muted:#bbd0d1; --color-border:#345058; --color-info-soft:#234b4c;
     --color-primary:#8be3cd; --color-nav-active:#255e57; --color-nav-active-text:#f1fffb;
     --color-planning-surface:#273334; --color-planning-border:#4a5350;
     --color-planning-text:#e2dbca; --color-planning-label:#d5c49b;
     --color-positive-soft:#123e34; --color-warning-soft:#3b301d; --color-danger-soft:#3d2227;
   }
-  :root:not([data-theme="light"]) main::before { background:radial-gradient(ellipse at 15% 8%,rgba(24,125,120,.25),transparent 48%),radial-gradient(ellipse at 88% 32%,rgba(55,82,135,.2),transparent 50%); }
+  :root:not([data-theme="light"]) main::before { background:radial-gradient(ellipse at 15% 3%,rgba(24,125,120,.055),transparent 36%),radial-gradient(ellipse at 88% 25%,rgba(55,82,135,.045),transparent 40%); }
   :root:not([data-theme="light"]) :is(.finance-card,.metric-card,main .shortcut-card,main .rounded-3xl.border,main .rounded-2xl.border) { background:linear-gradient(145deg,rgba(31,64,70,.90),rgba(19,42,51,.83)); border-color:rgba(142,219,210,.2); }
   :root:not([data-theme="light"]) .balance-hero { background:radial-gradient(ellipse at 85% 5%,rgba(69,160,155,.25),transparent 52%),linear-gradient(120deg,#091b24,#12343b 65%,#1a414b); }
   :root:not([data-theme="light"]) :is(main,.bank-header) :is(.text-slate-950,.text-slate-900,.text-slate-800,.text-slate-700,.text-blue-950,.text-blue-900,.text-blue-800,.text-blue-700,.text-emerald-700,.text-amber-700,.text-\[var\(--color-navy\)\]) { color:#eaf7f4; }

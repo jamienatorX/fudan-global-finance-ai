@@ -8,9 +8,8 @@ import { MembershipBadge, MembershipProgress } from './membership-progress';
 import { getMembership } from './membership';
 import { DashboardBankCard } from './dashboard-bank-card';
 import { CashFlowCurve } from './cash-flow-curve';
+import { SpendingBreakdown } from './spending-breakdown';
 import { PortfolioQuickActions, PortfolioActivityPanel } from '../investing/portfolio-actions';
-
-const CATEGORY_COLORS: Record<string, string> = { rent: 'var(--color-chart-rent)', food: 'var(--color-chart-food)', transportation: 'var(--color-chart-transportation)', shopping: 'var(--color-chart-shopping)', other: 'var(--color-chart-other)' };
 
 function MetricCard({ label, value, detail, tone = 'neutral', icon }: Readonly<{ label: string; value: string; detail: string; tone?: 'neutral' | 'positive' | 'warning'; icon: React.ReactNode }>) {
   const toneClass = tone === 'positive' ? 'text-emerald-700 bg-emerald-50' : tone === 'warning' ? 'text-amber-700 bg-amber-50' : 'text-blue-700 bg-blue-50';
@@ -35,8 +34,8 @@ function BalanceHero({ overview }: Readonly<{ overview: OverviewModel }>) {
       <div className="balance-hero portfolio-glass-hero relative isolate overflow-hidden rounded-3xl p-6 text-white sm:p-8">
         <div className="relative z-10">
           <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-xs font-medium tracking-wide text-[var(--color-hero-muted)]">Consolidated net worth</p><MembershipBadge balance={overview.membershipBalanceCny} /></div>
-          <p className="balance-number mt-5 break-words text-[clamp(2rem,4vw,3.5rem)] font-semibold leading-tight tracking-[-0.055em] tabular-nums">{formatMoney(overview.totalNetWorth)}</p>
-          <p className="mt-2 text-xs leading-5 text-[var(--color-hero-muted)]">Across {overview.accountBalances.length} accounts · {overview.holdingsCount} holdings</p>
+          <p className="balance-number text-center mt-5 break-words text-[clamp(2rem,4vw,3.5rem)] font-semibold leading-tight tracking-[-0.055em] tabular-nums">{formatMoney(overview.totalNetWorth)}</p>
+          <p className="mt-2 text-center text-xs leading-5 text-[var(--color-hero-muted)]">Across {overview.accountBalances.length} accounts · {overview.holdingsCount} holdings</p>
           <PortfolioQuickActions />
           <MembershipProgress balance={overview.membershipBalanceCny} />
           <div className="mt-6 max-w-lg">
@@ -74,23 +73,6 @@ function BankingShortcuts() {
   );
 }
 
-function SpendingCard({ overview }: Readonly<{ overview: OverviewModel }>) {
-  const stops = overview.spending.map((item, index, items) => {
-    const start = items.slice(0, index).reduce((total, previous) => total + previous.shareBasisPoints / 100, 0);
-    const end = start + item.shareBasisPoints / 100;
-    return `${CATEGORY_COLORS[item.category] ?? '#94A3B8'} ${start}% ${end}%`;
-  }).join(', ');
-  return (
-    <Card className="overflow-hidden">
-      <CardHeader title="Spending by category" eyebrow="This month" action={<Link href="/transactions" className="text-xs font-semibold text-blue-600 hover:text-blue-700">View analysis</Link>} />
-      <div className="grid gap-6 p-5 sm:grid-cols-[10rem_1fr] sm:items-center sm:p-6">
-        <div role="img" aria-label={`Spending category chart. Total ${formatMoney(overview.monthlyExpenses)}`} className="relative mx-auto grid size-36 place-items-center rounded-full" style={{ background: `conic-gradient(${stops})` }}><div className="grid size-24 place-items-center rounded-full bg-white text-center shadow-inner"><div><p className="text-xs text-slate-500">Spent</p><p className="text-sm font-bold text-slate-950">{formatMoney(overview.monthlyExpenses)}</p></div></div></div>
-        <ul className="space-y-3">{overview.spending.map((item) => <li key={item.category} className="flex items-center justify-between gap-3 text-sm"><span className="flex items-center gap-2 capitalize text-slate-600"><span className="size-2.5 rounded-full" style={{ backgroundColor: CATEGORY_COLORS[item.category] }} />{item.category}</span><span className="font-semibold tabular-nums text-slate-900">{formatMoney(item.amount)}</span></li>)}</ul>
-      </div>
-    </Card>
-  );
-}
-
 function CashFlowCard({ overview }: Readonly<{ overview: OverviewModel }>) {
   const max = Math.max(Number(overview.monthlyIncome.amountMinor), Number(overview.monthlyExpenses.amountMinor));
   const incomeWidth = max ? Math.round(Number(overview.monthlyIncome.amountMinor) / max * 100) : 0;
@@ -117,7 +99,7 @@ function ForecastCard({ overview }: Readonly<{ overview: OverviewModel }>) {
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-blue-600">
               {new Date(`${point.month}-01T00:00:00.000Z`).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' })}
             </p>
-            <p className="mt-2 text-lg font-bold tabular-nums text-slate-950">{formatMoney(point.closing)}</p>
+            <p className="mt-2 text-center text-lg font-bold tabular-nums text-slate-950">{formatMoney(point.closing)}</p>
             <p className="mt-1 text-xs text-slate-500">Projected closing cash</p>
             <dl className="mt-4 space-y-2 border-t border-slate-200 pt-3 text-xs">
               <div className="flex justify-between gap-2"><dt className="text-slate-500">Recurring inflow</dt><dd className="font-semibold text-emerald-700">+{formatMoney(point.inflow)}</dd></div>
@@ -140,7 +122,7 @@ export function OverviewDashboard({ overview }: Readonly<{ overview: OverviewMod
     ? { ...unusedSubscription.amount, amountMinor: unusedSubscription.amount.amountMinor * (unusedSubscription.cadence === 'monthly' ? 12n : 1n) }
     : null;
   return (
-    <div className="space-y-6 pb-20 sm:space-y-8">
+    <div className="overview-dashboard pb-12">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><div className="mb-2 flex flex-wrap items-center gap-2"><span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--color-primary)]">Your global workspace</span><span className="text-xs text-slate-500">As of {new Date(overview.asOf).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}</span></div><h1 className="text-3xl font-semibold tracking-[-0.045em] text-[var(--color-navy)] sm:text-4xl">Good morning, {overview.userName}</h1><p className="mt-2 text-sm text-slate-600 sm:text-base">Your finances across Shanghai and home, all in one place.</p></div><div className="flex items-center gap-2 text-xs text-slate-500"><span className={`size-2 rounded-full ${overview.fxSource.source === 'live' ? 'bg-emerald-500' : 'bg-amber-500'}`} />{overview.fxSource.source === 'live' ? 'Live FX' : 'Fallback FX'} · {overview.fxSource.referenceAt.slice(0, 10)}</div></header>
       <BalanceHero overview={overview} />
       <div className="dashboard-planner-callout">
@@ -164,19 +146,19 @@ export function OverviewDashboard({ overview }: Readonly<{ overview: OverviewMod
           {overview.accountBalances.map((account) => (
             <div key={account.id} className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
               <p className="text-xs font-medium text-slate-500">{account.label}</p>
-              <p className="mt-2 text-base font-bold tabular-nums text-slate-950">{formatMoney(account.amount)}</p>
+              <p className="mt-2 text-center text-base font-bold tabular-nums text-slate-950">{formatMoney(account.amount)}</p>
               {account.amount.currency !== account.reportingAmount.currency ? <p className="mt-1 text-xs leading-5 text-slate-500">≈ {formatMoney(account.reportingAmount)} equivalent</p> : null}
             </div>
           ))}
         </div>
       </Card>
-      <section className="grid gap-4 xl:grid-cols-2"><SpendingCard overview={overview} /><CashFlowCard overview={overview} /></section>
+      <section className="grid gap-4 xl:grid-cols-2"><SpendingBreakdown overview={overview} /><CashFlowCard overview={overview} /></section>
       <ForecastCard overview={overview} />
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card><CardHeader title="Budget health" eyebrow={`${overview.budget.categories.length} categories`} action={<Link href="/planner" className="text-xs font-semibold text-blue-600">Adjust</Link>} /><div className="p-5 sm:p-6"><div className="flex items-end justify-between"><div><p className="text-2xl font-bold text-slate-950">{usedPercent}% used</p><p className="mt-1 text-xs text-slate-500">{formatMoney(overview.budget.actual)} of {formatMoney(overview.budget.limit)}</p></div><Badge tone={usedPercent >= 100 ? 'warning' : 'positive'}>{usedPercent >= 100 ? 'At limit' : 'On track'}</Badge></div><div className="mt-5 h-2.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-amber-400" style={{ width: `${Math.min(usedPercent, 100)}%` }} /></div>{overview.emergencyFund ? <div className="mt-5 border-t border-slate-100 pt-4"><div className="flex justify-between text-xs"><span className="text-slate-500">Emergency fund</span><strong>{emergencyPercent}% funded</strong></div></div> : null}</div></Card>
-        <Card><CardHeader title="Subscriptions" eyebrow={`${overview.subscriptions.active.length} active`} action={<Link href="/subscriptions" className="text-xs font-semibold text-blue-600">Optimize</Link>} /><div className="p-5 sm:p-6"><p className="text-2xl font-bold text-slate-950">{formatMoney(overview.subscriptions.monthly)} / month</p><p className="mt-1 text-xs text-slate-500">{formatMoney(overview.subscriptions.annual)} annualized</p>{overview.subscriptions.unusedCount ? <div className="mt-5 flex items-start gap-3 rounded-xl bg-amber-50 p-3 text-xs leading-5 text-amber-900"><CircleAlert size={17} className="mt-0.5 shrink-0" aria-hidden />{overview.subscriptions.unusedCount} potentially unused service could be reviewed.</div> : null}</div></Card>
-        <Card><CardHeader title="Tuition plan" eyebrow="Upcoming obligation" action={<Link href="/planner" className="text-xs font-semibold text-blue-600">Plan payment</Link>} /><div className="p-5 sm:p-6"><p className="text-2xl font-bold text-slate-950">{formatMoney(overview.tuition.outstanding)} outstanding</p><p className="mt-1 text-xs text-slate-500">{overview.tuition.next?.institution} · {overview.tuition.next?.installment}</p><div className="mt-5 flex items-center gap-2 rounded-xl bg-blue-50 p-3 text-xs font-medium text-blue-800"><CalendarClock size={16} aria-hidden />Due {overview.tuition.next ? new Date(overview.tuition.next.dueAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' }) : '—'}</div></div></Card>
-        <Card><CardHeader title="Investment portfolio" eyebrow="Your holdings" action={<Link href="/wealth" className="text-xs font-semibold text-blue-600">Explore</Link>} /><div className="p-5 sm:p-6"><p className="text-2xl font-bold text-slate-950">{formatMoney(overview.investedValue)}</p><p className="mt-1 text-xs text-slate-500">{overview.holdingsCount} holdings</p><div className="mt-5 rounded-xl bg-emerald-50 p-3 text-xs leading-5 text-emerald-800">Values may rise or fall.</div></div></Card>
+        <Card><CardHeader title="Budget health" eyebrow={`${overview.budget.categories.length} categories`} action={<Link href="/planner" className="text-xs font-semibold text-blue-600">Adjust</Link>} /><div className="p-5 sm:p-6"><div className="flex flex-col items-center justify-between gap-3 text-center"><div><p className="text-center text-2xl font-bold text-slate-950">{usedPercent}% used</p><p className="mt-1 text-xs text-slate-500">{formatMoney(overview.budget.actual)} of {formatMoney(overview.budget.limit)}</p></div><Badge tone={usedPercent >= 100 ? 'warning' : 'positive'}>{usedPercent >= 100 ? 'At limit' : 'On track'}</Badge></div><div className="mt-5 h-2.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-amber-400" style={{ width: `${Math.min(usedPercent, 100)}%` }} /></div>{overview.emergencyFund ? <div className="mt-5 border-t border-slate-100 pt-4"><div className="flex justify-between text-xs"><span className="text-slate-500">Emergency fund</span><strong>{emergencyPercent}% funded</strong></div></div> : null}</div></Card>
+        <Card><CardHeader title="Subscriptions" eyebrow={`${overview.subscriptions.active.length} active`} action={<Link href="/subscriptions" className="text-xs font-semibold text-blue-600">Optimize</Link>} /><div className="p-5 sm:p-6"><p className="text-center text-2xl font-bold text-slate-950">{formatMoney(overview.subscriptions.monthly)} / month</p><p className="mt-1 text-xs text-slate-500">{formatMoney(overview.subscriptions.annual)} annualized</p>{overview.subscriptions.unusedCount ? <div className="mt-5 flex items-start gap-3 rounded-xl bg-amber-50 p-3 text-xs leading-5 text-amber-900"><CircleAlert size={17} className="mt-0.5 shrink-0" aria-hidden />{overview.subscriptions.unusedCount} potentially unused service could be reviewed.</div> : null}</div></Card>
+        <Card><CardHeader title="Tuition plan" eyebrow="Upcoming obligation" action={<Link href="/planner" className="text-xs font-semibold text-blue-600">Plan payment</Link>} /><div className="p-5 sm:p-6"><p className="text-center text-2xl font-bold text-slate-950">{formatMoney(overview.tuition.outstanding)} outstanding</p><p className="mt-1 text-xs text-slate-500">{overview.tuition.next?.institution} · {overview.tuition.next?.installment}</p><div className="mt-5 flex items-center gap-2 rounded-xl bg-blue-50 p-3 text-xs font-medium text-blue-800"><CalendarClock size={16} aria-hidden />Due {overview.tuition.next ? new Date(overview.tuition.next.dueAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' }) : '—'}</div></div></Card>
+        <Card><CardHeader title="Investment portfolio" eyebrow="Your holdings" action={<Link href="/wealth" className="text-xs font-semibold text-blue-600">Explore</Link>} /><div className="p-5 sm:p-6"><p className="text-center text-2xl font-bold text-slate-950">{formatMoney(overview.investedValue)}</p><p className="mt-1 text-xs text-slate-500">{overview.holdingsCount} holdings</p><div className="mt-5 rounded-xl bg-emerald-50 p-3 text-xs leading-5 text-emerald-800">Values may rise or fall.</div></div></Card>
       </section>
       <section className="grid gap-4 xl:grid-cols-[1.4fr_0.6fr]">
         <Card className="overflow-hidden"><CardHeader title="Recent transactions" eyebrow="All accounts" action={<Link href="/transactions" className="text-xs font-semibold text-blue-600">View all</Link>} /><div className="mt-3 divide-y divide-slate-100">{overview.recentTransactions.map((transaction) => <div key={transaction.id} data-testid="recent-transaction" className="flex items-center gap-3 px-5 py-4 sm:px-6"><span className={`grid size-9 shrink-0 place-items-center rounded-xl ${transaction.direction === 'credit' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>{transaction.direction === 'credit' ? <ArrowDownRight size={17} aria-hidden /> : <ArrowUpRight size={17} aria-hidden />}</span><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-900">{transaction.merchant}</p><p className="mt-0.5 text-xs capitalize text-slate-500">{transaction.category.replace('-', ' ')} · {transaction.originalCurrency}</p></div><SignedMoney amount={transaction.amount} direction={transaction.direction} /></div>)}</div></Card>
