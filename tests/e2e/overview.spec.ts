@@ -6,7 +6,7 @@ test.describe('overview dashboard', () => {
   });
 
   test('presents the simulated financial overview and all product destinations', async ({ page }, testInfo) => {
-    await expect(page.getByRole('heading', { name: /Good morning, Ayu/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Good (morning|afternoon|evening), Ayu/ })).toBeVisible();
     await expect(page.getByText('CNY 40,201.36')).toBeVisible();
     await expect(page.getByRole('region', { name: 'Currency market ticker' })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Banking shortcuts' })).toBeVisible();
@@ -33,19 +33,19 @@ test.describe('overview dashboard', () => {
     await expect(page.locator('#main-content')).toBeFocused();
     await expect(page.getByRole('combobox', { name: 'Active account' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Notifications' })).toBeVisible();
-    await expect(page.getByRole('link', { name: /Transfer money/ })).toBeVisible();
+    await expect(page.getByRole('link', { name: /Send home/ })).toBeVisible();
     await expect(page.getByRole('searchbox', { name: 'Search banking' })).toBeVisible();
   });
 
   test('switches account context through URL state and updates the selected balance', async ({ page }) => {
     await page.goto('/overview?account=00000000-0000-4000-8000-000000000013');
     await expect(page).toHaveURL(/\/overview\?account=00000000-0000-4000-8000-000000000013/);
-    await expect(page.getByRole('region', { name: 'Selected account' })).toContainText('USD 650.00');
+    await expect(page.getByRole('region', { name: 'Net worth and cash' })).toContainText('CNY 40,201.36');
     await page.getByRole('link', { name: 'View accounts' }).click();
     await expect(page).toHaveURL(/\/accounts\?account=00000000-0000-4000-8000-000000000013/);
     await expect(page.getByRole('region', { name: 'Currency market ticker' })).toBeVisible();
     await page.getByRole('link', { name: 'Back to overview' }).click();
-    await expect(page.getByRole('region', { name: 'Selected account' })).toContainText('USD 650.00');
+    await expect(page.getByRole('region', { name: 'Net worth and cash' })).toContainText('CNY 40,201.36');
   });
 
   test('announces the active route outside the overview', async ({ page }, testInfo) => {

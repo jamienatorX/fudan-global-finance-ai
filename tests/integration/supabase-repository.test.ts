@@ -104,7 +104,7 @@ describe('Supabase repository through real HTTP client and PostgreSQL RPCs', () 
     expect(await repository.listAccounts(A)).toHaveLength(5);
     expect(await repository.getUser(A)).toMatchObject({ id: A, profile: { displayName: 'Ayu Pratama' } });
     expect(await repository.listTransactions(A)).toHaveLength(17);
-    expect(await repository.listBudgets(A)).toHaveLength(5);
+    expect(await repository.listBudgets(A)).toHaveLength(6);
     expect(await repository.listBeneficiaries(A)).toHaveLength(3);
     expect(await repository.listCards(A)).toHaveLength(2);
     expect(await repository.listSubscriptions(A)).toHaveLength(4);

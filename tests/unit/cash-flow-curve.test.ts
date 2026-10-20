@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { buildCashFlowSeries, cumulativeFlow, smoothCurve } from '../../src/features/overview/cash-flow-series';
+import { buildCashFlowSeries, cumulativeFlow, stepCurve } from '../../src/features/overview/cash-flow-series';
 import { createSeedSnapshot } from '../../src/demo/seed';
 
 it('builds cash-flow history from ledger entries without inventing price performance', () => {
@@ -11,8 +11,8 @@ it('builds cash-flow history from ledger entries without inventing price perform
   expect(cumulativeFlow(data).at(-1)?.amountMinor).toBe(data.reduce((sum, day) => sum + day.netMinor, 0n));
   expect(data.some(day => day.netMinor !== 0n)).toBe(true);
 });
-it('handles empty periods and makes a bounded smooth path', () => {
-  expect(smoothCurve([{ x: 0, y: 10 }, { x: 20, y: 0 }])).toBe('M0,10 C10,10 10,0 20,0');
+it('handles empty periods and makes a recorded step path', () => {
+  expect(stepCurve([{ x: 0, y: 10 }, { x: 20, y: 0 }])).toBe('M0,10 H20 V0');
   const seed = createSeedSnapshot('v1');
   expect(buildCashFlowSeries({ ...seed, transactions: [] }, 7).every(day => day.netMinor === 0n)).toBe(true);
 });

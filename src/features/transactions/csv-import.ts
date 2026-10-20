@@ -24,7 +24,7 @@ export function safeCsvCell(value: string): string {
 }
 
 /** RFC 4180-style quoted fields; malformed quoting rejects the file, not silently shifted columns. */
-function readCsvRecords(text: string): string[][] {
+export function readCsvRecords(text: string, maxRecords = MAX_CSV_ROWS + 1): string[][] {
   const records: string[][] = [];
   let row: string[] = [];
   let field = '';
@@ -48,7 +48,7 @@ function readCsvRecords(text: string): string[][] {
       if (char === '\r' && text[i + 1] === '\n') i++;
       if (started || field || row.length) { row.push(field); records.push(row); }
       row = []; field = ''; closed = false; started = false;
-      if (records.length > MAX_CSV_ROWS + 1) throw new RangeError('CSV row limit exceeded');
+      if (records.length > maxRecords) throw new RangeError('CSV row limit exceeded');
     } else {
       if (closed) throw new TypeError('Unexpected characters after CSV quote');
       field += char; started = true;
@@ -56,7 +56,7 @@ function readCsvRecords(text: string): string[][] {
   }
   if (quoted) throw new TypeError('Unclosed CSV quotation');
   if (started || field || row.length) { row.push(field); records.push(row); }
-  if (records.length > MAX_CSV_ROWS + 1) throw new RangeError('CSV row limit exceeded');
+  if (records.length > maxRecords) throw new RangeError('CSV row limit exceeded');
   return records;
 }
 

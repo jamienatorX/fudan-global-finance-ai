@@ -60,6 +60,7 @@ describe('AppShell', () => {
     ]);
     expect(screen.queryByRole('combobox', { name: 'Active account' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Notifications' })).toBeInTheDocument();
+    expect(within(screen.getByRole('banner')).getByRole('link', { name: 'My account' })).toHaveAttribute('href', '/banking');
     expect(within(screen.getByRole('banner')).queryByText('Demo')).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Ask AI banker' })).not.toBeInTheDocument();
     expect(screen.getByRole('searchbox', { name: 'Search banking' })).toBeInTheDocument();
@@ -87,7 +88,7 @@ describe('AppShell', () => {
     navigation.query = `account=${usdId}&unrelated=omit`;
     const model = await getOverviewModel(new DemoFinancialRepository(), DEMO_USER_ID, usdId);
     const { rerender } = render(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><OverviewDashboard overview={model} /></AppShell>);
-    for (const name of [/福.*Bank/, 'View accounts', /Transfer money/, /Plan tuition/]) {
+    for (const name of [/福.*Bank/, 'View accounts', /Send home/, /Plan tuition/]) {
       const href = screen.getByRole('link', { name }).getAttribute('href')!;
       const url = new URL(href, 'http://localhost');
       expect(url.searchParams.get('account')).toBe(usdId);
@@ -137,7 +138,7 @@ describe('AppShell', () => {
     const overview = await getOverviewModel(repository, DEMO_USER_ID, new URLSearchParams(navigation.query).get('account') ?? undefined);
     rerender(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><OverviewDashboard overview={overview} /></AppShell>);
 
-    expect(screen.getByRole('region', { name: 'Selected account' })).toHaveTextContent('USD 650.00');
+    expect(screen.getByRole('region', { name: 'Net worth and cash' })).toHaveTextContent('CNY 40,201.36');
     expect(screen.getByRole('link', { name: 'Accounts' })).toHaveAttribute('href', `/accounts?account=${usdAccount.id}`);
 
     navigate(screen.getByRole('link', { name: 'Accounts' }).getAttribute('href')!);
@@ -147,7 +148,7 @@ describe('AppShell', () => {
     navigate(screen.getByRole('link', { name: 'Overview' }).getAttribute('href')!);
     const returnedOverview = await getOverviewModel(repository, DEMO_USER_ID, new URLSearchParams(navigation.query).get('account') ?? undefined);
     rerender(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><OverviewDashboard overview={returnedOverview} /></AppShell>);
-    expect(screen.getByRole('region', { name: 'Selected account' })).toHaveTextContent('USD 650.00');
+    expect(screen.getByRole('region', { name: 'Net worth and cash' })).toHaveTextContent('CNY 40,201.36');
 
     fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }));
     const mobileLinks = within(screen.getByRole('navigation', { name: 'Mobile product navigation' })).getAllByRole('link');
@@ -165,7 +166,7 @@ describe('AppShell', () => {
       navigation.query = query;
       const overview = await getOverviewModel(repository, DEMO_USER_ID, new URLSearchParams(query).get('account') ?? undefined);
       rerender(<AppShell accounts={snapshot.accounts} user={snapshot.users[0]}><OverviewDashboard overview={overview} /></AppShell>);
-      expect(screen.getByRole('region', { name: 'Selected account' })).toHaveTextContent('CNY Daily account');
+      expect(screen.getByRole('region', { name: 'Net worth and cash' })).toHaveTextContent('CNY 38,669.36');
     }
   });
 

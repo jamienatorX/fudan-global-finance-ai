@@ -31,10 +31,7 @@ export function cumulativeFlow(days: readonly CashFlowDay[]) {
   let total = 0n;
   return days.map(day => { total += day.netMinor; return { date: day.date, amountMinor: total }; });
 }
-export function smoothCurve(points: readonly { x: number; y: number }[]) {
+export function stepCurve(points: readonly { x: number; y: number }[]) {
   if (!points.length) return '';
-  return `M${points[0].x},${points[0].y}` + points.slice(1).map((point, index) => {
-    const before = points[index]; const mid = (before.x + point.x) / 2;
-    return ` C${mid},${before.y} ${mid},${point.y} ${point.x},${point.y}`;
-  }).join('');
+  return `M${points[0].x},${points[0].y}` + points.slice(1).map(point => ` H${point.x} V${point.y}`).join('');
 }

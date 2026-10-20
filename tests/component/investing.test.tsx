@@ -53,6 +53,6 @@ it('saves, edits and marks card reminders paid without claiming a payment', asyn
   fireEvent.click(screen.getByRole('button', { name: 'Save reminder' }));
   expect(screen.getByText(/CNY 600.00/)).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'Mark paid Student card' }));
-  expect(screen.getByRole('status')).toHaveTextContent('Fu Bank has not made a payment');
+  expect(screen.getByRole('status')).toHaveTextContent('福 Bank has not made a payment');
   expect(screen.getByText('Paid', { exact: true })).toBeInTheDocument();
 });

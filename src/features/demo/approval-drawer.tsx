@@ -6,7 +6,7 @@ import { formatMoney, money } from '../../domain/money';
 export function ApprovalDrawer() {
   const { snapshot, pending, notice, approve, reject } = useDemo();
   function detail(key: string, value: string) {
-    if (key === 'sourceId' || key === 'destinationId') {
+    if (key === 'sourceId' || key === 'destinationId' || key==='accountId') {
       const account = snapshot.accounts.find(a => a.id === value);
       return account ? `${account.currency} ${account.type}` : value;
     }
@@ -21,6 +21,7 @@ export function ApprovalDrawer() {
       const currency = snapshot.accounts.find(a => a.id === sourceId)?.currency ?? 'CNY';
       return formatMoney(money(BigInt(value), currency));
     }
+    if(key==='rows'){try{return JSON.parse(value).length+' historical records';}catch{return 'Validated historical records';}}
     return value;
   }
   const labels: Record<string, string> = { purpose: 'Card purpose', instrumentId: 'Instrument', quantity: 'Units', sourceId: 'From', destinationId: 'To', beneficiaryId: 'Recipient', cardId: 'Card', subscriptionId: 'Subscription', productId: 'Product', tuitionId: 'Tuition', amountMinor: 'Amount', limitMinor: 'Limit', scheduledAt: 'Scheduled date', mode: 'Change', category: 'Category', direction: 'Order' };
@@ -29,7 +30,7 @@ export function ApprovalDrawer() {
     {pending ? <>
       <p className="text-xs font-bold uppercase tracking-widest text-blue-700">Review & confirm · approval required</p>
       <h2 className="mt-2 text-base font-semibold text-slate-900">{pending.action.type === 'market-order' ? 'SIMULATED INVESTMENT ORDER' : pending.action.type === 'create-card' ? 'CREATE VIRTUAL CARD' : pending.action.type.toUpperCase()}</h2>
-      <dl className="mt-3 space-y-2 text-sm">{Object.entries(pending.action).filter(([key]) => key !== 'type').map(([key, value]) => <div key={key} className="flex justify-between gap-4"><dt className="text-slate-500">{labels[key] ?? key}</dt><dd className="break-words text-right font-medium capitalize text-slate-900">{detail(key, String(value))}</dd></div>)}</dl>
+      <dl className="mt-3 space-y-2 text-sm">{Object.entries(pending.action).filter(([key]) => key !== 'type').map(([key, value]) => <div key={key} className="flex justify-between gap-4"><dt className="text-slate-500">{labels[key] ?? key}</dt><dd className="break-words text-right font-medium capitalize text-slate-900">{key==='rows'&&Array.isArray(value)?value.length+' historical records (balances unchanged)':detail(key, String(value))}</dd></div>)}</dl>
       {pending.action.type === 'market-order' && <p className="mt-3 text-sm font-semibold text-slate-900">Order value: {formatMoney(money(marketOrderQuote(pending.action.instrumentId, pending.action.quantity).amountMinor, 'CNY'))} · fixed demo price · no real assets traded</p>}
       <div className="mt-4 flex gap-3">
         <button onClick={approve} className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700">Confirm</button>

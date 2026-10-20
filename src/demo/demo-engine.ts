@@ -1,15 +1,19 @@
 import type { Account, AuditEvent, FinancialSnapshot, Transaction } from '../domain/entities';
+import { importWalletRows, type WalletImportRow } from '../features/transactions/wallet-csv';
+import { remittanceQuote } from '../features/fx/remittance';
 import { money } from '../domain/money';
 import { marketOrderQuote, parseUnits, formatUnits } from '../features/investing/market-catalog';
 
 export type DemoAction =
+ | Readonly<{type:'import-transactions';accountId:string;rows:readonly WalletImportRow[]}>
+ | Readonly<{type:'remittance';sourceId:string;destinationId:string;amountMinor:string;rate:string;referenceAt:string;direction:'receive'|'send'}>
  | Readonly<{ type: 'create-card'; sourceId: string; purpose: 'daily' | 'online-shopping' }>
  | Readonly<{ type: 'market-order'; instrumentId: string; sourceId: string; direction: 'buy' | 'sell'; quantity: string }>
  | Readonly<{ type: 'transfer'; sourceId: string; destinationId?: string; beneficiaryId?: string; amountMinor: string; scheduledAt?: string }>
  | Readonly<{ type: 'tuition'; sourceId: string; tuitionId: string }>
- | Readonly<{ type: 'budget'; category: 'rent' | 'food' | 'transportation' | 'shopping' | 'other'; limitMinor: string }>
+ | Readonly<{ type: 'budget'; category: import('../domain/entities').ExpenseCategory; limitMinor: string }>
  | Readonly<{ type: 'card'; cardId: string; mode: 'freeze' | 'unfreeze' | 'limit'; limitMinor?: string }>
- | Readonly<{ type: 'subscription'; subscriptionId: string }>
+ | Readonly<{ type: 'subscription'; subscriptionId: string; mode?: 'cancel' | 'snooze' | 'keep' }>
  | Readonly<{ type: 'investment'; productId: string; sourceId: string; direction: 'buy' | 'redeem'; amountMinor: string }>;
 
 export type DemoResult = Readonly<{ status: 'executed' | 'failed' | 'rejected'; message: string; action: DemoAction; id: string }>;
@@ -174,11 +178,33 @@ export function applyDemoAction(snapshot: FinancialSnapshot, action: DemoAction,
       message = action.mode === 'limit' ? 'Simulated card limit updated.' : 'Simulated card ' + (action.mode === 'freeze' ? 'frozen.' : 'unfrozen.');
       break;
     }
+    case 'import-transactions': {
+      next=importWalletRows(snapshot,action.accountId,action.rows,id);
+      message='Imported '+(next.transactions.length-snapshot.transactions.length)+' wallet history rows. Current account balances unchanged.';
+      break;
+    }
+    case 'remittance': {
+      const source=accountFor(snapshot,action.sourceId), destination=accountFor(snapshot,action.destinationId);
+      const from=action.direction==='receive'?'IDR':'CNY', to=action.direction==='receive'?'CNY':'IDR';
+      if(!['receive','send'].includes(action.direction)||source.currency!==from||destination.currency!==to||source.id===destination.id)throw new Error('Choose the matching owned IDR and CNY accounts.');
+      if(!/^\d+(?:\.\d{1,12})?$/.test(action.rate)||!Number.isFinite(Number(action.rate))||Number(action.rate)<=0||Number(action.rate)>1000000)throw new Error('Invalid sandbox reference rate.');
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(action.referenceAt))throw new Error('Invalid rate date.');
+      const amount=positive(action.amountMinor);
+      const rates=[{...snapshot.exchangeRates[0],base:'CNY' as const,quote:'IDR' as const,rate:action.rate}];
+      const quote=remittanceQuote(amount,action.direction,rates);
+      const debited=withDebit(snapshot,source.id,amount);
+      next={...snapshot,accounts:debited.map(a=>a.id===destination.id?{...a,balance:money(a.balance.amountMinor+quote.destination.amountMinor,a.currency),availableBalance:money(a.availableBalance.amountMinor+quote.destination.amountMinor,a.currency)}:a),
+        transactions:[...snapshot.transactions,ledger(snapshot,id+'-fee',source,'debit',quote.fee.amountMinor,'consumption','other','Sandbox remittance fee'),ledger(snapshot,id+'-send',source,'debit',amount-quote.fee.amountMinor,'internal-transfer','transfer','Sandbox remittance incl fee',id),ledger(snapshot,id+'-receive',destination,'credit',quote.destination.amountMinor,'internal-transfer','transfer','Sandbox remittance received',id)]};
+      message='Sandbox remittance completed between your own accounts. Fee '+quote.fee.amountMinor+' '+source.currency+' minor units. No real funds moved.';
+      break;
+    }
     case 'subscription': {
       const subscription = snapshot.subscriptions.find(s => s.id === action.subscriptionId && s.ownerId === snapshot.users[0].id);
       if (!subscription || subscription.status !== 'active') throw new Error('Subscription is not active');
-      next = { ...snapshot, subscriptions: snapshot.subscriptions.map(s => s.id === subscription.id ? { ...s, status: 'cancelled' as const } : s) };
-      message = 'Simulated cancellation completed for ' + subscription.merchant + '. Historical charges retained.';
+      const mode=action.mode??'cancel';
+      if(!['cancel','snooze','keep'].includes(mode))throw new Error('Invalid subscription decision');
+      next = { ...snapshot, subscriptions: snapshot.subscriptions.map(s => s.id === subscription.id ? mode==='cancel'? { ...s, status: 'cancelled' as const } : {...s,insightDecision:mode==='keep'?'kept' as const:'snoozed' as const,insightSnoozedUntil:mode==='snooze'?new Date(Date.now()+30*86400000).toISOString():undefined} : s) };
+      message = mode==='cancel'?'Simulated cancellation completed for ' + subscription.merchant + '. Historical charges retained.': mode==='snooze'?'Usage insight snoozed for 30 days; subscription remains active.':'Subscription kept; usage insight dismissed.';
       break;
     }
     case 'investment': {

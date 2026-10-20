@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { FxReferenceProvider } from '../../src/features/fx/fx-reference-context';
 import { DemoProvider } from '../../src/demo/demo-context';
 import { ApprovalDrawer } from '../../src/features/demo/approval-drawer';
 import { AppShell } from '../../src/components/shell/app-shell';
@@ -11,5 +12,5 @@ import { InvestingPreferencesProvider } from '../../src/features/investing/inves
 export default async function ProductLayout({ children }: Readonly<{ children: ReactNode }>) {
   const repository = new DemoFinancialRepository();
   const snapshot = await repository.getSnapshot(DEMO_USER_ID);
-  return <DemoProvider><InvestingPreferencesProvider><AppShell accounts={snapshot.accounts} user={snapshot.users[0]} alerts={getOverviewAlerts(snapshot)}>{children}</AppShell><ApprovalDrawer /></InvestingPreferencesProvider></DemoProvider>;
+  return <DemoProvider><FxReferenceProvider><InvestingPreferencesProvider><AppShell accounts={snapshot.accounts} user={snapshot.users[0]} alerts={getOverviewAlerts(snapshot)}>{children}</AppShell><ApprovalDrawer /></InvestingPreferencesProvider></FxReferenceProvider></DemoProvider>;
 }

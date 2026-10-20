@@ -1,2 +1,3 @@
+import { RelocatedDetails } from '../../../src/features/overview/relocated-details';
 import { CardsWorkspace } from '../../../src/features/demo/scenario-workspaces';
-export default function Page() { return <CardsWorkspace />; }
+export default function Page() { return <div className="student-relocated-details"><CardsWorkspace /><RelocatedDetails section="cards" /></div>; }

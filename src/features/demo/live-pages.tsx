@@ -1,13 +1,14 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useDemo } from '../../demo/demo-context';
-import { DEMO_USER_ID } from '../../demo/seed';
-import type { FinancialRepository } from '../../domain/financial-repository';
+import { TuitionFxCard } from '../overview/tuition-fx-card';
+import { SafeToSpendHero } from '../overview/safe-to-spend-hero';
+import { useDemoOverview } from '../overview/use-overview';
 import { formatMoney } from '../../domain/money';
 import { CURRENCY_MINOR_DIGITS, type CurrencyCode } from '../../domain/currency';
-import { getOverviewModel, type OverviewModel } from '../overview/overview-queries';
-import { CardReminders } from '../cards/card-reminders';
-import { InvestingHomeSection } from '../investing/investing-workspace';
+
+
+
 import { OverviewDashboard } from '../overview/overview-dashboard';
 import { displayOverviewCurrency } from '../overview/overview-currency';
 import { AccountList } from '../accounts/account-list';
@@ -16,17 +17,6 @@ import { TransactionTable } from '../transactions/transaction-table';
 import { CsvImportPreview } from '../transactions/csv-preview';
 import { buildSpendingReport } from '../transactions/reporting';
 
-function useDemoOverview(selectedAccount?: string) {
-  const {snapshot}=useDemo();
-  const [overview,setOverview]=useState<OverviewModel|null>(null);
-  useEffect(()=>{
-    let active=true;
-    const port={getSnapshot:async()=>snapshot} as unknown as FinancialRepository;
-    void getOverviewModel(port,DEMO_USER_ID,selectedAccount).then(data=>{if(active)setOverview(data);});
-    return ()=>{active=false;};
-  },[snapshot,selectedAccount]);
-  return overview;
-}
 export function LiveOverview({account}:{account?:string}){
   const overview=useDemoOverview(account);
   const {snapshot}=useDemo();
@@ -34,7 +24,7 @@ export function LiveOverview({account}:{account?:string}){
   const displayed=useMemo(()=>overview?displayOverviewCurrency(overview,reportingCurrency,snapshot.exchangeRates):null,
     [overview,reportingCurrency,snapshot.exchangeRates]);
   return displayed?<div className="overview-workspace">
-    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-border)] pb-4">
+    <div className="student-reporting-controls flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-border)] pb-4">
         <label className="flex flex-wrap items-center gap-3 text-xs font-medium text-[var(--color-text-muted)]">Reporting currency
           <select aria-label="Dashboard reporting currency" value={reportingCurrency}
             onChange={e=>setReportingCurrency(e.target.value as CurrencyCode)}
@@ -43,11 +33,9 @@ export function LiveOverview({account}:{account?:string}){
           </select>
         </label>
 
-      <Link href="/banking" className="inline-flex min-h-11 items-center rounded-full border border-[var(--color-border)] bg-white px-4 text-xs font-semibold text-[var(--color-primary)] hover:bg-[var(--color-info-soft)]">My account →</Link>
     </div>
-    <OverviewDashboard overview={displayed} />
-    <CardReminders compact />
-    <InvestingHomeSection />
+    <OverviewDashboard overview={displayed} hero={<SafeToSpendHero currency={reportingCurrency}/>} tuition={<TuitionFxCard overview={overview!} compact/>} />
+
   </div>:<p role="status" className="p-5 text-sm text-slate-600">Loading overview…</p>;
 }
 export function LiveAccounts(){

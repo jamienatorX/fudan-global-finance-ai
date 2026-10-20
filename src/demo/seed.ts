@@ -17,10 +17,10 @@ export function createSeedSnapshot(seedVersion: string): FinancialSnapshot {
     [104, 'transportation', 26000n, 'Shanghai Transit', null, null],
     [105, 'shopping', 38000n, 'Campus Store', null, null],
     [106, 'shopping', 20000n, 'Online Marketplace', null, 'Shopping spike'],
-    [107, 'other', 6800n, 'Campus Video', 50, null],
-    [108, 'other', 1800n, 'Campus Music', 51, null],
-    [109, 'other', 2400n, 'Campus Cloud', 52, null],
-    [110, 'other', 4000n, 'Campus Study', 53, null],
+    [107, 'subscriptions', 6800n, 'Campus Video', 50, null],
+    [108, 'subscriptions', 1800n, 'Campus Music', 51, null],
+    [109, 'subscriptions', 2400n, 'Campus Cloud', 52, null],
+    [110, 'subscriptions', 4000n, 'Campus Study', 53, null],
     [111, 'other', 16000n, 'Campus Services', null, null],
   ];
   const expenseTransactions: Transaction[] = expenses.map(([number, category, amount, merchant, subscription, anomaly]) => ({
@@ -42,7 +42,7 @@ export function createSeedSnapshot(seedVersion: string): FinancialSnapshot {
     createdAt: '2026-10-01T08:00:00.000Z', updatedAt: '2026-10-01T08:00:00.000Z', auditEventId: id(audit),
   });
   const budgetValues: readonly [ExpenseCategory, bigint][] = [
-    ['rent', 280000n], ['food', 125000n], ['transportation', 26000n], ['shopping', 58000n], ['other', 31000n],
+    ['rent', 280000n], ['food', 125000n], ['transportation', 26000n], ['shopping', 58000n], ['other', 16000n], ['subscriptions', 15000n],
   ];
 
   return {
@@ -109,4 +109,23 @@ export function createSeedSnapshot(seedVersion: string): FinancialSnapshot {
       { id: id(92), ownerId, eventType: 'transfer.completed', actorId: ownerId, targetId: id(72), beforeSummary: null, afterSummary: { receiptRef: 'DEMO-REMITTANCE-001' }, outcome: 'success', correlationId: `seed:${seedVersion}:family-remittance`, occurredAt: '2026-10-01T08:00:00.000Z' },
     ],
   };
+}
+
+/** Non-destructive migration for browser snapshots created before subscription categories. */
+export function normalizeDemoSnapshot(snapshot: FinancialSnapshot): FinancialSnapshot {
+  const transactions=snapshot.transactions.map(t=>t.subscriptionId && snapshot.subscriptions.some(s=>s.id===t.subscriptionId)?{...t,category:'subscriptions' as const}:t);
+  const budgets=[...snapshot.budgets];
+  for(const other of snapshot.budgets.filter(b=>b.category==='other'&&b.currency==='CNY')) {
+    if(budgets.some(b=>b.ownerId===other.ownerId&&b.month===other.month&&b.category==='subscriptions'))continue;
+    const actual=transactions.filter(t=>t.ownerId===other.ownerId&&t.amount.currency==='CNY'&&t.category==='subscriptions'&&t.direction==='debit'&&t.classification==='consumption'&&t.occurredAt.startsWith(other.month)).reduce((sum,t)=>sum+t.amount.amountMinor,0n);
+    const portion=actual<other.actualSpend.amountMinor?actual:other.actualSpend.amountMinor;
+    const cap=portion<other.limit.amountMinor?portion:other.limit.amountMinor;
+    if(portion<=0n)continue;
+    const newId=other.id.slice(0,-12)+'8'+other.id.slice(-11);
+    if(budgets.some(b=>b.id===newId))continue;
+    const index=budgets.findIndex(b=>b.id===other.id);
+    budgets[index]={...other,limit:cny(other.limit.amountMinor-cap),actualSpend:cny(other.actualSpend.amountMinor-portion)};
+    budgets.push({...other,id:newId,category:'subscriptions',limit:cny(cap),actualSpend:cny(portion),status:portion>cap?'over-limit':'within-limit'});
+  }
+  return {...snapshot,transactions,budgets};
 }

@@ -2,7 +2,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { FinancialSnapshot } from '../domain/entities';
 import { fromFinancialSnapshotDTO, toFinancialSnapshotDTO, type FinancialSnapshotDTO } from '../domain/financial-snapshot-dto';
-import { createSeedSnapshot, DEFAULT_SEED_VERSION } from './seed';
+import { createSeedSnapshot, DEFAULT_SEED_VERSION, normalizeDemoSnapshot } from './seed';
 import { applyDemoAction, runApprovedDemoBatch, type DemoAction, type DemoBatchStep, type DemoResult, type PreparedAction } from './demo-engine';
 
 const STORE = 'fudan-global-finance-ai:simulation:v2';
@@ -36,7 +36,7 @@ export function DemoProvider({ children }: Readonly<{ children: ReactNode }>) {
           Number.isSafeInteger(saved.version) && saved.version >= 0) {
           // Rehydrate only after mount so the server and client render the same seed initially.
           // eslint-disable-next-line react-hooks/set-state-in-effect
-          setState({ snapshot: fromFinancialSnapshotDTO(saved.snapshot), version: saved.version });
+          setState({ snapshot: normalizeDemoSnapshot(fromFinancialSnapshotDTO(saved.snapshot)), version: saved.version });
         }
       }
     } catch { /* Corrupt browser-local demos always fall back to the versioned fixture. */ }

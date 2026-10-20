@@ -40,10 +40,10 @@ function WithdrawDialog({ onClose }: { onClose: () => void }) {
   </DashboardDialog>;
 }
 
-export function PortfolioQuickActions() {
+export function PortfolioQuickActions({ showInvest = true }: { showInvest?: boolean }) {
   const demo = useOptionalDemo();
   const [withdrawing, setWithdrawing] = useState(false);
-  return <><div className="portfolio-quick-actions" aria-label="Portfolio actions"><Link href="/investing"><ChartNoAxesCombined size={19} aria-hidden /><span>Invest</span></Link><Link href="/transfers" title="Move funds between simulated bank accounts"><Plus size={19} aria-hidden /><span>Add funds</span></Link>{demo ? <button type="button" onClick={() => setWithdrawing(true)}><ArrowDownToLine size={19} aria-hidden /><span>Withdraw</span></button> : <Link href="/investing"><ArrowDownToLine size={19} aria-hidden /><span>Withdraw</span></Link>}</div>{withdrawing && <WithdrawDialog onClose={() => setWithdrawing(false)} />}</>;
+  return <><div className="portfolio-quick-actions" data-actions={showInvest ? 3 : 2} aria-label="Portfolio actions">{showInvest && <Link href="/investing"><ChartNoAxesCombined size={19} aria-hidden /><span>Invest</span></Link>}<Link href="/transfers" title="Move funds between simulated bank accounts"><Plus size={19} aria-hidden /><span>Add funds</span></Link>{demo ? <button type="button" onClick={() => setWithdrawing(true)}><ArrowDownToLine size={19} aria-hidden /><span>Withdraw</span></button> : <Link href="/investing"><ArrowDownToLine size={19} aria-hidden /><span>Withdraw</span></Link>}</div>{withdrawing && <WithdrawDialog onClose={() => setWithdrawing(false)} />}</>;
 }
 
 export function PortfolioActivityPanel({ showHoldings = true }: { showHoldings?: boolean }) {

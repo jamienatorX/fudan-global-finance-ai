@@ -28,3 +28,12 @@ it('shows a new date window when the graph period changes', () => {
   expect(screen.getByRole('img', { name: /over 7 days/ })).toBeInTheDocument();
   expect(screen.getByRole('slider', { name: 'Inspect cash flow date' })).toHaveAttribute('max', '6');
 });
+
+it('keeps Add funds and Withdraw while hiding the redundant Invest action on Investing', () => {
+  render(<DemoProvider><PortfolioQuickActions showInvest={false} /></DemoProvider>);
+  const actions = screen.getByLabelText('Portfolio actions');
+  expect(within(actions).queryByRole('link', { name: 'Invest' })).not.toBeInTheDocument();
+  expect(within(actions).getByRole('link', { name: 'Add funds' })).toHaveAttribute('href', '/transfers');
+  fireEvent.click(within(actions).getByRole('button', { name: 'Withdraw' }));
+  expect(screen.getByRole('dialog', { name: 'Withdraw from investments' })).toBeInTheDocument();
+});

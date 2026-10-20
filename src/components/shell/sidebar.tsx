@@ -31,7 +31,7 @@ function ProductMark({ compact = false }: Readonly<{ compact?: boolean }>) {
   return (
     <Link href="/overview" className="flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-400">
       <span className="grid size-10 shrink-0 place-items-center rounded-2xl border border-white/20 bg-white/10 text-emerald-200"><span className="fu-logo" aria-hidden>福</span></span>
-      {!compact ? <span className="min-w-0"><span className="block truncate text-xl font-extrabold tracking-tight text-white">福 Bank</span><span className="block truncate text-[10px] font-semibold uppercase tracking-[0.15em] text-teal-200/80">PERSONAL BANKING</span></span> : null}
+      {!compact ? <span className="min-w-0"><span className="block truncate text-xl font-extrabold tracking-tight text-white">福 Bank</span><span className="block whitespace-normal text-[9px] font-semibold uppercase tracking-[0.08em] text-teal-200/80">PERSONAL BANKING</span></span> : null}
     </Link>
   );
 }
@@ -62,7 +62,7 @@ function Navigation({ compact = false, onNavigate }: Readonly<{ compact?: boolea
 
 export function Sidebar({ collapsed, onToggle }: Readonly<{ collapsed: boolean; onToggle: () => void }>) {
   return (
-    <aside className={`fixed inset-y-0 left-0 z-30 hidden flex-col bg-[var(--color-navy)] px-3 py-6 transition-[width] duration-200 lg:flex ${collapsed ? 'w-20' : 'w-64'}`}>
+    <aside className={`bank-sidebar fixed inset-y-0 left-0 z-30 hidden flex-col bg-[var(--color-navy)] px-3 py-6 transition-[width] duration-200 lg:flex ${collapsed ? 'w-20' : 'w-64'}`}>
       <div className={`mb-7 flex items-center ${collapsed ? 'justify-center' : 'justify-between px-2'}`}>
         <ProductMark compact={collapsed} />
         {!collapsed ? <button type="button" onClick={onToggle} aria-label="Collapse sidebar" aria-expanded="true" className="grid size-11 shrink-0 place-items-center rounded-lg text-slate-300 hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-blue-300"><ChevronLeft size={18} aria-hidden /></button> : null}

@@ -1,3 +1,4 @@
+import { getMembershipHabits, type MembershipHabits } from './membership';
 import { CURRENCY_MINOR_DIGITS, type CurrencyCode } from '../../domain/currency';
 import type { Budget, Card, ExchangeRate, FinancialSnapshot, Subscription, Transaction, TuitionObligation } from '../../domain/entities';
 import type { FinancialRepository } from '../../domain/financial-repository';
@@ -16,7 +17,7 @@ export type OverviewModel = Readonly<{
   userName: string;
   cardholderName: string;
   cards: readonly Card[];
-  membershipBalanceCny: Money;
+  membershipHabits: MembershipHabits;
   cashFlowHistory: readonly CashFlowDay[];
   totalNetWorth: Money;
   availableCash: Money;
@@ -25,6 +26,13 @@ export type OverviewModel = Readonly<{
   monthlyExpenses: Money;
   monthlyCashFlow: Money;
   cashRunwayMonths: number;
+  recurringIncome: Money;
+  recurringReceived: Money;
+  oneOffIncome: Money;
+  netBurn: Money;
+  netBurnRunwayMonths: number | null;
+  postTuitionCash: Money;
+  alertDetails: readonly Readonly<{ id: string; title: string; amount: Money; date: string; baseline: Money | null; baselineLabel: string; href: string }>[];
   accountBalances: readonly Readonly<{ id: string; label: string; amount: Money; reportingAmount: Money }>[];
   selectedAccount: Readonly<{ id: string; label: string; amount: Money; reportingAmount: Money }> | null;
   spending: readonly Readonly<{ category: string; amount: Money; shareBasisPoints: number }>[];
@@ -163,8 +171,8 @@ export async function getOverviewModel(repository: FinancialRepository, userId: 
   const nextTuition = snapshot.tuitionObligations.filter((tuition) => tuition.status !== 'paid').toSorted((left, right) => left.dueAt.localeCompare(right.dueAt))[0] ?? null;
   const tuitionOutstanding = nextTuition ? money(convertToCny(nextTuition.amount, snapshot.exchangeRates).amountMinor - convertToCny(nextTuition.paidAmount, snapshot.exchangeRates).amountMinor, REPORTING_CURRENCY) : money(0n, REPORTING_CURRENCY);
   const recurringOutflow = monthlyExpenses.amountMinor;
-  const postTuitionCash = availableCash.amountMinor - tuitionOutstanding.amountMinor;
-  const runwayTenths = recurringOutflow > 0n ? Number((postTuitionCash * 10n + recurringOutflow / 2n) / recurringOutflow) : 0;
+  const postTuitionCash = money(availableCash.amountMinor > tuitionOutstanding.amountMinor ? availableCash.amountMinor - tuitionOutstanding.amountMinor : 0n, REPORTING_CURRENCY);
+  const runwayTenths = recurringOutflow > 0n ? Number((postTuitionCash.amountMinor * 10n + recurringOutflow / 2n) / recurringOutflow) : 0;
 
   const savingsAccount = snapshot.accounts.find((account) => account.type === 'savings' && account.currency === REPORTING_CURRENCY && account.goal);
   const emergencyFund = savingsAccount?.goal ? {
@@ -188,6 +196,27 @@ export async function getOverviewModel(repository: FinancialRepository, userId: 
         ? money((converted.amountMinor + 6n) / 12n, REPORTING_CURRENCY)
         : converted;
     }));
+  const recurringReceived = sumMoney(income.filter((transaction) => transaction.recurrence)
+    .map((transaction) => convertToCny(transaction.amount, snapshot.exchangeRates)));
+  const oneOffIncome = sumMoney(income.filter((transaction) => !transaction.recurrence)
+    .map((transaction) => convertToCny(transaction.amount, snapshot.exchangeRates)));
+  const netBurn = money(monthlyExpenses.amountMinor > recurringIncome.amountMinor
+    ? monthlyExpenses.amountMinor - recurringIncome.amountMinor : 0n, REPORTING_CURRENCY);
+  const netBurnRunwayMonths = netBurn.amountMinor > 0n
+    ? Number((postTuitionCash.amountMinor * 10n + netBurn.amountMinor / 2n) / netBurn.amountMinor) / 10
+    : null;
+  const alertDetails = expenses.filter((transaction) => transaction.anomaly).map((transaction) => {
+    const observations = snapshot.transactions.filter((other) => other.ownerId === userId
+      && other.id !== transaction.id && other.direction === 'debit' && other.classification === 'consumption'
+      && other.category === transaction.category && !other.anomaly);
+    const total = sumMoney(observations.map((other) => convertToCny(other.amount, snapshot.exchangeRates)));
+    const baseline = observations.length ? money(roundedDivide(total.amountMinor, BigInt(observations.length)), REPORTING_CURRENCY) : null;
+    const query = new URLSearchParams({ month: transaction.occurredAt.slice(0, 7), q: transaction.merchant,
+      transaction: transaction.id, account: transaction.accountId, currency: transaction.amount.currency });
+    return { id: transaction.id, title: transaction.anomaly!, amount: convertToCny(transaction.amount, snapshot.exchangeRates), date: transaction.occurredAt,
+      baseline, baselineLabel: baseline ? `Mean of ${observations.length} other observed category transactions` : 'No other observed category transactions',
+      href: `/transactions?${query.toString()}` };
+  });
   let forecastOpening = availableCash.amountMinor;
   const forecast = Array.from({ length: 3 }, (_, index) => {
     const month = nextMonth(reportingMonth, index + 1);
@@ -208,7 +237,7 @@ export async function getOverviewModel(repository: FinancialRepository, userId: 
     userName: user.profile.displayName.split(' ')[0],
     cardholderName: user.profile.displayName,
     cards: snapshot.cards.filter(card => card.ownerId === userId),
-    membershipBalanceCny: totalNetWorth,
+    membershipHabits: getMembershipHabits(snapshot),
     cashFlowHistory: buildCashFlowSeries(snapshot),
     totalNetWorth,
     availableCash,
@@ -217,6 +246,13 @@ export async function getOverviewModel(repository: FinancialRepository, userId: 
     monthlyExpenses,
     monthlyCashFlow,
     cashRunwayMonths: runwayTenths / 10,
+    recurringIncome,
+    recurringReceived,
+    oneOffIncome,
+    netBurn,
+    netBurnRunwayMonths,
+    postTuitionCash,
+    alertDetails,
     accountBalances,
     selectedAccount,
     spending,

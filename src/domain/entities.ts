@@ -5,7 +5,7 @@ export type EntityId = string;
 export type ISODate = string;
 export type JsonValue = null | boolean | number | string | readonly JsonValue[] | { readonly [key: string]: JsonValue };
 export type Cadence = 'monthly' | 'yearly';
-export type ExpenseCategory = 'rent' | 'food' | 'transportation' | 'shopping' | 'other';
+export type ExpenseCategory = 'rent' | 'food' | 'transportation' | 'shopping' | 'subscriptions' | 'other';
 
 export type User = Readonly<{
   id: EntityId;
@@ -58,6 +58,7 @@ export type CardRestriction = Readonly<{
 export type Subscription = Readonly<{
   id: EntityId; ownerId: EntityId; merchant: string; amount: Money; currency: CurrencyCode;
   cadence: Cadence; nextRenewalAt: ISODate; lastUsageAt: ISODate | null; status: 'active' | 'cancelled';
+  insightDecision?: 'snoozed' | 'kept'; insightSnoozedUntil?: ISODate;
 }>;
 export type InvestmentProduct = Readonly<{
   id: EntityId; name: string; fictional: true; category: 'money-market' | 'bond' | 'balanced' | 'equity-index' | 'stock' | 'forex' | 'crypto';

@@ -1,6 +1,7 @@
 'use client';
 
 import { Bell, Menu } from 'lucide-react';
+import { AccountLink } from './account-link';
 import { GlobalSearch } from '../../features/search/global-search';
 import { useState, type RefObject } from 'react';
 import { CurrencyTicker } from './currency-ticker';
@@ -29,7 +30,7 @@ export function Topbar({ accounts, userName, alerts, onOpenNavigation, navigatio
             <button type="button" aria-label="Notifications" aria-expanded={showNotifications} onClick={() => setShowNotifications((open) => !open)} className="relative grid size-11 place-items-center rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"><Bell size={19} aria-hidden />{allAlerts.length ? <span className="absolute right-2 top-2 size-1.5 rounded-full bg-amber-500" /> : null}</button>
             {showNotifications ? <div role="status" className="absolute right-0 top-12 w-72 rounded-2xl border border-slate-200 bg-white p-4 shadow-[var(--shadow-elevated)]"><p className="text-sm font-semibold text-slate-900">{allAlerts.length} financial {allAlerts.length === 1 ? 'alert' : 'alerts'}</p>{allAlerts.length ? <ul className="mt-1 space-y-2 text-xs leading-5 text-slate-600">{allAlerts.map((alert, index) => <li key={`${index}:${alert}`}>{alert}</li>)}</ul> : <p className="mt-1 text-xs text-slate-600">No financial alerts</p>}</div> : null}
           </div>
-          <div className="grid size-11 place-items-center rounded-xl bg-[var(--color-navy)] text-xs font-bold text-white" title={userName}>{initials}</div>
+          <AccountLink href="/banking" aria-label="My account" className="grid size-11 place-items-center rounded-xl bg-[var(--color-navy)] text-xs font-bold text-white hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]" title={userName}>{initials}</AccountLink>
         </div>
       </div>
     </header>

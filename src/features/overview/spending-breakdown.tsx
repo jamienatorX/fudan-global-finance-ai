@@ -6,7 +6,7 @@ import type { OverviewModel } from './overview-queries';
 const CATEGORY_COLORS: Record<string, string> = {
   rent: 'var(--color-chart-rent)', food: 'var(--color-chart-food)',
   transportation: 'var(--color-chart-transportation)', shopping: 'var(--color-chart-shopping)',
-  other: 'var(--color-chart-other)',
+  other: 'var(--color-chart-other)', subscriptions: '#d49f61',
 };
 
 export function SpendingBreakdown({ overview }: Readonly<{ overview: OverviewModel }>) {

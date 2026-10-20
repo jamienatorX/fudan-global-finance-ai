@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { DemoFinancialRepository } from '../../src/demo/demo-financial-repository';
 import { DEMO_USER_ID } from '../../src/demo/seed';
@@ -27,58 +27,23 @@ describe('overview queries', () => {
 });
 
 describe('OverviewDashboard', () => {
-  it('renders financial context, commitments, activity, and banking shortcuts', async () => {
+  it('keeps the overview focused and preserves its reconciled totals', async () => {
     const overview = await getOverviewModel(new DemoFinancialRepository(), DEMO_USER_ID);
     render(<OverviewDashboard overview={overview} />);
-
-    expect(screen.getByRole('heading', { name: /Good morning, Ayu/ })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /(Good morning|Good afternoon|Good evening|Welcome), Ayu/ })).toBeInTheDocument();
+    expect(screen.getByText('Sandbox · fictional funds')).toBeInTheDocument();
     expect(screen.getByText('CNY 40,201.36')).toBeInTheDocument();
-    expect(screen.getAllByText('CNY 5,200.00').length).toBeGreaterThan(0);
-    expect(screen.getByText('100% used')).toBeInTheDocument();
-    expect(screen.getByText('CNY 150.00 / month')).toBeInTheDocument();
-    expect(screen.getByText('CNY 5,000.00 outstanding')).toBeInTheDocument();
-    expect(screen.getByText('6.5 months')).toBeInTheDocument();
-    expect(screen.getByText(/Fallback FX/)).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '3-month cash-flow forecast' })).toBeInTheDocument();
-    expect(screen.getByText('CNY 33,014.81')).toBeInTheDocument();
-
-    expect(screen.getByRole('region', { name: 'Banking shortcuts' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Transfer money/ })).toHaveAttribute('href', '/transfers');
-    expect(screen.queryByRole('form', { name: 'AI banking command' })).not.toBeInTheDocument();
-
-    expect(screen.getByRole('heading', { name: 'Recent transactions' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Net worth and cash' })).toHaveTextContent('CNY 38,669.36');
+    const tuitionHeading = screen.getByRole('heading', { name: 'Upcoming tuition' });
+    const alertsHeading = screen.getByRole('heading', { name: 'Financial alerts' });
+    expect(alertsHeading.compareDocumentPosition(tuitionHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByRole('region', { name: 'Financial alerts' })).toHaveTextContent('Unusually large food purchase');
     expect(screen.getAllByTestId('recent-transaction')).toHaveLength(5);
-    expect(screen.getByRole('heading', { name: 'Subscriptions' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Tuition plan' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Multi-currency balances' })).toBeInTheDocument();
-    expect(screen.getByText('IDR 2,500,000')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Investment portfolio' })).toBeInTheDocument();
-    expect(screen.getByText('2 holdings')).toBeInTheDocument();
-    expect(screen.getByText('CNY 1,532.00')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Spending insight' })).toBeInTheDocument();
-    expect(screen.getByText(/save CNY 816.00 per year/)).toBeInTheDocument();
-    expect(screen.queryByText('No agent actions yet')).not.toBeInTheDocument();
-  });
-
-  it('shows the selected account and derives labels and counts from the model', async () => {
-    const repository = new DemoFinancialRepository();
-    const accounts = await repository.listAccounts(DEMO_USER_ID);
-    const usdAccount = accounts.find((account) => account.currency === 'USD')!;
-    const base = await getOverviewModel(repository, DEMO_USER_ID, usdAccount.id);
-    const overview = {
-      ...base,
-      fxSource: { ...base.fxSource, source: 'live' as const, provider: 'Live fixture' },
-      accountBalances: base.accountBalances.slice(0, 2),
-      budget: { ...base.budget, categories: base.budget.categories.slice(0, 3) },
-    };
-    render(<OverviewDashboard overview={overview} />);
-
-    const selected = screen.getByRole('region', { name: 'Selected account' });
-    expect(within(selected).getByText('USD 650.00')).toBeInTheDocument();
-    expect(within(selected).getByText(/CNY 4,615.00 reporting/)).toBeInTheDocument();
-    expect(screen.getByText(/Live FX/)).toBeInTheDocument();
-    expect(screen.getByText('2 active accounts')).toBeInTheDocument();
-    expect(screen.getByText('3 categories')).toBeInTheDocument();
-    expect(screen.queryByText('2 agent events recorded')).not.toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Banking shortcuts' })).toBeInTheDocument();
+    for (const title of ['Multi-currency balances','Spending by category','Investment portfolio','3-month cash-flow forecast','Budget health']) {
+      expect(screen.queryByRole('heading', { name: title })).not.toBeInTheDocument();
+    }
+    expect(screen.queryByRole('group', { name: 'Membership progress' })).not.toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: /View transaction/ }).every(link=>link.getAttribute('href')?.includes('transaction='))).toBe(true);
   });
 });

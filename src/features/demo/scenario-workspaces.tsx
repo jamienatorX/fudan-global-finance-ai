@@ -1,5 +1,6 @@
 'use client';
 import { useState, type ReactNode } from 'react';
+import { useShanghaiDate } from '../cards/use-shanghai-date';
 import { CardReminders } from '../cards/card-reminders';
 import { useDemo } from '../../demo/demo-context';
 import type { DemoAction } from '../../demo/demo-engine';
@@ -21,6 +22,7 @@ function Label({ caption, children }: { caption: string; children: ReactNode }) 
 }
 function PageBody({ section }: { section: Page }) {
   const { snapshot, request, reset } = useDemo();
+  const today=useShanghaiDate();
   const [values, setValues] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const val = (key: string, fallback = '') => values[key] ?? fallback;
@@ -96,6 +98,8 @@ function PageBody({ section }: { section: Page }) {
         <div className="flex justify-between gap-2"><strong className="text-xl">{formatMoney(s.amount)} / {s.cadence}</strong><span className="capitalize text-slate-500">{s.status}</span></div>
         <p className="mt-3 text-sm text-slate-600">Renewal: {s.nextRenewalAt.slice(0,10)}</p>
         <p className="mt-1 text-sm text-slate-600">{s.lastUsageAt?'Last used: '+s.lastUsageAt.slice(0,10):'No recorded usage'}</p>
+        {s.status==='active'&&!s.lastUsageAt&&s.insightDecision!=='kept'&&!(s.insightDecision==='snoozed'&&(s.insightSnoozedUntil?.slice(0,10)??'')>(today||snapshot.asOf.slice(0,10)))?<div className="student-insight"><p>{s.merchant} has no recorded usage.</p><div className="student-toggle">{(['cancel','snooze','keep'] as const).map(mode=><button key={mode} onClick={()=>submit(()=>({type:'subscription',subscriptionId:s.id,mode}))}>{mode==='cancel'?'Cancel':mode==='snooze'?'Snooze 30 days':'Keep'}</button>)}</div></div>:null}
+        {s.insightDecision?<p className="student-note">Insight: {s.insightDecision}{s.insightDecision==='snoozed'?' until '+s.insightSnoozedUntil?.slice(0,10):''}</p>:null}
         {s.status==='active'&&<button className={button+' mt-4'} onClick={()=>submit(()=>({type:'subscription',subscriptionId:s.id}))}>Review cancellation</button>}
       </Panel>)}</div></>}
     {section==='wealth' && <div className="grid gap-5 lg:grid-cols-2">

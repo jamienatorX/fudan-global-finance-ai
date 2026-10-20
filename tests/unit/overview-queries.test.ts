@@ -82,7 +82,7 @@ describe('overview reporting period', () => {
 
     expect(overview.budget.limit.amountMinor).toBe(520_000n);
     expect(overview.budget.actual.amountMinor).toBe(520_000n);
-    expect(overview.budget.categories).toHaveLength(5);
+    expect(overview.budget.categories).toHaveLength(6);
     expect(overview.budget.categories.every((budget) => budget.month === '2026-10')).toBe(true);
   });
 

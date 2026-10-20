@@ -43,7 +43,7 @@ describe('demo repository boundary', () => {
     const second = await repository.reset(userId);
     expect(second).toEqual(first);
     expect(second.accounts).toHaveLength(5);
-    expect(second.budgets).toHaveLength(5);
+    expect(second.budgets).toHaveLength(6);
     expect(second.subscriptions).toHaveLength(4);
     (second.accounts[0].balance as { amountMinor: bigint }).amountMinor = 0n;
     expect(await repository.getSnapshot(userId)).toEqual(createSeedSnapshot('v1'));

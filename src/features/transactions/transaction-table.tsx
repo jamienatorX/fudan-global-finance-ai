@@ -25,7 +25,7 @@ export function TransactionTable({ transactions, total }: Readonly<{
             </tr></thead>
             <tbody className="divide-y divide-slate-100">
               {transactions.map((transaction) => (
-                <tr key={transaction.id} className="align-top">
+                <tr id={'transaction-' + transaction.id} key={transaction.id} className="align-top">
                   <td className="whitespace-nowrap px-6 py-4 text-slate-500">{transaction.occurredAt.slice(0, 10)}</td>
                   <td className="px-4 py-4">
                     <span className="block font-medium text-slate-900">{transaction.merchant}</span>

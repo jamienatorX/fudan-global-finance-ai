@@ -3,7 +3,7 @@ import { createSeedSnapshot } from '../../src/demo/seed';
 import { fromFinancialSnapshotDTO, toFinancialSnapshotDTO } from '../../src/domain/financial-snapshot-dto';
 
 describe('versioned demo seed', () => {
-  it('preserves the five-category CNY 5200 budget and shopping baseline used by agent calculations', () => {
+  it('preserves the six-category CNY 5200 budget and shopping baseline used by agent calculations', () => {
     const snapshot = createSeedSnapshot('v1');
     expect(snapshot.budgets.map(({ category, limit, actualSpend }) => ({ category, limit, actualSpend })))
       .toEqual([
@@ -11,7 +11,8 @@ describe('versioned demo seed', () => {
         { category: 'food', limit: { amountMinor: 125000n, currency: 'CNY' }, actualSpend: { amountMinor: 125000n, currency: 'CNY' } },
         { category: 'transportation', limit: { amountMinor: 26000n, currency: 'CNY' }, actualSpend: { amountMinor: 26000n, currency: 'CNY' } },
         { category: 'shopping', limit: { amountMinor: 58000n, currency: 'CNY' }, actualSpend: { amountMinor: 58000n, currency: 'CNY' } },
-        { category: 'other', limit: { amountMinor: 31000n, currency: 'CNY' }, actualSpend: { amountMinor: 31000n, currency: 'CNY' } },
+        { category: 'other', limit: { amountMinor: 16000n, currency: 'CNY' }, actualSpend: { amountMinor: 16000n, currency: 'CNY' } },
+        { category: 'subscriptions', limit: { amountMinor: 15000n, currency: 'CNY' }, actualSpend: { amountMinor: 15000n, currency: 'CNY' } },
       ]);
     expect(snapshot.budgets.reduce((sum, budget) => sum + budget.actualSpend.amountMinor, 0n)).toBe(520000n);
     for (const budget of snapshot.budgets) {

@@ -56,7 +56,7 @@ export function InvestingWorkspace({ initialAsset, initialInstrument }: { initia
       <div className="invest-panel invest-stat"><span className="invest-asset-icon"><Building2 size={22} aria-hidden /></span><p className="invest-muted">Cost basis</p><strong>{cny(costBasis)}</strong><span className="invest-fineprint">Includes existing wealth holdings</span></div>
       <div className="invest-panel invest-stat"><span className="invest-asset-icon"><ChartNoAxesCombined size={22} aria-hidden /></span><p className="invest-muted">Unrealized gain / loss</p><strong>{cny(total - costBasis)}</strong><span className="invest-fineprint">Illustrative prices; no live revaluation</span></div>
     </section>
-    <PortfolioQuickActions />
+    <PortfolioQuickActions showInvest={false} />
     <p className="invest-data-note"><span className="invest-dot" />Demo dataset · fixed CNY-equivalent prices, not live quotes. No fees, leverage or automatic coupon payments are modeled.</p>
     {context?.storageWarning && <p role="status" className="invest-notice">Browser storage is unavailable. Your watchlist may only last this session.</p>}
     <div className="invest-main-grid">
