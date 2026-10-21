@@ -1,3 +1,4 @@
+import { LocalizedSpan } from '../../i18n/localized';
 import type { ReactNode } from 'react';
 
 type BadgeTone = 'neutral' | 'info' | 'positive' | 'warning' | 'danger';
@@ -11,5 +12,5 @@ const tones: Record<BadgeTone, string> = {
 };
 
 export function Badge({ children, tone = 'neutral' }: Readonly<{ children: ReactNode; tone?: BadgeTone }>) {
-  return <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${tones[tone]}`}>{children}</span>;
+  return <LocalizedSpan className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${tones[tone]}`}>{children}</LocalizedSpan>;
 }

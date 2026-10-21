@@ -1,3 +1,4 @@
+import { translateText } from '../../i18n/translate';
 import type { BankingState, TableItem } from '../../server/secure-banking';
 
 export type PrivateBankingSearchResult = Readonly<{
@@ -23,7 +24,7 @@ export function searchPrivateBanking(state: BankingState, raw: string, cap = 12)
   add('subscriptions', 'Subscription', state.subscriptions, r => String(r.merchant), r => r.active ? 'Active recurring charge' : 'Cancelled');
   add('wealth', 'Investment', state.products, r => String(r.name), r => String(r.risk) + ' risk');
   add('activity', 'Audit', state.audit, r => String(r.event), r => String(r.created_at).slice(0, 10));
-  return entries.filter(e => terms.every(term => (e.category + ' ' + e.title + ' ' + e.detail).toLocaleLowerCase().includes(term)))
+  return entries.filter(e => terms.every(term => [e.category,e.title,e.detail,translateText(e.category,'zh-CN'),translateText(e.title,'zh-CN'),translateText(e.detail,'zh-CN')].join(' ').toLocaleLowerCase().includes(term)))
     .toSorted((a,b) => a.category.localeCompare(b.category) || a.title.localeCompare(b.title))
     .slice(0, Math.max(0, Math.min(cap, 50)));
 }

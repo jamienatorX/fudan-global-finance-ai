@@ -1,6 +1,7 @@
 'use client';
 
-import Link from 'next/link';
+import { LocalizedInput } from '../../i18n/localized';
+import { LocalizedLink as Link } from '../../i18n/localized';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, type ComponentProps } from 'react';
 import { withAccount } from '../../lib/account-navigation';
@@ -18,7 +19,7 @@ export function AccountLink(props: AccountLinkProps) {
 
 function AccountFieldContent() {
   const accountId = useSearchParams().get('account');
-  return accountId ? <input type="hidden" name="account" value={accountId} /> : null;
+  return accountId ? <LocalizedInput type="hidden" name="account" value={accountId} /> : null;
 }
 
 /** GET forms need a field because submitting them replaces the action's query. */

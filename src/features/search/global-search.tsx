@@ -1,4 +1,5 @@
 'use client';
+import { LocalizedButton, LocalizedDiv, LocalizedForm, LocalizedInput, LocalizedP, LocalizedSpan } from '../../i18n/localized';
 import { Search, X, ArrowUpRight } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useMemo, useRef, useState, type KeyboardEvent, type FormEvent } from 'react';
@@ -50,11 +51,11 @@ export function GlobalSearch({ accounts }: Readonly<{ accounts: readonly { id: s
       setSelected(current => results.length ? (current + (event.key === 'ArrowDown' ? 1 : -1) + results.length) % results.length : 0);
     }
   }
-  return <div ref={ref} className="relative w-full max-w-lg">
-    <form role="search" aria-label="Global banking search" onSubmit={submit}>
-      <div className="flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100">
+  return <LocalizedDiv ref={ref} className="relative w-full max-w-lg">
+    <LocalizedForm role="search" aria-label="Global banking search" onSubmit={submit}>
+      <LocalizedDiv className="flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100">
         <Search size={17} className="shrink-0 text-slate-500" aria-hidden />
-        <input type="search" aria-label="Search banking" aria-autocomplete="list" aria-controls={listId} aria-expanded={visible}
+        <LocalizedInput type="search" aria-label="Search banking" aria-autocomplete="list" aria-controls={listId} aria-expanded={visible}
           aria-activedescendant={visible && results[selected] ? 'bank-result-' + results[selected].id : undefined}
           className="w-full min-w-0 bg-transparent py-2 text-sm text-slate-900 outline-none placeholder:text-slate-500"
           placeholder="Search banking…" value={value}
@@ -65,23 +66,23 @@ export function GlobalSearch({ accounts }: Readonly<{ accounts: readonly { id: s
             if (!ref.current?.contains(e.relatedTarget)) setOpen(false);
           }}
         />
-        {term ? <button aria-label="Clear banking search" type="button" onClick={() => { setValue(''); setOpen(false); setSelected(0); }} className="rounded-md p-1 text-slate-600 hover:bg-slate-200"><X size={16} aria-hidden /></button> : null}
-        <button type="submit" className="sr-only">Search</button>
-      </div>
-    </form>
-    {visible ? <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 max-h-[min(26rem,65vh)] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl" id={listId} role="listbox" aria-label="Banking search results">
-      <p className="px-3 py-2 text-xs text-slate-500">{results.length ? 'Matching records · choose to open' : 'No matching records found'}</p>
-      {results.map((r,i) => <button type="button" role="option" aria-selected={i===selected}
+        {term ? <LocalizedButton aria-label="Clear banking search" type="button" onClick={() => { setValue(''); setOpen(false); setSelected(0); }} className="rounded-md p-1 text-slate-600 hover:bg-slate-200"><X size={16} aria-hidden /></LocalizedButton> : null}
+        <LocalizedButton type="submit" className="sr-only">Search</LocalizedButton>
+      </LocalizedDiv>
+    </LocalizedForm>
+    {visible ? <LocalizedDiv className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 max-h-[min(26rem,65vh)] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl" id={listId} role="listbox" aria-label="Banking search results">
+      <LocalizedP className="px-3 py-2 text-xs text-slate-500">{results.length ? 'Matching records · choose to open' : 'No matching records found'}</LocalizedP>
+      {results.map((r,i) => <LocalizedButton type="button" role="option" aria-selected={i===selected}
         id={'bank-result-'+r.id} key={r.id}
         onMouseDown={e=>e.preventDefault()} onClick={() => choose(r)}
         className={'flex w-full items-center justify-between gap-3 rounded-xl p-3 text-left hover:bg-blue-50 '+(selected===i?'bg-blue-50':'')}>
-        <span className="min-w-0"><span className="block truncate text-sm font-semibold text-slate-900">{r.title}</span>
-          <span className="mt-0.5 block truncate text-xs text-slate-600">{r.category} · {r.detail}</span></span>
+        <LocalizedSpan className="min-w-0"><LocalizedSpan className="block truncate text-sm font-semibold text-slate-900">{r.title}</LocalizedSpan>
+          <LocalizedSpan className="mt-0.5 block truncate text-xs text-slate-600">{r.category} · {r.detail}</LocalizedSpan></LocalizedSpan>
         <ArrowUpRight size={17} className="shrink-0 text-blue-600" aria-hidden />
-      </button>)}
-      {results.length===0 ? <p className="px-3 pb-2 text-xs text-slate-500">Try a merchant, amount, category, currency, or account type.</p> : null}
-    </div> : null}
-    {path==='/overview' ? <span className="sr-only">Search your accounts and activity.</span> : null}
-  </div>;
+      </LocalizedButton>)}
+      {results.length===0 ? <LocalizedP className="px-3 pb-2 text-xs text-slate-500">Try a merchant, amount, category, currency, or account type.</LocalizedP> : null}
+    </LocalizedDiv> : null}
+    {path==='/overview' ? <LocalizedSpan className="sr-only">Search your accounts and activity.</LocalizedSpan> : null}
+  </LocalizedDiv>;
 }
 

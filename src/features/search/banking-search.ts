@@ -1,3 +1,4 @@
+import { translateText } from '../../i18n/translate';
 import type { FinancialSnapshot } from '../../domain/entities';
 import { MARKET_CATALOG } from '../investing/market-catalog';
 import { formatMoney } from '../../domain/money';
@@ -20,7 +21,7 @@ export function indexDemoBanking(snapshot: FinancialSnapshot): BankingSearchResu
   if (!owner) return [];
   const results: BankingSearchResult[] = [];
   const add = (category: BankingSearchResult['category'], id: string, title: string, detail: string, href: string, keywords = '') => {
-    results.push({ category, id: category + ':' + id, title, detail, href, keywords: [category, title, detail, keywords].join(' ').toLocaleLowerCase() });
+    results.push({ category, id: category + ':' + id, title, detail, href, keywords: [category, title, detail, keywords, translateText(category,'zh-CN'), translateText(title,'zh-CN'), translateText(detail,'zh-CN')].join(' ').toLocaleLowerCase() });
   };
   for (const i of MARKET_CATALOG) {
     add('Investments', 'market:' + i.id, i.symbol + ' · ' + i.name, i.assetClass + ' · simulation', route('/investing', { instrument: i.id, asset: i.assetClass }), 'investing stocks forex crypto china bonds watchlist');

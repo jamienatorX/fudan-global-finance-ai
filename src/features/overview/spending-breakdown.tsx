@@ -1,3 +1,4 @@
+import { LocalizedDiv, LocalizedI, LocalizedLi, LocalizedP, LocalizedSmall, LocalizedSpan, LocalizedStrong, LocalizedUl } from '../../i18n/localized';
 import { AccountLink as Link } from '../../components/shell/account-link';
 import { Card, CardHeader } from '../../components/ui/card';
 import { formatMoney } from '../../domain/money';
@@ -19,8 +20,8 @@ export function SpendingBreakdown({ overview }: Readonly<{ overview: OverviewMod
   }));
   return <Card className="spending-breakdown" aria-label="Spending by category">
     <CardHeader title="Spending by category" eyebrow="This month" action={<Link href="/transactions" className="text-xs font-semibold text-[var(--color-primary)]">View analysis</Link>} />
-    <div className="spending-breakdown-body">
-      <div className="spending-ring" role="img" aria-label={`Spending category chart. Total ${total}`}>
+    <LocalizedDiv className="spending-breakdown-body">
+      <LocalizedDiv className="spending-ring" role="img" aria-label={`Spending category chart. Total ${total}`}>
         <svg viewBox="0 0 320 320" aria-hidden="true">
           <circle cx="160" cy="160" r="130" className="spending-ring-track" />
           {categories.filter(item => item.share > 0).map(item => {
@@ -32,15 +33,15 @@ export function SpendingBreakdown({ overview }: Readonly<{ overview: OverviewMod
               strokeDashoffset={-item.start - gap / 2} transform="rotate(-90 160 160)" />;
           })}
         </svg>
-        <div className="spending-ring-center"><span>Total spent</span><strong>{total}</strong><small>This month</small></div>
-      </div>
-      {categories.length ? <ul className="spending-category-grid" aria-label="Category amounts">
-        {categories.map(item => <li key={item.category}>
-          <span className="spending-category-label"><i style={{ backgroundColor: item.color }} aria-hidden="true" />{item.category}</span>
-          <strong>{formatMoney(item.amount)}</strong>
-          <span className="spending-category-share">{Number(item.share.toFixed(1))}% of spending</span>
-        </li>)}
-      </ul> : <p className="spending-empty">No spending recorded this month.</p>}
-    </div>
+        <LocalizedDiv className="spending-ring-center"><LocalizedSpan>Total spent</LocalizedSpan><LocalizedStrong>{total}</LocalizedStrong><LocalizedSmall>This month</LocalizedSmall></LocalizedDiv>
+      </LocalizedDiv>
+      {categories.length ? <LocalizedUl className="spending-category-grid" aria-label="Category amounts">
+        {categories.map(item => <LocalizedLi key={item.category}>
+          <LocalizedSpan className="spending-category-label"><LocalizedI style={{ backgroundColor: item.color }} aria-hidden="true" />{item.category}</LocalizedSpan>
+          <LocalizedStrong>{formatMoney(item.amount)}</LocalizedStrong>
+          <LocalizedSpan className="spending-category-share">{Number(item.share.toFixed(1))}% of spending</LocalizedSpan>
+        </LocalizedLi>)}
+      </LocalizedUl> : <LocalizedP className="spending-empty">No spending recorded this month.</LocalizedP>}
+    </LocalizedDiv>
   </Card>;
 }

@@ -1,4 +1,5 @@
 'use client';
+import { LocalizedCopy } from '../../i18n/localized';
 import { useEffect, useState } from 'react';
 export function shanghaiGreeting(at: Date = new Date()) {
   const hour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Shanghai', hour: '2-digit', hourCycle: 'h23' }).format(at));
@@ -11,5 +12,5 @@ export function ShanghaiGreeting({ name }: { name: string }) {
     update(); const timer = setInterval(update, 60_000);
     return () => clearInterval(timer);
   }, []);
-  return <>{greeting}, {name}</>;
+  return <LocalizedCopy>{greeting}, {name}</LocalizedCopy>;
 }

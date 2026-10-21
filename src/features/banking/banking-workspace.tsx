@@ -1,6 +1,7 @@
 'use client';
+import { LocalizedButton, LocalizedDd, LocalizedDiv, LocalizedDl, LocalizedDt, LocalizedH1, LocalizedH2, LocalizedH3, LocalizedHeader, LocalizedInput, LocalizedLabel, LocalizedMain, LocalizedNav, LocalizedOption, LocalizedP, LocalizedSection, LocalizedSelect, LocalizedSpan, LocalizedStrong } from '../../i18n/localized';
 import { useCallback,useEffect,useMemo,useState,type ReactNode } from 'react';
-import Link from 'next/link';
+import { LocalizedLink as Link } from '../../i18n/localized';
 import { useRouter } from 'next/navigation';
 import { createBrowserSupabaseClient } from '../../lib/supabase/browser';
 import type { BankingState,TableItem } from '../../server/secure-banking';
@@ -28,15 +29,15 @@ const input='mt-1 block w-full rounded-xl border border-slate-200 bg-white px-3 
 const cta='rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-400';
 const sec='rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50';
 function Pane({title,description,children}:{title:string;description?:string;children:ReactNode}) {
- return <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"><h2 className="text-lg font-bold text-slate-900">{title}</h2>
- {description&&<p className="mt-1 text-sm leading-6 text-slate-500">{description}</p>}<div className="mt-5">{children}</div></section>;
+ return <LocalizedSection className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"><LocalizedH2 className="text-lg font-bold text-slate-900">{title}</LocalizedH2>
+ {description&&<LocalizedP className="mt-1 text-sm leading-6 text-slate-500">{description}</LocalizedP>}<LocalizedDiv className="mt-5">{children}</LocalizedDiv></LocalizedSection>;
 }
 function CurrencyAccount({row}:{row:TableItem}){
- return <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50 p-5">
-   <p className="text-xs font-bold uppercase tracking-widest text-blue-700">{String(row.label)}</p>
-   <p className="mt-3 text-2xl font-bold tabular-nums text-slate-950">{money(row.balance_minor,String(row.currency))}</p>
+ return <LocalizedDiv className="rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50 p-5">
+   <LocalizedP className="text-xs font-bold uppercase tracking-widest text-blue-700">{String(row.label)}</LocalizedP>
+   <LocalizedP className="mt-3 text-2xl font-bold tabular-nums text-slate-950">{money(row.balance_minor,String(row.currency))}</LocalizedP>
 
- </div>;
+ </LocalizedDiv>;
 }
 const byId=(values:TableItem[],id:string)=>values.find(row=>row.id===id);
 const toMinor=(text:string,currency='CNY')=>{
@@ -115,150 +116,150 @@ export function BankingWorkspace(){
  const monthlySubscriptions=state.subscriptions.filter(s=>s.active).reduce((sum,s)=>sum+BigInt(String(s.monthly_minor)),0n);
  const latest=useMemo(()=>state.ledger.slice(0,12),[state.ledger]);
  const searchResults=useMemo(()=>searchPrivateBanking(state,bankSearch),[state,bankSearch]);
- if(loading)return <main className="grid min-h-screen place-items-center bg-slate-50"><p role="status">Loading your account…</p></main>;
- return <div className="min-h-screen bg-slate-50 text-slate-900">
-   <header className="border-b border-slate-200 bg-white">
-     <div className="mx-auto flex max-w-[1480px] flex-wrap items-center justify-between gap-3 px-5 py-5 sm:px-8">
-      <div><p className="text-xl font-black tracking-tight text-blue-950"><span className="fu-logo mr-2" aria-hidden>福</span>福 bank</p>
-        <p className="text-xs font-semibold tracking-widest text-slate-500">PERSONAL BANKING · DEMO</p></div>
-      <div className="flex items-center gap-2"><Link href="/overview" className={sec}>Overview</Link>
-       <button className={sec} onClick={async()=>{await createBrowserSupabaseClient().auth.signOut();window.location.assign('/login');}}>Sign out</button></div>
-     </div>
-   </header>
-   <div className="mx-auto max-w-[1480px] px-5 py-7 sm:px-8">
+ if(loading)return <LocalizedMain className="grid min-h-screen place-items-center bg-slate-50"><LocalizedP role="status">Loading your account…</LocalizedP></LocalizedMain>;
+ return <LocalizedDiv className="min-h-screen bg-slate-50 text-slate-900">
+   <LocalizedHeader className="border-b border-slate-200 bg-white">
+     <LocalizedDiv className="mx-auto flex max-w-[1480px] flex-wrap items-center justify-between gap-3 px-5 py-5 sm:px-8">
+      <LocalizedDiv><LocalizedP className="text-xl font-black tracking-tight text-blue-950"><LocalizedSpan className="fu-logo mr-2" aria-hidden>福</LocalizedSpan>福 bank</LocalizedP>
+        <LocalizedP className="text-xs font-semibold tracking-widest text-slate-500">PERSONAL BANKING · DEMO</LocalizedP></LocalizedDiv>
+      <LocalizedDiv className="flex items-center gap-2"><Link href="/overview" className={sec}>Overview</Link>
+       <LocalizedButton className={sec} onClick={async()=>{await createBrowserSupabaseClient().auth.signOut();window.location.assign('/login');}}>Sign out</LocalizedButton></LocalizedDiv>
+     </LocalizedDiv>
+   </LocalizedHeader>
+   <LocalizedDiv className="mx-auto max-w-[1480px] px-5 py-7 sm:px-8">
     {!state.enrolled?<Pane title="Set up your accounts" description="Choose your accounts in CNY, USD, SGD and IDR.">
-      <button className={cta} disabled={busy} onClick={initialize}>Set up accounts</button>
+      <LocalizedButton className={cta} disabled={busy} onClick={initialize}>Set up accounts</LocalizedButton>
 
     </Pane>:<>
-     <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
-       <div><p className="text-xs font-bold uppercase tracking-widest text-blue-700">Banking command center</p><h1 className="mt-1 text-3xl font-bold tracking-tight">Your financial workspace</h1>
-       </div>
-       <div className="flex gap-2"><button className={sec} onClick={()=>void run(refresh)} disabled={busy}>Refresh ledger</button>
-       <button className={cta} onClick={()=>setTab('transfers')}>New transfer</button></div>
-     </div>
-     <section aria-label="Search your banking records" className="mb-5 rounded-2xl border border-slate-200 bg-white p-4">
-       <label htmlFor="private-bank-search" className="block text-sm font-semibold text-slate-900">Search your banking records</label>
-       <input id="private-bank-search" type="search" className={input} value={bankSearch}
+     <LocalizedDiv className="mb-7 flex flex-wrap items-center justify-between gap-4">
+       <LocalizedDiv><LocalizedP className="text-xs font-bold uppercase tracking-widest text-blue-700">Banking command center</LocalizedP><LocalizedH1 className="mt-1 text-3xl font-bold tracking-tight">Your financial workspace</LocalizedH1>
+       </LocalizedDiv>
+       <LocalizedDiv className="flex gap-2"><LocalizedButton className={sec} onClick={()=>void run(refresh)} disabled={busy}>Refresh ledger</LocalizedButton>
+       <LocalizedButton className={cta} onClick={()=>setTab('transfers')}>New transfer</LocalizedButton></LocalizedDiv>
+     </LocalizedDiv>
+     <LocalizedSection aria-label="Search your banking records" className="mb-5 rounded-2xl border border-slate-200 bg-white p-4">
+       <LocalizedLabel htmlFor="private-bank-search" className="block text-sm font-semibold text-slate-900">Search your banking records</LocalizedLabel>
+       <LocalizedInput id="private-bank-search" type="search" className={input} value={bankSearch}
          onChange={e=>setBankSearch(e.target.value)} placeholder="Accounts, payments, subscriptions, cards…" />
-       {bankSearch.trim() ? <div role="region" aria-label="Private banking search results" className="mt-3 space-y-2">
-         <p className="text-xs text-slate-500">{searchResults.length ? searchResults.length+' matching records':'No matching records found'}</p>
-         <div className="grid max-h-64 gap-2 overflow-y-auto sm:grid-cols-2">
-           {searchResults.map(item=><button key={item.id} type="button" onClick={()=>{setTab(item.tab);setBankSearch('');}}
+       {bankSearch.trim() ? <LocalizedDiv role="region" aria-label="Private banking search results" className="mt-3 space-y-2">
+         <LocalizedP className="text-xs text-slate-500">{searchResults.length ? searchResults.length+' matching records':'No matching records found'}</LocalizedP>
+         <LocalizedDiv className="grid max-h-64 gap-2 overflow-y-auto sm:grid-cols-2">
+           {searchResults.map(item=><LocalizedButton key={item.id} type="button" onClick={()=>{setTab(item.tab);setBankSearch('');}}
              className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-left text-sm hover:border-blue-300 hover:bg-blue-50">
-             <strong className="block truncate">{item.title}</strong><span className="mt-1 block truncate text-xs text-slate-500">{item.category} · {item.detail}</span>
-           </button>)}
-         </div>
-       </div> : null}
-     </section>
-     <nav aria-label="Banking modules" className="mb-6 flex flex-wrap gap-2">
-      {TABS.map(item=><button type="button" key={item.id} aria-current={tab===item.id?'page':undefined}
+             <LocalizedStrong className="block truncate">{item.title}</LocalizedStrong><LocalizedSpan className="mt-1 block truncate text-xs text-slate-500">{item.category} · {item.detail}</LocalizedSpan>
+           </LocalizedButton>)}
+         </LocalizedDiv>
+       </LocalizedDiv> : null}
+     </LocalizedSection>
+     <LocalizedNav aria-label="Banking modules" className="mb-6 flex flex-wrap gap-2">
+      {TABS.map(item=><LocalizedButton type="button" key={item.id} aria-current={tab===item.id?'page':undefined}
        onClick={()=>setTab(item.id)} className={'rounded-xl px-4 py-2.5 text-sm font-semibold '+(tab===item.id?'bg-blue-600 text-white':'bg-white text-slate-600 hover:bg-blue-50')}>
-       {item.title}</button>)}
-     </nav>
-     {tab==='overview'&&<div className="space-y-5">
-       <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-3xl bg-gradient-to-br from-blue-950 to-blue-700 p-6 text-white shadow-lg md:col-span-2">
-         <p className="text-sm text-blue-200">Total CNY balance</p>
-         <p className="mt-2 text-4xl font-bold tabular-nums">{money(totalCash)}</p><p className="mt-3 text-sm text-blue-200">Balances are kept in original currencies; other currencies are shown separately below.</p>
-        </div>
-        <div className="rounded-3xl border border-slate-200 bg-white p-6">
-         <p className="text-sm text-slate-500">Monthly planned spending</p><p className="mt-2 text-3xl font-bold">{money(totalBudget)}</p>
-         <p className="mt-3 text-sm text-slate-500">Active subscriptions: {money(monthlySubscriptions)}/month</p></div>
-       </div><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{state.accounts.map(a=><CurrencyAccount row={a} key={String(a.id)}/>)}</div>
-       <div className="grid gap-5 lg:grid-cols-2"><Pane title="Tuition and obligations">{state.tuition.map(t=><p key={String(t.id)} className="flex justify-between gap-2 text-sm"><span>{String(t.label)}</span><strong className={t.paid?'text-emerald-700':'text-amber-700'}>{t.paid?'Paid':money(t.amount_minor)}</strong></p>)}</Pane>
-       <Pane title="Recent ledger activity">{latest.length?latest.slice(0,5).map(t=><p key={String(t.id)} className="flex justify-between gap-3 border-b border-slate-100 py-2 text-sm"><span>{String(t.label)}</span><strong>{t.direction==='debit'?'−':'+'}{money(t.amount_minor,String(t.currency))}</strong></p>):<p className="text-sm text-slate-500">No activity yet.</p>}</Pane></div>
-     </div>}
-     {tab==='transfers'&&<div className="grid gap-5 lg:grid-cols-2">
+       {item.title}</LocalizedButton>)}
+     </LocalizedNav>
+     {tab==='overview'&&<LocalizedDiv className="space-y-5">
+       <LocalizedDiv className="grid gap-4 md:grid-cols-3">
+        <LocalizedDiv className="rounded-3xl bg-gradient-to-br from-blue-950 to-blue-700 p-6 text-white shadow-lg md:col-span-2">
+         <LocalizedP className="text-sm text-blue-200">Total CNY balance</LocalizedP>
+         <LocalizedP className="mt-2 text-4xl font-bold tabular-nums">{money(totalCash)}</LocalizedP><LocalizedP className="mt-3 text-sm text-blue-200">Balances are kept in original currencies; other currencies are shown separately below.</LocalizedP>
+        </LocalizedDiv>
+        <LocalizedDiv className="rounded-3xl border border-slate-200 bg-white p-6">
+         <LocalizedP className="text-sm text-slate-500">Monthly planned spending</LocalizedP><LocalizedP className="mt-2 text-3xl font-bold">{money(totalBudget)}</LocalizedP>
+         <LocalizedP className="mt-3 text-sm text-slate-500">Active subscriptions: {money(monthlySubscriptions)}/month</LocalizedP></LocalizedDiv>
+       </LocalizedDiv><LocalizedDiv className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{state.accounts.map(a=><CurrencyAccount row={a} key={String(a.id)}/>)}</LocalizedDiv>
+       <LocalizedDiv className="grid gap-5 lg:grid-cols-2"><Pane title="Tuition and obligations">{state.tuition.map(t=><LocalizedP key={String(t.id)} className="flex justify-between gap-2 text-sm"><LocalizedSpan>{String(t.label)}</LocalizedSpan><LocalizedStrong className={t.paid?'text-emerald-700':'text-amber-700'}>{t.paid?'Paid':money(t.amount_minor)}</LocalizedStrong></LocalizedP>)}</Pane>
+       <Pane title="Recent ledger activity">{latest.length?latest.slice(0,5).map(t=><LocalizedP key={String(t.id)} className="flex justify-between gap-3 border-b border-slate-100 py-2 text-sm"><LocalizedSpan>{String(t.label)}</LocalizedSpan><LocalizedStrong>{t.direction==='debit'?'−':'+'}{money(t.amount_minor,String(t.currency))}</LocalizedStrong></LocalizedP>):<LocalizedP className="text-sm text-slate-500">No activity yet.</LocalizedP>}</Pane></LocalizedDiv>
+     </LocalizedDiv>}
+     {tab==='transfers'&&<LocalizedDiv className="grid gap-5 lg:grid-cols-2">
        <Pane title="Transfer between your own accounts" description="">
-         <div className="space-y-4">
-          <label className="block text-sm font-semibold">From<select className={input} value={sourceId} onChange={e=>{const next=e.target.value;setForm(f=>({...f,source:next,destination:String(state.accounts.find(a=>a.currency===byId(state.accounts,next)?.currency && a.id!==next)?.id??'')}));}}>
-            {state.accounts.filter(a=>state.accounts.some(other=>other.id!==a.id&&other.currency===a.currency)).map(a=><option key={String(a.id)} value={String(a.id)}>{String(a.label)} · {money(a.balance_minor,String(a.currency))}</option>)}</select></label>
-          <label className="block text-sm font-semibold">To<select className={input} value={destinationId} onChange={e=>put('destination',e.target.value)}>
-            {state.accounts.filter(a=>a.id!==source?.id && a.currency===source?.currency).map(a=><option key={String(a.id)} value={String(a.id)}>{String(a.label)}</option>)}</select></label>
-          <label className="block text-sm font-semibold">Amount ({String(source?.currency??'CNY')})<input className={input} inputMode="decimal" value={field('amount','800.00')} onChange={e=>put('amount',e.target.value)}/></label>
-          <button className={cta} disabled={busy} onClick={()=>{try{const a={type:'transfer',sourceId,destinationId,amountMinor:toMinor(field('amount','800.00'),String(source?.currency??'CNY'))} as BankProposal;void prepare(a);}catch(e){setError(errorMessage(e))}}}>Review transfer</button>
-         </div></Pane>
+         <LocalizedDiv className="space-y-4">
+          <LocalizedLabel className="block text-sm font-semibold">From<LocalizedSelect className={input} value={sourceId} onChange={e=>{const next=e.target.value;setForm(f=>({...f,source:next,destination:String(state.accounts.find(a=>a.currency===byId(state.accounts,next)?.currency && a.id!==next)?.id??'')}));}}>
+            {state.accounts.filter(a=>state.accounts.some(other=>other.id!==a.id&&other.currency===a.currency)).map(a=><LocalizedOption key={String(a.id)} value={String(a.id)}>{String(a.label)} · {money(a.balance_minor,String(a.currency))}</LocalizedOption>)}</LocalizedSelect></LocalizedLabel>
+          <LocalizedLabel className="block text-sm font-semibold">To<LocalizedSelect className={input} value={destinationId} onChange={e=>put('destination',e.target.value)}>
+            {state.accounts.filter(a=>a.id!==source?.id && a.currency===source?.currency).map(a=><LocalizedOption key={String(a.id)} value={String(a.id)}>{String(a.label)}</LocalizedOption>)}</LocalizedSelect></LocalizedLabel>
+          <LocalizedLabel className="block text-sm font-semibold">Amount ({String(source?.currency??'CNY')})<LocalizedInput className={input} inputMode="decimal" value={field('amount','800.00')} onChange={e=>put('amount',e.target.value)}/></LocalizedLabel>
+          <LocalizedButton className={cta} disabled={busy} onClick={()=>{try{const a={type:'transfer',sourceId,destinationId,amountMinor:toMinor(field('amount','800.00'),String(source?.currency??'CNY'))} as BankProposal;void prepare(a);}catch(e){setError(errorMessage(e))}}}>Review transfer</LocalizedButton>
+         </LocalizedDiv></Pane>
        <Pane title="Transaction verification" description="">
-         <div className="space-y-3">{state.ledger.slice(0,12).map(t=><div key={String(t.id)} className="flex justify-between border-b border-slate-100 pb-3 text-sm">
-         <span>{String(t.label)}<span className="mt-1 block text-xs text-slate-500">{String(t.classification)}</span></span>
-         <strong>{t.direction==='debit'?'−':'+'}{money(t.amount_minor,String(t.currency))}</strong></div>)}</div>
-       </Pane></div>}
-     {tab==='cards'&&<div className="grid gap-5 md:grid-cols-2">{state.cards.map(c=><Pane key={String(c.id)} title={String(c.label)}>
-       <div className="rounded-2xl bg-gradient-to-br from-slate-950 to-blue-800 px-6 py-5 text-white">
-        <p className="text-sm font-semibold">福 bank</p><p className="mt-12 font-mono text-xl tracking-widest">{String(c.masked_number)}</p>
-        <p className="mt-3 text-xs">{c.frozen?'FROZEN':'ACTIVE'}</p></div>
-       <p className="mt-4 text-sm text-slate-600">Monthly limit: <strong>{money(c.monthly_limit_minor)}</strong></p>
-       <div className="mt-4 flex flex-wrap gap-2"><button className={cta} onClick={()=>void prepare({type:'card',cardId:String(c.id),mode:c.frozen?'unfreeze':'freeze'})}>
-        {c.frozen?'Review unfreeze':'Review freeze'}</button></div>
-       <label className="mt-4 block text-sm font-semibold">New monthly limit CNY<input className={input} inputMode="decimal" value={field('card:'+c.id)} placeholder="2000.00" onChange={e=>put('card:'+c.id,e.target.value)}/></label>
-       <button className={sec+' mt-3'} onClick={()=>{try{void prepare({type:'card',cardId:String(c.id),mode:'limit',limitMinor:toMinor(field('card:'+c.id))})}catch(e){setError(errorMessage(e))}}}>Review limit update</button>
-     </Pane>)}</div>}
-     {tab==='budgets'&&<div className="grid gap-5 lg:grid-cols-2">
+         <LocalizedDiv className="space-y-3">{state.ledger.slice(0,12).map(t=><LocalizedDiv key={String(t.id)} className="flex justify-between border-b border-slate-100 pb-3 text-sm">
+         <LocalizedSpan>{String(t.label)}<LocalizedSpan className="mt-1 block text-xs text-slate-500">{String(t.classification)}</LocalizedSpan></LocalizedSpan>
+         <LocalizedStrong>{t.direction==='debit'?'−':'+'}{money(t.amount_minor,String(t.currency))}</LocalizedStrong></LocalizedDiv>)}</LocalizedDiv>
+       </Pane></LocalizedDiv>}
+     {tab==='cards'&&<LocalizedDiv className="grid gap-5 md:grid-cols-2">{state.cards.map(c=><Pane key={String(c.id)} title={String(c.label)}>
+       <LocalizedDiv className="rounded-2xl bg-gradient-to-br from-slate-950 to-blue-800 px-6 py-5 text-white">
+        <LocalizedP className="text-sm font-semibold">福 bank</LocalizedP><LocalizedP className="mt-12 font-mono text-xl tracking-widest">{String(c.masked_number)}</LocalizedP>
+        <LocalizedP className="mt-3 text-xs">{c.frozen?'FROZEN':'ACTIVE'}</LocalizedP></LocalizedDiv>
+       <LocalizedP className="mt-4 text-sm text-slate-600">Monthly limit: <LocalizedStrong>{money(c.monthly_limit_minor)}</LocalizedStrong></LocalizedP>
+       <LocalizedDiv className="mt-4 flex flex-wrap gap-2"><LocalizedButton className={cta} onClick={()=>void prepare({type:'card',cardId:String(c.id),mode:c.frozen?'unfreeze':'freeze'})}>
+        {c.frozen?'Review unfreeze':'Review freeze'}</LocalizedButton></LocalizedDiv>
+       <LocalizedLabel className="mt-4 block text-sm font-semibold">New monthly limit CNY<LocalizedInput className={input} inputMode="decimal" value={field('card:'+c.id)} placeholder="2000.00" onChange={e=>put('card:'+c.id,e.target.value)}/></LocalizedLabel>
+       <LocalizedButton className={sec+' mt-3'} onClick={()=>{try{void prepare({type:'card',cardId:String(c.id),mode:'limit',limitMinor:toMinor(field('card:'+c.id))})}catch(e){setError(errorMessage(e))}}}>Review limit update</LocalizedButton>
+     </Pane>)}</LocalizedDiv>}
+     {tab==='budgets'&&<LocalizedDiv className="grid gap-5 lg:grid-cols-2">
        <Pane title="Monthly budget caps" description="">
-         {state.budgets.map(b=><div key={String(b.id)} className="border-b border-slate-100 py-3">
-           <div className="flex justify-between text-sm"><strong className="capitalize">{String(b.category)}</strong><span>{money(b.limit_minor)}</span></div>
-           <div className="mt-2 flex gap-2"><input aria-label={'New '+String(b.category)+' cap'} className={input+' !mt-0'} inputMode="decimal" value={field('budget:'+b.category)} onChange={e=>put('budget:'+b.category,e.target.value)} placeholder="CNY amount"/>
-           <button className={sec} onClick={()=>{try{void prepare({type:'budget',category:String(b.category),limitMinor:toMinor(field('budget:'+b.category))})}catch(e){setError(errorMessage(e))}}}>Review</button></div></div>)}
+         {state.budgets.map(b=><LocalizedDiv key={String(b.id)} className="border-b border-slate-100 py-3">
+           <LocalizedDiv className="flex justify-between text-sm"><LocalizedStrong className="capitalize">{String(b.category)}</LocalizedStrong><LocalizedSpan>{money(b.limit_minor)}</LocalizedSpan></LocalizedDiv>
+           <LocalizedDiv className="mt-2 flex gap-2"><LocalizedInput aria-label={'New '+String(b.category)+' cap'} className={input+' !mt-0'} inputMode="decimal" value={field('budget:'+b.category)} onChange={e=>put('budget:'+b.category,e.target.value)} placeholder="CNY amount"/>
+           <LocalizedButton className={sec} onClick={()=>{try{void prepare({type:'budget',category:String(b.category),limitMinor:toMinor(field('budget:'+b.category))})}catch(e){setError(errorMessage(e))}}}>Review</LocalizedButton></LocalizedDiv></LocalizedDiv>)}
        </Pane>
        <Pane title="University tuition" description="">
-         {state.tuition.map(t=><div key={String(t.id)}><p className="text-sm font-semibold">{String(t.label)}</p><p className="mt-3 text-2xl font-bold">{money(t.amount_minor)}</p>
-           <p className="mt-2 text-sm text-slate-500">{t.paid?'Already paid':'Outstanding installment'}</p>
-           {!t.paid&&cny.length>0&&<button className={cta+' mt-4'} onClick={()=>void prepare({type:'tuition',sourceId:sourceId,tuitionId:String(t.id)})}>Review payment</button>}</div>)}
-       </Pane></div>}
-     {tab==='subscriptions'&&<div className="grid gap-5 md:grid-cols-2">{state.subscriptions.map(s=><Pane key={String(s.id)} title={String(s.merchant)}>
-       <p className="text-3xl font-bold">{money(s.monthly_minor)}<span className="text-sm font-normal text-slate-500"> / month</span></p>
-       <p className="mt-2 text-sm text-slate-600">Status: {s.active?'Active':'Cancelled'}</p>
-       {s.active===true&&<button className={cta+' mt-4'} onClick={()=>void prepare({type:'subscription',subscriptionId:String(s.id)})}>Review cancellation</button>}
-     </Pane>)}</div>}
-     {tab==='wealth'&&<div className="grid gap-5 lg:grid-cols-2">
+         {state.tuition.map(t=><LocalizedDiv key={String(t.id)}><LocalizedP className="text-sm font-semibold">{String(t.label)}</LocalizedP><LocalizedP className="mt-3 text-2xl font-bold">{money(t.amount_minor)}</LocalizedP>
+           <LocalizedP className="mt-2 text-sm text-slate-500">{t.paid?'Already paid':'Outstanding installment'}</LocalizedP>
+           {!t.paid&&cny.length>0&&<LocalizedButton className={cta+' mt-4'} onClick={()=>void prepare({type:'tuition',sourceId:sourceId,tuitionId:String(t.id)})}>Review payment</LocalizedButton>}</LocalizedDiv>)}
+       </Pane></LocalizedDiv>}
+     {tab==='subscriptions'&&<LocalizedDiv className="grid gap-5 md:grid-cols-2">{state.subscriptions.map(s=><Pane key={String(s.id)} title={String(s.merchant)}>
+       <LocalizedP className="text-3xl font-bold">{money(s.monthly_minor)}<LocalizedSpan className="text-sm font-normal text-slate-500"> / month</LocalizedSpan></LocalizedP>
+       <LocalizedP className="mt-2 text-sm text-slate-600">Status: {s.active?'Active':'Cancelled'}</LocalizedP>
+       {s.active===true&&<LocalizedButton className={cta+' mt-4'} onClick={()=>void prepare({type:'subscription',subscriptionId:String(s.id)})}>Review cancellation</LocalizedButton>}
+     </Pane>)}</LocalizedDiv>}
+     {tab==='wealth'&&<LocalizedDiv className="grid gap-5 lg:grid-cols-2">
        <Pane title="Investment products" description="">
-         {state.products.map(p=><div key={String(p.id)} className="border-b border-slate-100 py-4">
-           <div className="flex justify-between"><strong>{String(p.name)}</strong><span className="text-xs uppercase text-blue-700">{String(p.risk)} risk</span></div>
-           <p className="mt-1 text-sm text-slate-500">{String(p.description)}</p>
-           <button className={sec+' mt-3'} onClick={()=>put('product',String(p.id))}>Select</button></div>)}
+         {state.products.map(p=><LocalizedDiv key={String(p.id)} className="border-b border-slate-100 py-4">
+           <LocalizedDiv className="flex justify-between"><LocalizedStrong>{String(p.name)}</LocalizedStrong><LocalizedSpan className="text-xs uppercase text-blue-700">{String(p.risk)} risk</LocalizedSpan></LocalizedDiv>
+           <LocalizedP className="mt-1 text-sm text-slate-500">{String(p.description)}</LocalizedP>
+           <LocalizedButton className={sec+' mt-3'} onClick={()=>put('product',String(p.id))}>Select</LocalizedButton></LocalizedDiv>)}
        </Pane>
        <Pane title="Review investment order">
-         <label className="block text-sm font-semibold">Product<select className={input} value={field('product',String(state.products[0]?.id))} onChange={e=>put('product',e.target.value)}>
-           {state.products.map(p=><option key={String(p.id)} value={String(p.id)}>{String(p.name)}</option>)}</select></label>
-         <label className="mt-4 block text-sm font-semibold">Direction<select className={input} value={field('direction','buy')} onChange={e=>put('direction',e.target.value)}>
-           <option value="buy">Buy</option><option value="redeem">Redeem</option></select></label>
-         <label className="mt-4 block text-sm font-semibold">CNY amount<input className={input} value={field('investAmount','500.00')} inputMode="decimal" onChange={e=>put('investAmount',e.target.value)}/></label>
-         <button className={cta+' mt-4'} onClick={()=>{try{void prepare({type:'investment',sourceId,productId:field('product',String(state.products[0]?.id)),direction:field('direction','buy'),amountMinor:toMinor(field('investAmount','500.00'))})}catch(e){setError(errorMessage(e))}}}>Review investment order</button>
-         <h3 className="mt-7 text-sm font-bold">Holdings</h3>
-         {state.holdings.map(h=><p key={String(h.id)} className="mt-2 text-sm">{String(byId(state.products,String(h.product_id))?.name)}: {money(h.value_minor)}</p>)}
-       </Pane></div>}
-     {tab==='activity'&&<div className="grid gap-5 lg:grid-cols-2">
+         <LocalizedLabel className="block text-sm font-semibold">Product<LocalizedSelect className={input} value={field('product',String(state.products[0]?.id))} onChange={e=>put('product',e.target.value)}>
+           {state.products.map(p=><LocalizedOption key={String(p.id)} value={String(p.id)}>{String(p.name)}</LocalizedOption>)}</LocalizedSelect></LocalizedLabel>
+         <LocalizedLabel className="mt-4 block text-sm font-semibold">Direction<LocalizedSelect className={input} value={field('direction','buy')} onChange={e=>put('direction',e.target.value)}>
+           <LocalizedOption value="buy">Buy</LocalizedOption><LocalizedOption value="redeem">Redeem</LocalizedOption></LocalizedSelect></LocalizedLabel>
+         <LocalizedLabel className="mt-4 block text-sm font-semibold">CNY amount<LocalizedInput className={input} value={field('investAmount','500.00')} inputMode="decimal" onChange={e=>put('investAmount',e.target.value)}/></LocalizedLabel>
+         <LocalizedButton className={cta+' mt-4'} onClick={()=>{try{void prepare({type:'investment',sourceId,productId:field('product',String(state.products[0]?.id)),direction:field('direction','buy'),amountMinor:toMinor(field('investAmount','500.00'))})}catch(e){setError(errorMessage(e))}}}>Review investment order</LocalizedButton>
+         <LocalizedH3 className="mt-7 text-sm font-bold">Holdings</LocalizedH3>
+         {state.holdings.map(h=><LocalizedP key={String(h.id)} className="mt-2 text-sm">{String(byId(state.products,String(h.product_id))?.name)}: {money(h.value_minor)}</LocalizedP>)}
+       </Pane></LocalizedDiv>}
+     {tab==='activity'&&<LocalizedDiv className="grid gap-5 lg:grid-cols-2">
        <Pane title="Immutable-style transaction receipts" description="Read-only activity view. Recorded transfers have debit and credit ledger entries.">
-        {state.ledger.map(t=><div key={String(t.id)} className="border-b border-slate-100 py-3 text-sm">
-         <div className="flex justify-between"><strong>{String(t.label)}</strong><span>{t.direction==='debit'?'−':'+'}{money(t.amount_minor,String(t.currency))}</span></div>
-         <p className="mt-1 text-xs text-slate-500">{String(t.created_at)} · {String(t.action_id)}</p></div>)}
+        {state.ledger.map(t=><LocalizedDiv key={String(t.id)} className="border-b border-slate-100 py-3 text-sm">
+         <LocalizedDiv className="flex justify-between"><LocalizedStrong>{String(t.label)}</LocalizedStrong><LocalizedSpan>{t.direction==='debit'?'−':'+'}{money(t.amount_minor,String(t.currency))}</LocalizedSpan></LocalizedDiv>
+         <LocalizedP className="mt-1 text-xs text-slate-500">{String(t.created_at)} · {String(t.action_id)}</LocalizedP></LocalizedDiv>)}
        </Pane><Pane title="Server-side action audit">
-        {state.audit.map(e=><div key={String(e.id)} className="border-b border-slate-100 py-3 text-sm">
-          <p className="font-semibold">{String(e.event)}</p><p className="mt-1 text-xs text-slate-500">{String(e.created_at)} · {String(e.action_id)}</p>
-        </div>)}
-       </Pane></div>}
+        {state.audit.map(e=><LocalizedDiv key={String(e.id)} className="border-b border-slate-100 py-3 text-sm">
+          <LocalizedP className="font-semibold">{String(e.event)}</LocalizedP><LocalizedP className="mt-1 text-xs text-slate-500">{String(e.created_at)} · {String(e.action_id)}</LocalizedP>
+        </LocalizedDiv>)}
+       </Pane></LocalizedDiv>}
     </>}
-    {error&&<p role="alert" className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error}</p>}
-    {notice&&<p role="status" className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">{notice}</p>}
-    {pending&&<div role="dialog" aria-modal="true" aria-label="Confirm action" className="fixed inset-0 z-50 grid place-items-center bg-slate-950/60 p-4">
-      <section className="w-full max-w-xl rounded-3xl bg-white p-6 shadow-2xl">
-       <p className="text-xs font-bold uppercase tracking-widest text-blue-700">Review & confirm</p>
-       <h2 className="mt-2 text-2xl font-bold">Approve this exact change?</h2>
-       <p className="mt-3 text-sm text-slate-600">This confirmation expires in {pending.expiresInSeconds} seconds.</p>
-       <dl className="mt-4 space-y-3 text-sm">{Object.entries(pending.payload).filter(([key])=>key!=='type').map(([key,value])=>{
+    {error&&<LocalizedP role="alert" className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error}</LocalizedP>}
+    {notice&&<LocalizedP role="status" className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">{notice}</LocalizedP>}
+    {pending&&<LocalizedDiv role="dialog" aria-modal="true" aria-label="Confirm action" className="fixed inset-0 z-50 grid place-items-center bg-slate-950/60 p-4">
+      <LocalizedSection className="w-full max-w-xl rounded-3xl bg-white p-6 shadow-2xl">
+       <LocalizedP className="text-xs font-bold uppercase tracking-widest text-blue-700">Review & confirm</LocalizedP>
+       <LocalizedH2 className="mt-2 text-2xl font-bold">Approve this exact change?</LocalizedH2>
+       <LocalizedP className="mt-3 text-sm text-slate-600">This confirmation expires in {pending.expiresInSeconds} seconds.</LocalizedP>
+       <LocalizedDl className="mt-4 space-y-3 text-sm">{Object.entries(pending.payload).filter(([key])=>key!=='type').map(([key,value])=>{
          const labels:Record<string,string>={sourceId:'From',destinationId:'To',tuitionId:'Tuition',productId:'Product',cardId:'Card',subscriptionId:'Subscription',amountMinor:'Amount',limitMinor:'Limit',direction:'Order',mode:'Change',category:'Category'};
          const record=byId([...state.accounts,...state.products,...state.cards,...state.subscriptions,...state.tuition],value);
          const display=key==='amountMinor'||key==='limitMinor'?money(value,String(source?.currency??'CNY')):String(record?.label??record?.name??record?.masked_number??value);
-         return <div className="flex justify-between gap-4" key={key}><dt className="text-slate-500">{labels[key]??key}</dt><dd className="break-words text-right font-medium capitalize">{display}</dd></div>;
-       })}</dl>
-       <div className="mt-6 flex flex-wrap gap-3">
-        <button className={cta} disabled={busy} onClick={()=>void decide(true)}>Confirm</button>
-        <button className={sec} disabled={busy} onClick={()=>void decide(false)}>Reject without changes</button>
-       </div>
-      </section>
-    </div>}
+         return <LocalizedDiv className="flex justify-between gap-4" key={key}><LocalizedDt className="text-slate-500">{labels[key]??key}</LocalizedDt><LocalizedDd className="break-words text-right font-medium capitalize">{display}</LocalizedDd></LocalizedDiv>;
+       })}</LocalizedDl>
+       <LocalizedDiv className="mt-6 flex flex-wrap gap-3">
+        <LocalizedButton className={cta} disabled={busy} onClick={()=>void decide(true)}>Confirm</LocalizedButton>
+        <LocalizedButton className={sec} disabled={busy} onClick={()=>void decide(false)}>Reject without changes</LocalizedButton>
+       </LocalizedDiv>
+      </LocalizedSection>
+    </LocalizedDiv>}
 
-   </div>
- </div>;
+   </LocalizedDiv>
+ </LocalizedDiv>;
 }
 

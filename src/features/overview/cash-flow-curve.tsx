@@ -1,4 +1,5 @@
 'use client';
+import { LocalizedButton, LocalizedDiv, LocalizedH2, LocalizedInput, LocalizedLabel, LocalizedP, LocalizedSection, LocalizedSmall, LocalizedSpan, LocalizedStrong, LocalizedText } from '../../i18n/localized';
 import { useId, useMemo, useState } from 'react';
 import { ArrowUpRight, CalendarDays } from 'lucide-react';
 import { cumulativeFlow, stepCurve, type CashFlowDay } from './cash-flow-series';
@@ -23,9 +24,9 @@ export function CashFlowCurve({ history }: { history: readonly CashFlowDay[] }) 
   const path = stepCurve(points);
   const last = points.at(-1)!;
   const net = series.at(-1)!.amountMinor;
-  return <section className="cash-curve-panel" aria-label="Recorded cash flow graph">
-    <div className="cash-curve-heading"><div><p className="invest-eyebrow">Your money in motion</p><h2>Cash flow history</h2></div><CalendarDays size={20} aria-hidden /></div>
-    <div className="cash-curve-summary"><div><span>Cumulative net movement · CNY</span><strong>{formatMoney(money(active.amountMinor, 'CNY'))}</strong><small>{active.date} · Shanghai</small></div><div className="cash-curve-periods">{[[7, 'Week'], [30, 'Month'], [90, 'Quarter']].map(([value, label]) => <button type="button" key={value} aria-pressed={period === value} onClick={() => { setPeriod(Number(value)); setSelected(null); }}>{label}</button>)}</div></div>
+  return <LocalizedSection className="cash-curve-panel" aria-label="Recorded cash flow graph">
+    <LocalizedDiv className="cash-curve-heading"><LocalizedDiv><LocalizedP className="invest-eyebrow">Your money in motion</LocalizedP><LocalizedH2>Cash flow history</LocalizedH2></LocalizedDiv><CalendarDays size={20} aria-hidden /></LocalizedDiv>
+    <LocalizedDiv className="cash-curve-summary"><LocalizedDiv><LocalizedSpan>Cumulative net movement · CNY</LocalizedSpan><LocalizedStrong>{formatMoney(money(active.amountMinor, 'CNY'))}</LocalizedStrong><LocalizedSmall>{active.date} · Shanghai</LocalizedSmall></LocalizedDiv><LocalizedDiv className="cash-curve-periods">{[[7, 'Week'], [30, 'Month'], [90, 'Quarter']].map(([value, label]) => <LocalizedButton type="button" key={value} aria-pressed={period === value} onClick={() => { setPeriod(Number(value)); setSelected(null); }}>{label}</LocalizedButton>)}</LocalizedDiv></LocalizedDiv>
     <svg className="cash-curve-svg" viewBox="0 0 640 220" role="img" aria-label={'Cumulative recorded cash flow over ' + days.length + ' days; period total ' + formatMoney(money(net, 'CNY'))} onPointerMove={event => { const rect = event.currentTarget.getBoundingClientRect(); if (rect.width > 0) setSelected(Math.round(Math.max(0, Math.min(1, ((event.clientX - rect.left) / rect.width * 640 - 24) / 592)) * (series.length - 1))); }}>
       <defs><linearGradient id={id + 'line'} x1="0" x2="1"><stop stopColor="#c6d75b" /><stop offset=".45" stopColor="#66c8ad" /><stop offset="1" stopColor="#4c96ee" /></linearGradient><linearGradient id={id + 'area'} x1="0" y1="0" x2="0" y2="1"><stop stopColor="#70c3bc" stopOpacity=".2" /><stop offset="1" stopColor="#70c3bc" stopOpacity="0" /></linearGradient></defs>
       {[40, 90, 140, 188].map(y => <line key={y} x1="24" x2="616" y1={y} y2={y} className="cash-curve-grid" />)}
@@ -33,9 +34,9 @@ export function CashFlowCurve({ history }: { history: readonly CashFlowDay[] }) 
       <path d={path} fill="none" stroke={'url(#' + id + 'line)'} strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
       <line x1={points[index].x} x2={points[index].x} y1="25" y2="200" className="cash-curve-marker" />
       <circle cx={points[index].x} cy={points[index].y} r="10" fill="#5caec5" stroke="var(--color-surface)" strokeWidth="4" />
-      <text x="24" y="218" className="cash-curve-date">{series[0].date.slice(5)}</text><text x="616" y="218" textAnchor="end" className="cash-curve-date">{series.at(-1)!.date.slice(5)}</text>
+      <LocalizedText x="24" y="218" className="cash-curve-date">{series[0].date.slice(5)}</LocalizedText><LocalizedText x="616" y="218" textAnchor="end" className="cash-curve-date">{series.at(-1)!.date.slice(5)}</LocalizedText>
     </svg>
-    <label className="cash-curve-inspect">Inspect a date<input aria-label="Inspect cash flow date" type="range" min="0" max={series.length - 1} value={index} onChange={event => setSelected(Number(event.target.value))} aria-valuetext={active.date + ': ' + formatMoney(money(active.amountMinor, 'CNY'))} /></label>
-    <div className="cash-curve-note"><ArrowUpRight size={14} aria-hidden /><span>Recorded cash movements, not investment returns. Internal transfers excluded. Step line shows recorded end-of-day totals; no values are interpolated.</span></div>
-  </section>;
+    <LocalizedLabel className="cash-curve-inspect">Inspect a date<LocalizedInput aria-label="Inspect cash flow date" type="range" min="0" max={series.length - 1} value={index} onChange={event => setSelected(Number(event.target.value))} aria-valuetext={active.date + ': ' + formatMoney(money(active.amountMinor, 'CNY'))} /></LocalizedLabel>
+    <LocalizedDiv className="cash-curve-note"><ArrowUpRight size={14} aria-hidden /><LocalizedSpan>Recorded cash movements, not investment returns. Internal transfers excluded. Step line shows recorded end-of-day totals; no values are interpolated.</LocalizedSpan></LocalizedDiv>
+  </LocalizedSection>;
 }

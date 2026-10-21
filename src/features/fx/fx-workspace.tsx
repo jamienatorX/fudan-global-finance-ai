@@ -1,5 +1,6 @@
 'use client';
 
+import { LocalizedButton, LocalizedDiv, LocalizedH1, LocalizedH2, LocalizedHeader, LocalizedInput, LocalizedLabel, LocalizedOption, LocalizedP, LocalizedSection, LocalizedSelect, LocalizedSpan, LocalizedStrong } from '../../i18n/localized';
 import { ArrowLeftRight, ArrowRight, Clock3, Globe2, RefreshCw, TrendingUp } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useDemo } from '../../demo/demo-context';
@@ -118,73 +119,73 @@ export function FxWorkspace() {
   const result=rate&&value!==null ? value*rate.rate : null;
   const isFallback=rate?.source==='fallback';
   const referenceDate=rate?.date ?? '';
-  const commonOptions=catalog.map(c=><option key={c.code} value={c.code}>{c.code} — {c.name}</option>);
+  const commonOptions=catalog.map(c=><LocalizedOption key={c.code} value={c.code}>{c.code} — {c.name}</LocalizedOption>);
   const selectedName=(code:string)=>catalog.find(c=>c.code===code)?.name??code;
   const selectPair=(from:string,to:string)=>{setBase(from);setQuote(to);};
   const swap=()=>{setBase(quote);setQuote(base);};
 
-  return <div className="space-y-6 pb-14">
-    <header className="overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-blue-950 to-blue-700 p-6 text-white sm:p-9">
-      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-blue-200"><Globe2 size={17}/> Global currency desk</div>
-      <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">Convert between global currencies</h1>
+  return <LocalizedDiv className="space-y-6 pb-14">
+    <LocalizedHeader className="overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-blue-950 to-blue-700 p-6 text-white sm:p-9">
+      <LocalizedDiv className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-blue-200"><Globe2 size={17}/> Global currency desk</LocalizedDiv>
+      <LocalizedH1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">Convert between global currencies</LocalizedH1>
 
-      <div className="mt-5 flex flex-wrap gap-2">
-        <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs text-blue-100"><Clock3 size={13} className="mr-1 inline"/>Dated reference quotes</span>
-        <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs text-blue-100">{catalogNote}</span>
-      </div>
-    </header>
-    <div className="grid gap-5 xl:grid-cols-[1.35fr_0.85fr]">
-      <section className={panel} aria-label="Currency converter">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div><h2 className="text-xl font-bold text-slate-950">Currency converter</h2><p className="mt-1 text-sm text-slate-500">Choose any available pair and enter an amount.</p></div>
-          <button type="button" aria-label="Refresh reference rate" onClick={()=>setRefreshId(i=>i+1)}
-            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"><RefreshCw size={16}/> Refresh</button>
-        </div>
-        <div className="mt-7 grid items-end gap-3 sm:grid-cols-[1fr_auto_1fr]">
-          <label className="text-sm font-semibold text-slate-700">From
-            <select aria-label="From currency" className={input} value={base} onChange={e=>setBase(e.target.value)}>{commonOptions}</select>
-          </label>
-          <button type="button" aria-label="Swap currencies" onClick={swap}
-            className="mx-auto grid size-12 place-items-center rounded-xl border border-blue-200 bg-blue-50 text-blue-700 transition hover:bg-blue-100 hover:rotate-180"><ArrowLeftRight size={19}/></button>
-          <label className="text-sm font-semibold text-slate-700">To
-            <select aria-label="To currency" className={input} value={quote} onChange={e=>setQuote(e.target.value)}>{commonOptions}</select>
-          </label>
-        </div>
-        <label className="mt-6 block text-sm font-semibold text-slate-700">Amount in {selectedName(base)}
-          <input className={input} inputMode="decimal" aria-label="Amount to convert" value={amount} onChange={e=>setAmount(e.target.value)} placeholder="100.00" />
-        </label>
-        {value===null&&<p role="alert" className="mt-2 text-sm text-red-700">Enter a valid non-negative amount, up to 1 billion, with up to 6 decimal places.</p>}
-        <div className="mt-6 rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-slate-50 p-5 sm:p-6" aria-live="polite">
-          <p className="text-xs font-bold uppercase tracking-wider text-blue-700">Reference conversion</p>
-          <div className="mt-2 min-h-14">
-            {loading ? <p role="status" className="py-3 text-sm text-slate-500">Checking the latest published rate…</p> :
-             result===null ? <p className="py-3 text-sm text-slate-500">Conversion unavailable for this selection.</p> :
-             <strong className="break-all text-3xl font-bold tracking-tight text-blue-950 sm:text-4xl">{format(result,quote)}</strong>}
-          </div>
-          {rate&&!loading&&<div className="mt-4 space-y-2 border-t border-blue-100 pt-4 text-sm text-slate-700">
-            <p>1 {base} ≈ <strong>{niceRate(rate.rate)} {quote}</strong></p>
-            <p className="text-xs text-slate-500">{isFallback?'Sample rate':rate.provider} · {referenceDate||'Same currency'}</p>
-            <p className={'text-xs font-bold '+(isFallback?'text-amber-800':'text-emerald-700')}>
+      <LocalizedDiv className="mt-5 flex flex-wrap gap-2">
+        <LocalizedSpan className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs text-blue-100"><Clock3 size={13} className="mr-1 inline"/>Dated reference quotes</LocalizedSpan>
+        <LocalizedSpan className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs text-blue-100">{catalogNote}</LocalizedSpan>
+      </LocalizedDiv>
+    </LocalizedHeader>
+    <LocalizedDiv className="grid gap-5 xl:grid-cols-[1.35fr_0.85fr]">
+      <LocalizedSection className={panel} aria-label="Currency converter">
+        <LocalizedDiv className="flex flex-wrap items-center justify-between gap-3">
+          <LocalizedDiv><LocalizedH2 className="text-xl font-bold text-slate-950">Currency converter</LocalizedH2><LocalizedP className="mt-1 text-sm text-slate-500">Choose any available pair and enter an amount.</LocalizedP></LocalizedDiv>
+          <LocalizedButton type="button" aria-label="Refresh reference rate" onClick={()=>setRefreshId(i=>i+1)}
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"><RefreshCw size={16}/> Refresh</LocalizedButton>
+        </LocalizedDiv>
+        <LocalizedDiv className="mt-7 grid items-end gap-3 sm:grid-cols-[1fr_auto_1fr]">
+          <LocalizedLabel className="text-sm font-semibold text-slate-700">From
+            <LocalizedSelect aria-label="From currency" className={input} value={base} onChange={e=>setBase(e.target.value)}>{commonOptions}</LocalizedSelect>
+          </LocalizedLabel>
+          <LocalizedButton type="button" aria-label="Swap currencies" onClick={swap}
+            className="mx-auto grid size-12 place-items-center rounded-xl border border-blue-200 bg-blue-50 text-blue-700 transition hover:bg-blue-100 hover:rotate-180"><ArrowLeftRight size={19}/></LocalizedButton>
+          <LocalizedLabel className="text-sm font-semibold text-slate-700">To
+            <LocalizedSelect aria-label="To currency" className={input} value={quote} onChange={e=>setQuote(e.target.value)}>{commonOptions}</LocalizedSelect>
+          </LocalizedLabel>
+        </LocalizedDiv>
+        <LocalizedLabel className="mt-6 block text-sm font-semibold text-slate-700">Amount in {selectedName(base)}
+          <LocalizedInput className={input} inputMode="decimal" aria-label="Amount to convert" value={amount} onChange={e=>setAmount(e.target.value)} placeholder="100.00" />
+        </LocalizedLabel>
+        {value===null&&<LocalizedP role="alert" className="mt-2 text-sm text-red-700">Enter a valid non-negative amount, up to 1 billion, with up to 6 decimal places.</LocalizedP>}
+        <LocalizedDiv className="mt-6 rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-slate-50 p-5 sm:p-6" aria-live="polite">
+          <LocalizedP className="text-xs font-bold uppercase tracking-wider text-blue-700">Reference conversion</LocalizedP>
+          <LocalizedDiv className="mt-2 min-h-14">
+            {loading ? <LocalizedP role="status" className="py-3 text-sm text-slate-500">Checking the latest published rate…</LocalizedP> :
+             result===null ? <LocalizedP className="py-3 text-sm text-slate-500">Conversion unavailable for this selection.</LocalizedP> :
+             <LocalizedStrong className="break-all text-3xl font-bold tracking-tight text-blue-950 sm:text-4xl">{format(result,quote)}</LocalizedStrong>}
+          </LocalizedDiv>
+          {rate&&!loading&&<LocalizedDiv className="mt-4 space-y-2 border-t border-blue-100 pt-4 text-sm text-slate-700">
+            <LocalizedP>1 {base} ≈ <LocalizedStrong>{niceRate(rate.rate)} {quote}</LocalizedStrong></LocalizedP>
+            <LocalizedP className="text-xs text-slate-500">{isFallback?'Sample rate':rate.provider} · {referenceDate||'Same currency'}</LocalizedP>
+            <LocalizedP className={'text-xs font-bold '+(isFallback?'text-amber-800':'text-emerald-700')}>
               {isFallback?'Sample rate · not live':rate.source==='identity'?'Same currency':'Published reference rate'}
-            </p>
-          </div>}
-        </div>
-        {error&&<p role={isFallback?'status':'alert'} className="mt-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">{error}</p>}
-      </section>
-      <section className={panel}>
-        <div className="flex items-center gap-2 text-blue-700"><TrendingUp size={20}/><h2 className="text-xl font-bold text-slate-950">Popular currency pairs</h2></div>
-        <p className="mt-2 text-sm text-slate-500">Quickly compare rates relevant to international students and cross-border planning.</p>
-        <div className="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
-          {FAVORITES.map(([from,to])=><button type="button" key={from+'-'+to} onClick={()=>selectPair(from,to)}
+            </LocalizedP>
+          </LocalizedDiv>}
+        </LocalizedDiv>
+        {error&&<LocalizedP role={isFallback?'status':'alert'} className="mt-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">{error}</LocalizedP>}
+      </LocalizedSection>
+      <LocalizedSection className={panel}>
+        <LocalizedDiv className="flex items-center gap-2 text-blue-700"><TrendingUp size={20}/><LocalizedH2 className="text-xl font-bold text-slate-950">Popular currency pairs</LocalizedH2></LocalizedDiv>
+        <LocalizedP className="mt-2 text-sm text-slate-500">Quickly compare rates relevant to international students and cross-border planning.</LocalizedP>
+        <LocalizedDiv className="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+          {FAVORITES.map(([from,to])=><LocalizedButton type="button" key={from+'-'+to} onClick={()=>selectPair(from,to)}
             aria-pressed={base===from&&quote===to}
             className={'flex min-h-12 items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors '+
               (base===from&&quote===to?'border-blue-400 bg-blue-50':'border-slate-200 bg-white hover:bg-slate-50')}>
-            <span className="font-semibold text-slate-900">{from} <ArrowRight size={14} className="mx-1 inline text-blue-600"/> {to}</span>
-            <span className="text-xs text-slate-500">{base===from&&quote===to?'Selected':'View rate'}</span>
-          </button>)}
-        </div>
-      </section>
-    </div>
-  </div>;
+            <LocalizedSpan className="font-semibold text-slate-900">{from} <ArrowRight size={14} className="mx-1 inline text-blue-600"/> {to}</LocalizedSpan>
+            <LocalizedSpan className="text-xs text-slate-500">{base===from&&quote===to?'Selected':'View rate'}</LocalizedSpan>
+          </LocalizedButton>)}
+        </LocalizedDiv>
+      </LocalizedSection>
+    </LocalizedDiv>
+  </LocalizedDiv>;
 }
 

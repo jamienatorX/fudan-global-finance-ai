@@ -253,3 +253,27 @@ html[data-theme="dark-disabled"] .balance-hero { background:radial-gradient(elli
   :root:not([data-theme="light"]) .balance-hero, :root:not([data-theme="light"]) .balance-hero :is(p,span) { color:#f3fbfa; }
   :root:not([data-theme="light"]) main :is(input,select,textarea) { background-color:var(--color-surface); color:var(--color-text); border-color:var(--color-border); }
 }
+
+/* Every light control surface must change together with its foreground. This
+   includes controls inside dialogs, which are not necessarily children of main. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) :is(.bg-blue-50,.bg-blue-100,.bg-emerald-50,.bg-amber-50,.bg-red-50) {
+    background-color:var(--color-info-soft); color:var(--color-text);
+  }
+  :root:not([data-theme="light"]) :is(.hover\:bg-blue-50:hover,.hover\:bg-blue-100:hover,.hover\:bg-slate-50:hover,.hover\:bg-slate-100:hover,.hover\:bg-slate-200:hover) {
+    background-color:#2d5757; color:var(--color-text);
+  }
+  :root:not([data-theme="light"]) :is(.bg-white,.bg-slate-50,.bg-slate-100) { background-color:var(--color-surface); }
+  :root:not([data-theme="light"]) :is(.text-slate-950,.text-slate-900,.text-slate-800,.text-slate-700) { color:var(--color-text); }
+  :root:not([data-theme="light"]) :is(.text-slate-600,.text-slate-500) { color:var(--color-text-muted); }
+  :root:not([data-theme="light"]) :is(.text-blue-600,.text-blue-700,.text-emerald-700) { color:var(--color-primary); }
+  :root:not([data-theme="light"]) :is(input,select,textarea,option) { background-color:var(--color-surface); color:var(--color-text); border-color:var(--color-border); }
+  :root:not([data-theme="light"]) :is(input,textarea)::placeholder { color:var(--color-text-muted); opacity:1; }
+  :root:not([data-theme="light"]) input:autofill { -webkit-text-fill-color:var(--color-text); box-shadow:0 0 0 1000px var(--color-surface) inset; }
+}
+.language-switcher { display:flex; flex-shrink:0; align-items:center; gap:2px; padding:3px; border:1px solid var(--color-border); border-radius:12px; background:var(--color-surface); }
+.language-switcher button { display:grid; place-items:center; min-width:30px; min-height:36px; padding:4px 6px; border:0; border-radius:8px; background:transparent; color:var(--color-text-muted); font-size:11px; font-weight:700; }
+.language-switcher button[aria-pressed="true"] { background:var(--color-info-soft); color:var(--color-primary); box-shadow:inset 0 0 0 1px var(--color-border); }
+:root[lang="zh-CN"] body { font-family:var(--font-inter,ui-sans-serif),"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",system-ui,sans-serif; }
+:root[lang="zh-CN"] :is(.invest-eyebrow,.fx-ticker-heading) { letter-spacing:.04em; }
+@media(max-width:639px) { .bank-header-actions { gap:5px; } .language-switcher { padding:2px; } .language-switcher button { min-width:26px; padding:4px; font-size:10px; } }
