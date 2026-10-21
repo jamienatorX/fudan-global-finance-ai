@@ -59,3 +59,14 @@ it('finds the same fictional records using translated category names', async()=>
   expect(searchBankingRecords(index,'学费').some(row=>row.category==='Tuition')).toBe(true);
   expect(searchBankingRecords(index,'餐饮').some(row=>row.category==='Transactions')).toBe(true);
 });
+
+it('preserves an uncontrolled field when translating adjacent pieces of its label',async()=>{
+ const {LocalizedLabel}=await import('../../src/i18n/localized');
+ localStorage.clear();
+ render(<LanguageProvider><LanguageSwitcher/><LocalizedLabel>{'Available '}{'CNY 18,650.00'}<LocalizedInput aria-label="Amount" defaultValue="1"/></LocalizedLabel></LanguageProvider>);
+ fireEvent.change(screen.getByRole('textbox',{name:'Amount'}),{target:{value:'55'}});
+ fireEvent.click(screen.getByRole('button',{name:'简体中文'}));
+ expect(screen.getByRole('textbox',{name:'金额'})).toHaveValue('55');
+ fireEvent.click(screen.getByRole('button',{name:'English'}));
+ expect(screen.getByRole('textbox',{name:'Amount'})).toHaveValue('55');
+});

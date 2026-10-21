@@ -16,7 +16,8 @@ export function localizeChildren(children: ReactNode, language: Language): React
     if (!run.length) return;
     const joined=run.join('');
     const value=translateText(joined,language);
-    if(value!==joined) translated.push(value);
+    // Keep child slots stable so translating a label cannot remount its input.
+    if(value!==joined) translated.push(value,...run.slice(1).map(()=>null));
     else translated.push(...run.map(item=>typeof item==='string'?translateText(item,language):item));
     run=[];
   }

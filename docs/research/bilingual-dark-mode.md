@@ -8,6 +8,8 @@ A shared phrase catalog and anchored dynamic-message templates render copy throu
 
 Component tests cover language switching, selection persistence, accessible field labels, unchanged input values, account actions and links, blocked browser storage, and bilingual category search. The existing reconciliation tests remain part of the full suite. `tests/e2e/language-and-contrast.spec.ts` covers 375px, 800px and 1280px layouts, actual dark control contrast (including hover), persistence on reload and switching back to English when Playwright Chromium is available.
 
-Verification: all 304 unit/component/integration tests passed, the production build passed, and affected routes returned HTTP 200. Live cloud-browser checks confirmed the Chinese Accounts and Overview, unchanged balances and account links. That browser uses light appearance at 1363px. The saved dark-mode viewport tests could not launch because local Playwright Chromium is absent; no dark/mobile visual pass is claimed.
+Verification: all 305 unit/component/integration tests passed, the production build passed, and affected routes returned HTTP 200. Live cloud-browser checks confirmed the Chinese Accounts and Overview, unchanged balances and account links. That browser uses light appearance at 1363px. The saved dark-mode viewport tests could not launch because local Playwright Chromium is absent; no dark/mobile visual pass is claimed.
 
 Saved-language hydration is gated per text boundary, so late streamed/Suspense content first matches its server markup before displaying Chinese. A delayed-boundary regression reproduces the mismatch before the fix and passes afterward.
+
+Adjacent translated text retains its original React child slots. A regression verifies that typing into an uncontrolled input survives language switches in both directions.
