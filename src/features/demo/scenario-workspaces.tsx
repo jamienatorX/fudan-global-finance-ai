@@ -143,7 +143,7 @@ function PageBody({ section }: { section: Page }) {
         <LocalizedButton className={secondary} onClick={()=>submit(()=>({type:'budget',category:b.category,limitMinor:parseMajorAmount(val('budget:'+b.id),'CNY')}))}>Review</LocalizedButton></LocalizedDiv>
       </LocalizedDiv>)}</Panel>
       <Panel title="Tuition & emergency fund">{snapshot.tuitionObligations.map(t=><LocalizedDiv key={t.id} className="mb-5 space-y-2 text-sm">
-        <LocalizedP><LocalizedStrong>{t.institution}</LocalizedStrong> · {t.installment}</LocalizedP><LocalizedP>Due {t.dueAt.slice(0,10)} · <LocalizedSpan className="capitalize">{t.status}</LocalizedSpan></LocalizedP>
+        <LocalizedP><LocalizedStrong>{t.institution}</LocalizedStrong> · {t.installment}</LocalizedP><LocalizedP>Due {t.dueAt.slice(0,10)} · <LocalizedSpan className="capitalize">{t.status!=='paid' && t.amount.amountMinor>t.paidAmount.amountMinor && t.dueAt.slice(0,10)<(today||snapshot.asOf.slice(0,10))?'Overdue':t.status}</LocalizedSpan></LocalizedP>
         <LocalizedP>Outstanding {formatMoney(money(t.amount.amountMinor-t.paidAmount.amountMinor,t.amount.currency))}</LocalizedP>
         {t.status!=='paid' && eligibleCny[0]&&<LocalizedButton className={button} onClick={()=>submit(()=>({type:'tuition',sourceId:eligibleCny[0].id,tuitionId:t.id}))}>Review tuition payment</LocalizedButton>}
       </LocalizedDiv>)}{snapshot.accounts.filter(a=>a.goal).map(a=><LocalizedDiv className="rounded-xl bg-blue-50 p-4" key={a.id}><LocalizedP className="text-sm font-semibold">Emergency fund</LocalizedP><LocalizedP className="mt-1 text-sm">{formatMoney(a.balance)} / {formatMoney(a.goal!)}</LocalizedP>

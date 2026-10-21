@@ -31,6 +31,7 @@ export function BankingShortcuts() {
   return <LocalizedSection aria-label="Banking shortcuts"><LocalizedH2 className="student-section-title">Quick actions</LocalizedH2><LocalizedDiv className="student-quick-grid">{actions.map(({href,label,icon:Icon}) => <Link key={href} href={href}><Icon size={20} aria-hidden /><LocalizedSpan>{label}</LocalizedSpan></Link>)}</LocalizedDiv></LocalizedSection>;
 }
 export function TuitionSummary({ overview: o }: { overview: OverviewModel }) {
+  if(!o.tuition.next || o.tuition.outstanding.amountMinor<=0n)return null;
   return <Card className="student-panel tuition-summary"><CardHeader title="Upcoming tuition" eyebrow="Your next commitment" action={<Link href="/planner" className="student-link">Plan payment</Link>} />
     <LocalizedP className="student-amount">{formatMoney(o.tuition.outstanding)}</LocalizedP><LocalizedP className="student-note">{o.tuition.next ? `${o.tuition.next.institution} · ${o.tuition.next.installment} · due ${o.tuition.next.dueAt.slice(0,10)}` : 'No unpaid tuition.'}</LocalizedP>
   </Card>;
@@ -42,7 +43,7 @@ export function OverviewDashboard({ overview: o, hero, tuition }: { overview: Ov
     {hero ?? <LocalizedSection className="balance-hero student-safe-hero"><LocalizedP>Your financial snapshot</LocalizedP><LocalizedP className="student-hero-number">{formatMoney(o.availableCash)}</LocalizedP><PortfolioQuickActions /></LocalizedSection>}
     <LocalizedSection aria-label="Net worth and cash" className="student-net-worth"><LocalizedDiv><LocalizedSpan>Net worth</LocalizedSpan><LocalizedStrong>{formatMoney(o.totalNetWorth)}</LocalizedStrong><LocalizedSmall>Cash + investments</LocalizedSmall></LocalizedDiv><LocalizedDiv><LocalizedSpan>Available cash</LocalizedSpan><LocalizedStrong>{formatMoney(o.availableCash)}</LocalizedStrong><LocalizedSmall>{Math.min(100,Math.max(0,cashShare)).toFixed(1)}% cash allocation</LocalizedSmall></LocalizedDiv></LocalizedSection>
     <FinancialAlerts overview={o} />
-    {tuition ?? <TuitionSummary overview={o} />}
+    {o.tuition.next && o.tuition.outstanding.amountMinor>0n ? tuition ?? <TuitionSummary overview={o} /> : null}
     <RecentTransactions overview={o} />
     <BankingShortcuts />
   </LocalizedDiv>;

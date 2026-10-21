@@ -9,14 +9,20 @@ import {ratesFromQuotes,useFxReference} from '../fx/fx-reference-context';
 import {rateComparison} from '../fx/remittance';
 import {useRateHistory} from '../fx/use-rate-history';
 import type {OverviewModel} from './overview-queries';
+import {useShanghaiDate} from '../cards/use-shanghai-date';
+import {shanghaiDate} from './safe-to-spend';
 export function TuitionFxCard({overview:o,compact=false}:{overview:OverviewModel;compact?:boolean}){
  const {snapshot}=useDemo();const reference=useFxReference();const history=useRateHistory();
+ const today=useShanghaiDate();
+ if(!o.tuition.next || o.tuition.outstanding.amountMinor<=0n)return null;
+ const overdue=shanghaiDate(o.tuition.next.dueAt)<(today||shanghaiDate(snapshot.asOf));
  const rates=ratesFromQuotes(snapshot.exchangeRates,reference.quotes);
  const idr=referenceConversion(o.tuition.outstanding,'IDR',rates).amount;
  const current=Number(rates.find(r=>r.base==='CNY'&&r.quote==='IDR')?.rate);
  const comparison=reference.status==='live'?rateComparison(current,history,'receive'):null;
  const scenario=(rate:number)=>formatMoney(money((o.tuition.outstanding.amountMinor*BigInt(Math.round(rate*1000000))+50000000n)/100000000n,'IDR'));
- return <Card className="student-panel tuition-summary"><CardHeader title="Upcoming tuition" eyebrow="CNY tuition · IDR funding estimate" action={<Link href="/planner" className="student-link">Plan payment</Link>}/>
+ return <Card className="student-panel tuition-summary"><CardHeader title={overdue?'Overdue tuition':'Upcoming tuition'} eyebrow="CNY tuition · IDR funding estimate" action={<Link href="/planner" className="student-link">Plan payment</Link>}/>
+ <LocalizedP className="student-note" role={overdue?'status':undefined}>{overdue?'Overdue · payment still outstanding':'Unpaid tuition'}</LocalizedP>
  <LocalizedDiv className="student-tuition-values"><LocalizedStrong>{formatMoney(o.tuition.outstanding)}</LocalizedStrong><LocalizedSpan>≈ {formatMoney(idr)}</LocalizedSpan></LocalizedDiv>
  <LocalizedP className="student-note">{o.tuition.next?`${o.tuition.next.institution} · ${o.tuition.next.installment} · due ${o.tuition.next.dueAt.slice(0,10)}`:'No unpaid tuition.'}</LocalizedP>
  <LocalizedP className="student-note"><LocalizedSpan>{reference.status==='live'?`Latest published reference: ${reference.date}.`:reference.status==='loading'?'Checking published rates; a sample estimate is shown while loading.':'Sample sandbox rate; current published rate unavailable.'}</LocalizedSpan> Estimate excludes remittance fees.</LocalizedP>
