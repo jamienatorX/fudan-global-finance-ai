@@ -1,4 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="16" fill="#102B32" />
-  <text x="32" y="46" text-anchor="middle" font-family="serif" font-size="44" font-weight="700" fill="#8BE3CD">福</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#102b32"/><g transform="translate(8 10.4) scale(.09917)" fill="#8be3cd"><path fill-rule="evenodd" d="M0 0H12C42 0 62 23 62 54V89H199V436H187C163 436 153 422 153 395V126H16V55C16 31 13 16 0 0Z M85 30H400C398 51 386 67 362 67H122C101 67 88 54 85 30Z M484 0H469C440 0 421 22 421 54V89H222V123H468V52C468 30 472 15 484 0Z M16 151H131V190H16Z M16 249C16 224 30 212 53 212H131V436H99V250H62V376C62 413 44 436 14 436H0C12 419 16 400 16 376Z M222 144H468V228H222Z M270 176V198H419V176Z M222 248H468V381C468 405 472 421 484 436H222Z M268 282V401H419V282Z M304 309H380V377H304Z"/></g></svg>

@@ -10,7 +10,7 @@ export function AuthShell({ children }: Readonly<{ children: ReactNode }>) {
       <LocalizedDiv className="auth-layout">
         <LocalizedSection className="auth-story" aria-label="福 bank introduction">
           <Link href="/" className="auth-brand" aria-label="福 bank home">
-            <LocalizedSpan className="auth-brand-mark"><LocalizedSpan className="fu-logo" aria-hidden>福</LocalizedSpan></LocalizedSpan>
+            <LocalizedSpan className="auth-brand-mark"><LocalizedSpan className="fu-logo" aria-hidden /></LocalizedSpan>
             <LocalizedSpan><LocalizedStrong>福 bank</LocalizedStrong><LocalizedSpan className="auth-brand-caption">PERSONAL BANKING</LocalizedSpan></LocalizedSpan>
           </Link>
           <LocalizedDiv className="auth-story-content">

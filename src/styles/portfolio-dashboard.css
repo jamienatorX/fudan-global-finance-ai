@@ -9,7 +9,7 @@
 .card-gallery-item[data-variant="2"] .bank-card-face,.expanded-card-stage[data-variant="2"] .bank-card-face { background:radial-gradient(ellipse at 95% 0%,#b2a4e570,transparent 65%),linear-gradient(125deg,#36394f,#655780); }
 .card-gallery-item .bank-card-top strong { font-size:13px; }
 .card-gallery-item .bank-card-top>span { font-size:7px; }
-.card-gallery-item .bank-card-top .fu-logo { width:18px; height:18px; font-size:11px; border-radius:5px; }
+.card-gallery-item .bank-card-top .fu-logo { width:18px; height:18px; }
 .card-gallery-item .bank-card-chip-row { padding-top:7px; gap:8px; }
 .card-gallery-item .bank-card-chip { width:25px; height:20px; }
 .card-gallery-item .bank-card-contactless { width:16px; height:16px; }

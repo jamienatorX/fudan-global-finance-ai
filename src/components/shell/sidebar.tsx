@@ -31,7 +31,7 @@ export const NAV_ITEMS: readonly Readonly<{ href: string; label: string; shortLa
 function ProductMark({ compact = false }: Readonly<{ compact?: boolean }>) {
   return (
     <Link href="/overview" className="flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-400">
-      <LocalizedSpan className="grid size-10 shrink-0 place-items-center rounded-2xl border border-white/20 bg-white/10 text-emerald-200"><LocalizedSpan className="fu-logo" aria-hidden>福</LocalizedSpan></LocalizedSpan>
+      <LocalizedSpan className="grid size-10 shrink-0 place-items-center text-emerald-200"><LocalizedSpan className="fu-logo" aria-hidden /></LocalizedSpan>
       {!compact ? <LocalizedSpan className="min-w-0"><LocalizedSpan className="block truncate text-xl font-extrabold tracking-tight text-white">福 Bank</LocalizedSpan><LocalizedSpan className="block whitespace-normal text-[9px] font-semibold uppercase tracking-[0.08em] text-teal-200/80">PERSONAL BANKING</LocalizedSpan></LocalizedSpan> : null}
     </Link>
   );
