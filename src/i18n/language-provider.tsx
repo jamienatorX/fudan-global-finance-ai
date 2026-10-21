@@ -26,7 +26,16 @@ export function LanguageProvider({children}: {children: ReactNode}) {
   return <LanguageContext.Provider value={{language,setLanguage}}>{children}</LanguageContext.Provider>;
 }
 let memoryLanguage: Language | null = null;
-export function useLanguage() { return useContext(LanguageContext); }
+const subscribeHydration = () => () => {};
+const clientHydrated = () => true;
+const serverHydrated = () => false;
+export function useLanguage() {
+  const context = useContext(LanguageContext);
+  // Each streamed/Suspense boundary must first match its English server text,
+  // even if the parent has already restored a different saved language.
+  const hydrated = useSyncExternalStore(subscribeHydration, clientHydrated, serverHydrated);
+  return {...context, language: hydrated ? context.language : 'en' as Language};
+}
 export function useTranslation() { const {language}=useLanguage(); return (value:string)=>translateText(value,language); }
 
 export function LanguageSwitcher() {
