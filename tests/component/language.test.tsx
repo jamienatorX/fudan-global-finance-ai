@@ -26,7 +26,10 @@ it('switches visible and accessible copy, preserves values and remembers the sel
 });
 it('preserves IDs, currencies, merchants, and dynamic amounts',()=>{
  expect(translateText('CNY 18,650.00','zh-CN')).toBe('CNY 18,650.00');
- expect(translateText('Campus Video','zh-CN')).toBe('Campus Video');
+ expect(translateText('Personal merchant','zh-CN')).toBe('Personal merchant');
+ expect(translateText('Tencent Video VIP has no recorded usage.','zh-CN')).toBe('腾讯视频VIP暂无使用记录。');
+ expect(translateText('QQ Music Green Diamond','zh-CN')).toBe('QQ音乐豪华绿钻');
+ expect(translateText('Taobao 88VIP','zh-CN')).toBe('淘宝88VIP');
  expect(translateText('Good evening, Ayu','zh-CN')).toBe('晚上好，Ayu');
  expect(translateText('Mean of 1 other observed category transactions: CNY 1,150.00','zh-CN')).toBe('其他 1 笔同类交易的均值：CNY 1,150.00');
  expect(translateText('CNY 3,060.85 / day · 11 days','zh-CN')).toBe('CNY 3,060.85 / 天 · 11 天');

@@ -94,7 +94,7 @@ function PageBody({ section }: { section: Page }) {
     {section==='cards' && <LocalizedDiv id="reminders"><CardReminders /></LocalizedDiv>}
     {section==='subscriptions' && <>
       <Panel title="Recurring commitments"><LocalizedP className="text-3xl font-bold">{formatMoney(money(totalSubscriptions,'CNY'))} <LocalizedSpan className="text-sm font-normal text-slate-500">/ month</LocalizedSpan></LocalizedP>
-      <LocalizedP className="mt-2 text-xs text-slate-500">Annualized estimate: {formatMoney(money(totalSubscriptions*12n,'CNY'))}.</LocalizedP></Panel>
+      <LocalizedP className="mt-2 text-xs text-slate-500">Annualized estimate: {formatMoney(money(totalSubscriptions*12n,'CNY'))}.</LocalizedP><LocalizedP className="mt-2 text-xs text-slate-500">Illustrative membership charges, not current retail prices. No provider connection.</LocalizedP></Panel>
       <LocalizedDiv className="grid gap-5 md:grid-cols-2">{snapshot.subscriptions.map(s=><Panel key={s.id} title={s.merchant}>
         <LocalizedDiv className="flex justify-between gap-2"><LocalizedStrong className="text-xl">{formatMoney(s.amount)} / {s.cadence}</LocalizedStrong><LocalizedSpan className="capitalize text-slate-500">{s.status}</LocalizedSpan></LocalizedDiv>
         <LocalizedP className="mt-3 text-sm text-slate-600">Renewal: {s.nextRenewalAt.slice(0,10)}</LocalizedP>

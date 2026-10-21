@@ -26,7 +26,7 @@ describe('demo international planning',()=>{
    const noBudgets=projectedRunway({...s,budgets:[]});
    expect(noBudgets.months).toBeNull();
    const after={...s,budgets:s.budgets.map(b=>b.category==='shopping'?{...b,limit:money(46400n,'CNY')}:b),
-     subscriptions:s.subscriptions.map(sub=>sub.merchant==='Campus Video'?{...sub,status:'cancelled' as const}:sub)};
+     subscriptions:s.subscriptions.map(sub=>sub.merchant==='Tencent Video VIP'?{...sub,status:'cancelled' as const}:sub)};
    expect(projectedRunway(after).monthly.amountMinor).toBe(501600n);
  });
 });

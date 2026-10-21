@@ -17,10 +17,10 @@ export function createSeedSnapshot(seedVersion: string): FinancialSnapshot {
     [104, 'transportation', 26000n, 'Shanghai Transit', null, null],
     [105, 'shopping', 38000n, 'Campus Store', null, null],
     [106, 'shopping', 20000n, 'Online Marketplace', null, 'Shopping spike'],
-    [107, 'subscriptions', 6800n, 'Campus Video', 50, null],
-    [108, 'subscriptions', 1800n, 'Campus Music', 51, null],
-    [109, 'subscriptions', 2400n, 'Campus Cloud', 52, null],
-    [110, 'subscriptions', 4000n, 'Campus Study', 53, null],
+    [107, 'subscriptions', 6800n, 'Tencent Video VIP', 50, null],
+    [108, 'subscriptions', 1800n, 'QQ Music Green Diamond', 51, null],
+    [109, 'subscriptions', 2400n, 'Baidu Netdisk SVIP', 52, null],
+    [110, 'subscriptions', 4000n, 'Taobao 88VIP', 53, null],
     [111, 'other', 16000n, 'Campus Services', null, null],
   ];
   const expenseTransactions: Transaction[] = expenses.map(([number, category, amount, merchant, subscription, anomaly]) => ({
@@ -85,10 +85,10 @@ export function createSeedSnapshot(seedVersion: string): FinancialSnapshot {
     ],
     cardRestrictions: [{ id: id(62), cardId: id(61), merchantCategory: 'gambling', state: 'deny' }],
     subscriptions: [
-      { id: id(50), ownerId, merchant: 'Campus Video', amount: cny(6800n), currency: 'CNY', cadence: 'monthly', nextRenewalAt: '2026-11-05T08:00:00.000Z', lastUsageAt: null, status: 'active' },
-      { id: id(51), ownerId, merchant: 'Campus Music', amount: cny(1800n), currency: 'CNY', cadence: 'monthly', nextRenewalAt: '2026-11-05T08:00:00.000Z', lastUsageAt: '2026-10-13T08:00:00.000Z', status: 'active' },
-      { id: id(52), ownerId, merchant: 'Campus Cloud', amount: cny(2400n), currency: 'CNY', cadence: 'monthly', nextRenewalAt: '2026-11-05T08:00:00.000Z', lastUsageAt: '2026-10-12T08:00:00.000Z', status: 'active' },
-      { id: id(53), ownerId, merchant: 'Campus Study', amount: cny(4000n), currency: 'CNY', cadence: 'monthly', nextRenewalAt: '2026-11-05T08:00:00.000Z', lastUsageAt: '2026-10-14T00:00:00.000Z', status: 'active' },
+      { id: id(50), ownerId, merchant: 'Tencent Video VIP', amount: cny(6800n), currency: 'CNY', cadence: 'monthly', nextRenewalAt: '2026-11-05T08:00:00.000Z', lastUsageAt: null, status: 'active' },
+      { id: id(51), ownerId, merchant: 'QQ Music Green Diamond', amount: cny(1800n), currency: 'CNY', cadence: 'monthly', nextRenewalAt: '2026-11-05T08:00:00.000Z', lastUsageAt: '2026-10-13T08:00:00.000Z', status: 'active' },
+      { id: id(52), ownerId, merchant: 'Baidu Netdisk SVIP', amount: cny(2400n), currency: 'CNY', cadence: 'monthly', nextRenewalAt: '2026-11-05T08:00:00.000Z', lastUsageAt: '2026-10-12T08:00:00.000Z', status: 'active' },
+      { id: id(53), ownerId, merchant: 'Taobao 88VIP', amount: cny(4000n), currency: 'CNY', cadence: 'monthly', nextRenewalAt: '2026-11-05T08:00:00.000Z', lastUsageAt: '2026-10-14T00:00:00.000Z', status: 'active' },
     ],
     investmentProducts: [
       { id: id(80), name: 'Demo Campus Cash', fictional: true, category: 'money-market', simulatedRisk: 'low', feeBasisPoints: 10, liquidity: 'daily', historicalSimulation: { period: '2025 fictional simulation', returnBasisPoints: 180, drawdownBasisPoints: 5 }, disclaimer: 'Fictional simulation only; not an investment recommendation or guaranteed return.' },
@@ -111,9 +111,28 @@ export function createSeedSnapshot(seedVersion: string): FinancialSnapshot {
   };
 }
 
-/** Preserve saved activity while upgrading the demo profile and subscription categories. */
+// Only the original seeded memberships are renamed; custom records and decisions survive.
+const legacyMemberships = new Map([
+  [id(50), { before: 'Campus Video', after: 'Tencent Video VIP' }],
+  [id(51), { before: 'Campus Music', after: 'QQ Music Green Diamond' }],
+  [id(52), { before: 'Campus Cloud', after: 'Baidu Netdisk SVIP' }],
+  [id(53), { before: 'Campus Study', after: 'Taobao 88VIP' }],
+]);
+function membershipMerchant(recordOwner: string, subscriptionId: string | null, merchant: string) {
+  const legacy = subscriptionId ? legacyMemberships.get(subscriptionId) : undefined;
+  return recordOwner === DEMO_USER_ID && merchant === legacy?.before ? legacy.after : merchant;
+}
+
+/** Preserve saved activity while upgrading the demo profile, memberships and categories. */
 export function normalizeDemoSnapshot(snapshot: FinancialSnapshot): FinancialSnapshot {
-  const transactions=snapshot.transactions.map(t=>t.subscriptionId && snapshot.subscriptions.some(s=>s.id===t.subscriptionId)?{...t,category:'subscriptions' as const}:t);
+  const subscriptions = snapshot.subscriptions.map(s => ({
+    ...s, merchant: membershipMerchant(s.ownerId, s.id, s.merchant),
+  }));
+  const transactions = snapshot.transactions.map(t => ({
+    ...t,
+    merchant: membershipMerchant(t.ownerId, t.subscriptionId, t.merchant),
+    category: t.subscriptionId && subscriptions.some(s => s.id === t.subscriptionId) ? 'subscriptions' as const : t.category,
+  }));
   const budgets=[...snapshot.budgets];
   for(const other of snapshot.budgets.filter(b=>b.category==='other'&&b.currency==='CNY')) {
     if(budgets.some(b=>b.ownerId===other.ownerId&&b.month===other.month&&b.category==='subscriptions'))continue;
@@ -128,5 +147,5 @@ export function normalizeDemoSnapshot(snapshot: FinancialSnapshot): FinancialSna
     budgets.push({...other,id:newId,category:'subscriptions',limit:cny(cap),actualSpend:cny(portion),status:portion>cap?'over-limit':'within-limit'});
   }
   const users=snapshot.users.map(user=>user.id===DEMO_USER_ID&&user.profile.displayName==='Ayu Pratama'?{...user,profile:{...user.profile,displayName:'Jim Pratama'}}:user);
-  return {...snapshot,users,transactions,budgets};
+  return {...snapshot,users,subscriptions,transactions,budgets};
 }

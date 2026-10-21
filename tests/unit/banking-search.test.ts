@@ -20,7 +20,9 @@ describe('real global banking search', () => {
     const data: [string, string][] = [
       ['USD daily', 'Accounts'],
       ['online shopping virtual card', 'Cards'],
-      ['Campus Video', 'Subscriptions'],
+      ['Tencent Video VIP', 'Subscriptions'],
+      ['QQ音乐', 'Subscriptions'],
+      ['淘宝88VIP', 'Subscriptions'],
       ['shopping budget', 'Budgets'],
       ['Zhang Wei', 'Beneficiaries'],
       ['tuition', 'Tuition'],

@@ -17,7 +17,7 @@ test.describe('global banking search and file chooser', () => {
   test('supports keyboard selection, escape, empty state, and responsive access', async ({ page }) => {
     await page.goto('/overview');
     const input = page.getByRole('searchbox', { name: 'Search banking' });
-    await input.fill('Campus Video');
+    await input.fill('Tencent Video VIP');
     await expect(page.getByRole('listbox')).toBeVisible();
     await input.press('Escape');
     await expect(page.getByRole('listbox')).not.toBeVisible();

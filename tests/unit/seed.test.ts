@@ -35,7 +35,7 @@ describe('versioned demo seed', () => {
       ]);
     expect(snapshot.accounts.find((account) => account.type === 'savings')?.goal).toEqual({ amountMinor: 1500000n, currency: 'CNY' });
     expect(snapshot.tuitionObligations[0]).toMatchObject({ amount: { amountMinor: 500000n, currency: 'CNY' }, paidAmount: { amountMinor: 0n, currency: 'CNY' }, status: 'unpaid' });
-    expect(snapshot.subscriptions.find((subscription) => subscription.merchant === 'Campus Video')).toMatchObject({ amount: { amountMinor: 6800n, currency: 'CNY' }, cadence: 'monthly', lastUsageAt: null, status: 'active' });
+    expect(snapshot.subscriptions.find((subscription) => subscription.merchant === 'Tencent Video VIP')).toMatchObject({ amount: { amountMinor: 6800n, currency: 'CNY' }, cadence: 'monthly', lastUsageAt: null, status: 'active' });
   });
 
   it('supplies linked beneficiaries, cards, recurring income, asset movements, products, and fallback rates', () => {
@@ -106,4 +106,36 @@ it('updates the old saved demo name without changing financial activity',()=>{
  expect(migrated.users[0].profile.displayName).toBe('Jim Pratama');
  expect(migrated.accounts).toEqual(saved.accounts);
  expect(migrated.transactions).toEqual(saved.transactions);
+});
+
+it('upgrades saved membership names and linked purchases without resetting cancellations or finances', () => {
+  const seed = createSeedSnapshot('v1');
+  const oldNames = ['Campus Video', 'Campus Music', 'Campus Cloud', 'Campus Study'];
+  const saved = {
+    ...seed,
+    subscriptions: seed.subscriptions.map((s, i) => ({ ...s, merchant: oldNames[i], status: 'cancelled' as const, insightDecision: 'kept' as const })),
+    transactions: seed.transactions.map(t => {
+      const index = seed.subscriptions.findIndex(s => s.id === t.subscriptionId);
+      return index < 0 ? t : { ...t, merchant: oldNames[index] };
+    }),
+  };
+  const upgraded = normalizeDemoSnapshot(saved);
+  expect(upgraded.subscriptions.map(s => s.merchant)).toEqual(['Tencent Video VIP', 'QQ Music Green Diamond', 'Baidu Netdisk SVIP', 'Taobao 88VIP']);
+  expect(upgraded.subscriptions.every(s => s.status === 'cancelled' && s.insightDecision === 'kept')).toBe(true);
+  expect(upgraded.transactions).toEqual(seed.transactions);
+  expect(upgraded.subscriptions.map(s => ({ ...s, merchant: '' }))).toEqual(saved.subscriptions.map(s => ({ ...s, merchant: '' })));
+  expect(upgraded.accounts).toEqual(saved.accounts);
+  expect(upgraded.budgets).toEqual(saved.budgets);
+  expect(upgraded.auditEvents).toEqual(saved.auditEvents);
+  expect(normalizeDemoSnapshot(upgraded)).toEqual(upgraded);
+});
+
+it('preserves custom membership names and other users records during migration', () => {
+  const seed = createSeedSnapshot('v1');
+  const saved = { ...seed, subscriptions: [
+    { ...seed.subscriptions[0], merchant: 'My video plan' },
+    { ...seed.subscriptions[1], ownerId: 'another-owner', merchant: 'Campus Music' },
+    { ...seed.subscriptions[2], id: 'custom-membership', merchant: 'Campus Cloud' },
+  ] };
+  expect(normalizeDemoSnapshot(saved).subscriptions).toEqual(saved.subscriptions);
 });
