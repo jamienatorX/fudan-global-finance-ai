@@ -60,20 +60,30 @@ describe('student finance calculations', () => {
     expect(model.netBurnRunwayMonths).toBe(0);
   });
 
-  it('uses only observed nonflagged category debits as baselines and encodes the transaction link', async () => {
+  it('does not promote legacy spending flags without enough historical evidence', async () => {
+    const model = await overview(createSeedSnapshot('v1'));
+    expect(model.alertDetails).toEqual([]);
+    expect(model.spendingHistoryInsufficient).toBe(true);
+    expect(model.alerts.some(a => /Shopping spike|Unusually large food/.test(a))).toBe(false);
+  });
+
+  it('uses earlier 90-day category medians and links to a supported unusual purchase', async () => {
     const seed = createSeedSnapshot('v1');
-    const flagged = seed.transactions.find(transaction => transaction.anomaly)!;
-    const model = await overview({ ...seed, transactions: [{ ...flagged, merchant: 'Food & café / 上海' }] });
-    const alert = model.alertDetails[0];
-    expect(alert.baseline).toBeNull();
-    expect(alert.baselineLabel).toBe('No other observed category transactions');
-    expect(alert.amount).toEqual(flagged.amount);
-    const url = new URL(alert.href, 'https://example.test');
-    expect(url.searchParams.get('q')).toBe('Food & café / 上海');
+    const flagged = seed.transactions.find(t => t.anomaly)!;
+    const history = Array.from({length:10}, (_,i) => ({ ...flagged, id: 'food-history-'+i, anomaly: null,
+      occurredAt: '2026-09-'+String(i+1).padStart(2,'0')+'T08:00:00Z', amount: {...flagged.amount,amountMinor:i===9?100000n:2000n} }));
+    const changed = {...flagged, merchant:'Food & café / 上海'};
+    const model = await overview({...seed, transactions:[changed,...history]});
+    const alert=model.alertDetails.find(a=>a.id===flagged.id)!;
+    expect(alert.baseline?.amountMinor).toBe(2000n);
+    expect(alert.baselineLabel).toBe('Median of 10 earlier category transactions (90-day window)');
+    const url = new URL(alert.href,'https://example.test');
+    expect(url.searchParams.get('q')).toBe(changed.merchant);
     expect(url.searchParams.get('transaction')).toBe(flagged.id);
-    expect(url.searchParams.get('currency')).toBe(flagged.amount.currency);
-    const withBaseline = await overview(seed);
-    expect(withBaseline.alertDetails[0].baseline?.amountMinor).toBe(115_000n);
-    expect(withBaseline.alertDetails[0].baselineLabel).toBe('Mean of 1 other observed category transactions');
+    expect((await overview({...seed,transactions:[changed,...history.slice(0,9)]})).alertDetails).toEqual([]);
+    const exactlyDouble={...changed,amount:{...changed.amount,amountMinor:4000n}};
+    expect((await overview({...seed,transactions:[exactlyDouble,...history]})).alertDetails).toEqual([]);
+    const ineligible=history.map((t,i)=>i===0?{...t,occurredAt:'2026-10-06T00:00:00Z'}:t);
+    expect((await overview({...seed,transactions:[changed,...ineligible]})).alertDetails).toEqual([]);
   });
 });

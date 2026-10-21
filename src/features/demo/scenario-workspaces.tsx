@@ -10,6 +10,7 @@ import { CURRENCY_MINOR_DIGITS } from '../../domain/currency';
 import { formatMoney, money } from '../../domain/money';
 import { parseMajorAmount, referenceConversion, projectedRunway } from './planning-helpers';
 
+type TransferDefaults = { sourceId?: string; destinationId?: string; internalOnly?: boolean };
 type Page = 'transfers' | 'cards' | 'subscriptions' | 'wealth' | 'fx' | 'planner' | 'audit' | 'settings';
 const card = 'rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6';
 const field = 'mt-1 block min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:outline-2 focus:outline-blue-500';
@@ -21,7 +22,7 @@ function Panel({ title, children }: { title: string; children: ReactNode }) {
 function Label({ caption, children }: { caption: string; children: ReactNode }) {
   return <LocalizedLabel className="block text-sm font-medium text-slate-700">{caption}{children}</LocalizedLabel>;
 }
-function PageBody({ section }: { section: Page }) {
+function PageBody({ section, transferDefaults }: { section: Page; transferDefaults?: TransferDefaults }) {
   const { snapshot, request, reset } = useDemo();
   const today=useShanghaiDate();
   const [values, setValues] = useState<Record<string, string>>({});
@@ -43,7 +44,9 @@ function PageBody({ section }: { section: Page }) {
     settings: ['Settings', ''],
   };
   const [title,description]=names[section];
-  const accountId=val('source',snapshot.accounts[0].id);
+  const defaultSource=snapshot.accounts.find(a=>a.id===transferDefaults?.sourceId && a.ownerId===snapshot.users[0].id && a.status==='active') ?? snapshot.accounts[0];
+  const defaultDestination=snapshot.accounts.find(a=>a.id===transferDefaults?.destinationId && a.ownerId===snapshot.users[0].id && a.id!==defaultSource.id && a.status==='active' && a.currency===defaultSource.currency);
+  const accountId=val('source',defaultSource.id);
   const source=snapshot.accounts.find(a=>a.id===accountId) ?? snapshot.accounts[0];
   const totalSubscriptions=snapshot.subscriptions.filter(s=>s.status==='active').reduce((n,s)=>n+(s.cadence==='monthly'?s.amount.amountMinor:s.amount.amountMinor/12n),0n);
   const runway=projectedRunway(snapshot);
@@ -59,20 +62,20 @@ function PageBody({ section }: { section: Page }) {
     <LocalizedHeader>
       <LocalizedH1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950">{title}</LocalizedH1>
       <LocalizedP className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{description}</LocalizedP></LocalizedHeader>
-    {section==='transfers' && <LocalizedDiv className="grid gap-5 lg:grid-cols-2">
-      <Panel title="Create a transfer proposal">
+    {section==='transfers' && <LocalizedDiv id="between-accounts" className="grid gap-5 lg:grid-cols-2">
+      <Panel title={transferDefaults?.internalOnly?'Transfer between your accounts':'Create a transfer proposal'}>
         <LocalizedDiv className="space-y-4">
-          <Label caption="Source account"><LocalizedSelect className={field} value={accountId} onChange={e=>{set('source',e.target.value);set('recipient','');}}>
+          <Label caption="Source account"><LocalizedSelect aria-label="Source account" className={field} value={accountId} onChange={e=>{set('source',e.target.value);set('recipient','');}}>
             {snapshot.accounts.filter(a=>a.status==='active').map(a=><LocalizedOption key={a.id} value={a.id}>{a.currency} {a.type} · {formatMoney(a.availableBalance)}</LocalizedOption>)}</LocalizedSelect></Label>
-          <Label caption="Recipient"><LocalizedSelect className={field} value={val('recipient','')} onChange={e=>set('recipient',e.target.value)}>
+          <Label caption="Recipient"><LocalizedSelect aria-label="Recipient" className={field} value={val('recipient',defaultDestination?'account:'+defaultDestination.id:'')} onChange={e=>set('recipient',e.target.value)}>
             <LocalizedOption value="">Choose a recipient</LocalizedOption>
             {snapshot.accounts.filter(a=>a.id!==source.id&&a.currency===source.currency).map(a=><LocalizedOption key={a.id} value={'account:'+a.id}>Own {a.currency} {a.type}</LocalizedOption>)}
-            {snapshot.beneficiaries.filter(b=>b.supportedCurrencies.includes(source.currency)).map(b=><LocalizedOption key={b.id} value={'beneficiary:'+b.id}>{b.displayName} · {b.accountAlias}</LocalizedOption>)}
+            {!transferDefaults?.internalOnly && snapshot.beneficiaries.filter(b=>b.supportedCurrencies.includes(source.currency)).map(b=><LocalizedOption key={b.id} value={'beneficiary:'+b.id}>{b.displayName} · {b.accountAlias}</LocalizedOption>)}
           </LocalizedSelect></Label>
           <Label caption={'Amount ('+source.currency+')'}><LocalizedInput className={field} inputMode="decimal" value={val('transferAmount','800.00')} onChange={e=>set('transferAmount',e.target.value)}/></Label>
           <Label caption="Optional schedule (Shanghai UTC+08:00)"><LocalizedInput type="datetime-local" className={field} value={val('schedule')} onChange={e=>set('schedule',e.target.value)}/></Label>
           <LocalizedButton className={button} onClick={()=>submit(()=>{
-            const recipient=val('recipient'); if(!recipient)throw new Error('Select a recipient');
+            const recipient=val('recipient',defaultDestination?'account:'+defaultDestination.id:''); if(!recipient)throw new Error('Select a recipient');
             const scheduledAt=val('schedule')?new Date(val('schedule')+':00+08:00').toISOString():undefined;
             return {type:'transfer',sourceId:source.id,amountMinor:parseMajorAmount(val('transferAmount','800.00'),source.currency),scheduledAt,
               ...(recipient.startsWith('account:')?{destinationId:recipient.slice(8)}:{beneficiaryId:recipient.slice(12)})};
@@ -164,7 +167,7 @@ function PageBody({ section }: { section: Page }) {
 
   </LocalizedDiv>;
 }
-export function TransfersWorkspace(){return <PageBody section="transfers"/>}
+export function TransfersWorkspace(props: TransferDefaults){return <PageBody key={(props.sourceId??'')+':'+(props.destinationId??'')+':'+!!props.internalOnly} section="transfers" transferDefaults={props}/>}
 export function CardsWorkspace(){return <PageBody section="cards"/>}
 export function SubscriptionsWorkspace(){return <PageBody section="subscriptions"/>}
 export function WealthWorkspace(){return <PageBody section="wealth"/>}

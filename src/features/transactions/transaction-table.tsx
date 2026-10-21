@@ -31,7 +31,7 @@ export function TransactionTable({ transactions, total }: Readonly<{
                   <LocalizedTd className="px-4 py-4">
                     <LocalizedSpan className="block font-medium text-slate-900">{transaction.merchant}</LocalizedSpan>
                     <LocalizedSpan className="block text-xs text-slate-500">{humanize(transaction.category)}</LocalizedSpan>
-                    {transaction.anomaly ? <LocalizedSpan className="mt-1 block text-xs font-medium text-amber-700">{transaction.anomaly}</LocalizedSpan> : null}
+                    {transaction.anomaly ? <LocalizedSpan className="mt-1 block text-xs font-medium text-amber-700">Historical review flag · not statistically verified</LocalizedSpan> : null}
                   </LocalizedTd>
                   <LocalizedTd className="px-4 py-4"><LocalizedSpan className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700">{humanize(transaction.classification)}</LocalizedSpan></LocalizedTd>
                   <LocalizedTd className={`whitespace-nowrap px-6 py-4 text-right font-semibold tabular-nums ${transaction.direction === 'credit' ? 'text-emerald-700' : 'text-slate-900'}`}>

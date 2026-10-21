@@ -9,7 +9,7 @@ describe('transaction table', () => {
     render(<TransactionTable transactions={transactions.slice(0, 3)} total={transactions.length} />);
     expect(screen.getByRole('heading', { name: 'Transaction history' })).toBeInTheDocument();
     expect(screen.getByText('Campus Dining')).toBeInTheDocument();
-    expect(screen.getByText('Unusually large food purchase')).toBeInTheDocument();
+    expect(screen.getByText('Historical review flag · not statistically verified')).toBeInTheDocument();
     expect(screen.getAllByText('Consumption').length).toBeGreaterThan(0);
   });
   it('handles empty results', () => {

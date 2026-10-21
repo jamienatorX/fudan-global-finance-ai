@@ -37,13 +37,16 @@ describe('OverviewDashboard', () => {
     const tuitionHeading = screen.getByRole('heading', { name: 'Upcoming tuition' });
     const alertsHeading = screen.getByRole('heading', { name: 'Financial alerts' });
     expect(alertsHeading.compareDocumentPosition(tuitionHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(screen.getByRole('region', { name: 'Financial alerts' })).toHaveTextContent('Unusually large food purchase');
+    expect(screen.getByRole('region', { name: 'Financial alerts' })).toHaveTextContent('Monthly budget fully used');
+    expect(screen.getByRole('region', { name: 'Financial alerts' })).toHaveTextContent('Not enough history');
+    expect(screen.queryByText('Unusually large food purchase')).not.toBeInTheDocument();
     expect(screen.getAllByTestId('recent-transaction')).toHaveLength(5);
     expect(screen.getByRole('region', { name: 'Banking shortcuts' })).toBeInTheDocument();
     for (const title of ['Multi-currency balances','Spending by category','Investment portfolio','3-month cash-flow forecast','Budget health']) {
       expect(screen.queryByRole('heading', { name: title })).not.toBeInTheDocument();
     }
     expect(screen.queryByRole('group', { name: 'Membership progress' })).not.toBeInTheDocument();
-    expect(screen.getAllByRole('link', { name: /View transaction/ }).every(link=>link.getAttribute('href')?.includes('transaction='))).toBe(true);
+    expect(screen.queryByRole('link', { name: /View transaction/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('link',{name:/Review budget/})).toHaveAttribute('href','/planner');
   });
 });

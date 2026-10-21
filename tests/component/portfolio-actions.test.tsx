@@ -11,10 +11,10 @@ vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams()
 beforeEach(() => localStorage.clear());
 it('reviews a withdrawal and records it only after confirmation', () => {
   render(<DemoProvider><PortfolioQuickActions /><PortfolioActivityPanel /><ApprovalDrawer /></DemoProvider>);
-  fireEvent.click(screen.getByRole('button', { name: 'Withdraw' }));
-  const dialog = screen.getByRole('dialog', { name: 'Withdraw from investments' });
-  fireEvent.change(within(dialog).getByRole('textbox', { name: 'Withdrawal amount' }), { target: { value: '100' } });
-  fireEvent.click(within(dialog).getByRole('button', { name: 'Review withdrawal' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Sell investment' }));
+  const dialog = screen.getByRole('dialog', { name: 'Sell an investment' });
+  fireEvent.change(within(dialog).getByRole('textbox', { name: 'Sale or redemption amount' }), { target: { value: '100' } });
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Review sale or redemption' }));
   expect(screen.getByRole('region', { name: 'Review and confirmation' })).toHaveTextContent('CNY 100.00');
   fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
   fireEvent.click(screen.getByRole('button', { name: 'Withdrawn' }));
@@ -29,11 +29,11 @@ it('shows a new date window when the graph period changes', () => {
   expect(screen.getByRole('slider', { name: 'Inspect cash flow date' })).toHaveAttribute('max', '6');
 });
 
-it('keeps Add funds and Withdraw while hiding the redundant Invest action on Investing', () => {
+it('offers internal transfers and investment sales while hiding the redundant Invest action on Investing', () => {
   render(<DemoProvider><PortfolioQuickActions showInvest={false} /></DemoProvider>);
   const actions = screen.getByLabelText('Portfolio actions');
   expect(within(actions).queryByRole('link', { name: 'Invest' })).not.toBeInTheDocument();
-  expect(within(actions).getByRole('link', { name: 'Add funds' })).toHaveAttribute('href', '/transfers');
-  fireEvent.click(within(actions).getByRole('button', { name: 'Withdraw' }));
-  expect(screen.getByRole('dialog', { name: 'Withdraw from investments' })).toBeInTheDocument();
+  expect(within(actions).getByRole('link', { name: 'Transfer between accounts' })).toHaveAttribute('href', expect.stringContaining('/transfers?mode=internal'));
+  fireEvent.click(within(actions).getByRole('button', { name: 'Sell investment' }));
+  expect(screen.getByRole('dialog', { name: 'Sell an investment' })).toBeInTheDocument();
 });

@@ -79,7 +79,7 @@ export function InvestingWorkspace({ initialAsset, initialInstrument }: { initia
         const percent = total > 0n ? Number(value * 10000n / total) / 100 : 0;
         return <LocalizedDiv key={asset}><LocalizedDiv><LocalizedSpan>{asset}</LocalizedSpan><LocalizedStrong>{percent.toFixed(1)}%</LocalizedStrong></LocalizedDiv><LocalizedDiv className="invest-allocation-track"><LocalizedSpan style={{ width: percent + '%', background: ['#087f70','#547da1','#9c79b8','#b88732','#6b9292'][index] }} /></LocalizedDiv></LocalizedDiv>;
       })}</LocalizedDiv></LocalizedSection>
-      <PortfolioActivityPanel showHoldings={false} />
+      <PortfolioActivityPanel />
       </LocalizedDiv>
       <LocalizedAside className="invest-ticket invest-panel" aria-labelledby="order-ticket-title">
         <LocalizedP className="invest-eyebrow">Make your next move</LocalizedP><LocalizedH2 id="order-ticket-title">Order preview</LocalizedH2><LocalizedDiv className="invest-ticket-asset"><LocalizedStrong>{selected.symbol}</LocalizedStrong><LocalizedSpan>{selected.name}</LocalizedSpan><LocalizedP>{cny(selected.priceMinor)} <LocalizedSmall>/ unit · demo</LocalizedSmall></LocalizedP></LocalizedDiv>

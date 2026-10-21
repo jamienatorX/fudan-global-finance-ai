@@ -6,6 +6,9 @@ const folded = new Map(Object.entries(catalog).map(([en, zh]) => [en.toLowerCase
 
 // Templates are anchored to whole UI messages: names, IDs, amounts and currency codes remain data.
 const templates: readonly [RegExp, (...values: string[]) => string][] = [
+  [/^Daily budget remaining: (.+) \/ day$/, value => `每日剩余预算：${value} / 天`],
+  [/^Unusual (.+) spending$/, category => `${translateText(category,'zh-CN')}消费异常`],
+  [/^Median of (\d+) earlier category transactions \(90-day window\)(?:: (.+))?$/, (count,value) => `过去90天内${count}笔更早同类交易的中位数${value?`：${value}`:''}`],
   [/^(.+) has no recorded usage\.$/, name => `${translateText(name, 'zh-CN')}暂无使用记录。`],
   [/^Mean of (\d+) other observed category transactions(?:: (.+))?$/, (count,value) => `其他 ${count} 笔同类交易的均值${value?`：${value}`:''}`],
   [/^(Up|Down|Unchanged) (.+) percent$/, (direction,value) => `${translateText(direction, 'zh-CN')} ${value}%`],

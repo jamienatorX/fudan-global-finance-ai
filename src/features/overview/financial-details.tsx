@@ -1,8 +1,11 @@
+'use client';
 import { LocalizedDd, LocalizedDetails, LocalizedDiv, LocalizedDl, LocalizedDt, LocalizedH2, LocalizedLi, LocalizedP, LocalizedProgress, LocalizedSmall, LocalizedSpan, LocalizedStrong, LocalizedSummary, LocalizedTime, LocalizedUl } from '../../i18n/localized';
 import { LocalizedLink as Link } from '../../i18n/localized';
 import { ArrowUpRight, CircleAlert } from 'lucide-react';
 import { Card, CardHeader } from '../../components/ui/card';
 import { formatMoney } from '../../domain/money';
+import {useShanghaiDate} from '../cards/use-shanghai-date';
+import {shanghaiDate} from './safe-to-spend';
 import type { OverviewModel } from './overview-queries';
 
 export function RunwayDetails({ overview: o }: { overview: OverviewModel }) {
@@ -38,15 +41,23 @@ export function EmergencyFundDetails({ overview: o }: { overview: OverviewModel 
 }
 
 export function FinancialAlerts({ overview: o }: { overview: OverviewModel }) {
+  const today=useShanghaiDate()||shanghaiDate(o.asOf);
+  const due=o.tuition.next?shanghaiDate(o.tuition.next.dueAt):null;
+  const tuitionDue=!!due && !!o.tuition.next && o.tuition.outstanding.amountMinor>0n && Date.parse(due+'T00:00:00Z')-Date.parse(today+'T00:00:00Z')<=14*86400000;
+  const budgetUsed=o.budget.limit.amountMinor>0n && o.budget.actual.amountMinor>=o.budget.limit.amountMinor;
+  const count=o.alertDetails.length+Number(tuitionDue)+Number(budgetUsed);
   return <Card className="student-panel financial-alerts-panel" aria-label="Financial alerts">
-    <LocalizedDiv className="financial-alerts-heading"><LocalizedSpan className="financial-alerts-icon"><CircleAlert size={23} aria-hidden /></LocalizedSpan><LocalizedDiv><LocalizedP className="invest-eyebrow">Worth a closer look</LocalizedP><LocalizedH2>Financial alerts</LocalizedH2></LocalizedDiv><LocalizedSpan className="financial-alerts-count">{o.alertDetails.length} to review</LocalizedSpan></LocalizedDiv>
-    <LocalizedUl className="student-alerts">{o.alertDetails.map(alert => <LocalizedLi key={alert.id}>
+    <LocalizedDiv className="financial-alerts-heading"><LocalizedSpan className="financial-alerts-icon"><CircleAlert size={23} aria-hidden /></LocalizedSpan><LocalizedDiv><LocalizedP className="invest-eyebrow">Worth a closer look</LocalizedP><LocalizedH2>Financial alerts</LocalizedH2></LocalizedDiv><LocalizedSpan className="financial-alerts-count">{count} to review</LocalizedSpan></LocalizedDiv>
+    <LocalizedUl className="student-alerts">
+      {tuitionDue?<LocalizedLi><Link href="/planner"><LocalizedDiv className="financial-alert-title"><LocalizedStrong>{due!<today?'Overdue tuition':'Tuition due within 14 days'}</LocalizedStrong><ArrowUpRight size={19} aria-hidden /></LocalizedDiv><LocalizedSpan className="financial-alert-amount">{formatMoney(o.tuition.outstanding)}</LocalizedSpan><LocalizedTime dateTime={o.tuition.next!.dueAt}>{due}</LocalizedTime><LocalizedSmall>Unpaid amount · review your tuition plan</LocalizedSmall><LocalizedSpan className="student-link">Plan payment →</LocalizedSpan></Link></LocalizedLi>:null}
+      {budgetUsed?<LocalizedLi><Link href="/planner"><LocalizedDiv className="financial-alert-title"><LocalizedStrong>{o.budget.actual.amountMinor>o.budget.limit.amountMinor?'Monthly budget exceeded':'Monthly budget fully used'}</LocalizedStrong><ArrowUpRight size={19} aria-hidden /></LocalizedDiv><LocalizedSpan className="financial-alert-amount">{formatMoney(o.budget.actual)}</LocalizedSpan><LocalizedSmall>Recorded monthly spending</LocalizedSmall><LocalizedSmall>{formatMoney(o.budget.actual)} / {formatMoney(o.budget.limit)}</LocalizedSmall><LocalizedSpan className="student-link">Review budget →</LocalizedSpan></Link></LocalizedLi>:null}
+      {o.alertDetails.map(alert => <LocalizedLi key={alert.id}>
       <Link href={alert.href + '#transaction-' + alert.id}>
         <LocalizedDiv className="financial-alert-title"><LocalizedStrong>{alert.title}</LocalizedStrong><ArrowUpRight size={19} aria-hidden /></LocalizedDiv>
         <LocalizedSpan className="financial-alert-amount">{formatMoney(alert.amount)}</LocalizedSpan><LocalizedTime dateTime={alert.date}>{alert.date.slice(0,10)}</LocalizedTime>
         <LocalizedSmall>{alert.baselineLabel}{alert.baseline ? `: ${formatMoney(alert.baseline)}` : ''}</LocalizedSmall>
-        {alert.baseline && alert.amount.amountMinor <= alert.baseline.amountMinor ? <LocalizedSmall>Recorded flag; amount does not exceed this observed baseline.</LocalizedSmall> : null}
+        <LocalizedSmall>More than twice the historical median.</LocalizedSmall>
         <LocalizedSpan className="student-link">View transaction →</LocalizedSpan></Link>
-    </LocalizedLi>)}{!o.alertDetails.length ? <LocalizedLi className="student-note">No flagged spending to review.</LocalizedLi> : null}</LocalizedUl>
+    </LocalizedLi>)}{!count ? <LocalizedLi className="student-note">No financial alerts to review.</LocalizedLi> : null}</LocalizedUl>{o.spendingHistoryInsufficient?<LocalizedP className="student-note">Not enough history for some spending categories. Comparisons require at least 10 earlier purchases within 90 days.</LocalizedP>:null}
   </Card>;
 }

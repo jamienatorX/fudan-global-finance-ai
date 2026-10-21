@@ -32,6 +32,7 @@ export type OverviewModel = Readonly<{
   netBurn: Money;
   netBurnRunwayMonths: number | null;
   postTuitionCash: Money;
+  spendingHistoryInsufficient: boolean;
   alertDetails: readonly Readonly<{ id: string; title: string; amount: Money; date: string; baseline: Money | null; baselineLabel: string; href: string }>[];
   accountBalances: readonly Readonly<{ id: string; label: string; amount: Money; reportingAmount: Money }>[];
   selectedAccount: Readonly<{ id: string; label: string; amount: Money; reportingAmount: Money }> | null;
@@ -106,7 +107,6 @@ export function getOverviewAlerts(snapshot: FinancialSnapshot): readonly string[
   const nextTuition = snapshot.tuitionObligations.filter((tuition) => tuition.status !== 'paid').toSorted((left, right) => left.dueAt.localeCompare(right.dueAt))[0];
   return [
     ...(nextTuition ? [`${nextTuition.installment} is due ${nextTuition.dueAt.slice(0, 10)}`] : []),
-    ...monthlyTransactions(snapshot).filter((transaction) => transaction.direction === 'debit' && transaction.classification === 'consumption' && transaction.anomaly).map((transaction) => transaction.anomaly!),
   ];
 }
 
@@ -185,7 +185,6 @@ export async function getOverviewModel(repository: FinancialRepository, userId: 
 
   const recentTransactions = snapshot.transactions.toSorted((left, right) =>
     right.occurredAt.localeCompare(left.occurredAt) || right.id.localeCompare(left.id)).slice(0, 5);
-  const alerts = getOverviewAlerts(snapshot);
   // Phase 1 has occurrence metadata, not stable recurrence-series IDs. Use only
   // the reporting month's observed income rather than replaying all history.
   const recurringIncome = sumMoney(monthTransactions
@@ -205,18 +204,29 @@ export async function getOverviewModel(repository: FinancialRepository, userId: 
   const netBurnRunwayMonths = netBurn.amountMinor > 0n
     ? Number((postTuitionCash.amountMinor * 10n + netBurn.amountMinor / 2n) / netBurn.amountMinor) / 10
     : null;
-  const alertDetails = expenses.filter((transaction) => transaction.anomaly).map((transaction) => {
-    const observations = snapshot.transactions.filter((other) => other.ownerId === userId
+  let spendingHistoryInsufficient = false;
+  const alertDetails = expenses.flatMap((transaction) => {
+    const occurred = Date.parse(transaction.occurredAt);
+    if(occurred>Date.parse(snapshot.asOf))return [];
+    const observations = snapshot.transactions.filter(other => other.ownerId === userId
       && other.id !== transaction.id && other.direction === 'debit' && other.classification === 'consumption'
-      && other.category === transaction.category && !other.anomaly);
-    const total = sumMoney(observations.map((other) => convertToCny(other.amount, snapshot.exchangeRates)));
-    const baseline = observations.length ? money(roundedDivide(total.amountMinor, BigInt(observations.length)), REPORTING_CURRENCY) : null;
+      && other.category === transaction.category && Date.parse(other.occurredAt) < occurred
+      && Date.parse(other.occurredAt) >= occurred - 90 * 86400000);
+    if (observations.length < 10) { spendingHistoryInsufficient = true; return []; }
+    const amounts = observations.map(other => convertToCny(other.amount, snapshot.exchangeRates).amountMinor)
+      .sort((a,b) => a < b ? -1 : a > b ? 1 : 0);
+    const middle = Math.floor(amounts.length / 2);
+    const median = amounts.length % 2 ? amounts[middle] : roundedDivide(amounts[middle-1]+amounts[middle],2n);
+    const amount = convertToCny(transaction.amount, snapshot.exchangeRates);
+    // Do not promote stored legacy flags. Require a positive historical median and >2x spend.
+    if (median <= 0n || amount.amountMinor <= median * 2n) return [];
     const query = new URLSearchParams({ month: transaction.occurredAt.slice(0, 7), q: transaction.merchant,
       transaction: transaction.id, account: transaction.accountId, currency: transaction.amount.currency });
-    return { id: transaction.id, title: transaction.anomaly!, amount: convertToCny(transaction.amount, snapshot.exchangeRates), date: transaction.occurredAt,
-      baseline, baselineLabel: baseline ? `Mean of ${observations.length} other observed category transactions` : 'No other observed category transactions',
-      href: `/transactions?${query.toString()}` };
+    return [{ id: transaction.id, title: `Unusual ${transaction.category} spending`, amount, date: transaction.occurredAt,
+      baseline: money(median,REPORTING_CURRENCY), baselineLabel: `Median of ${observations.length} earlier category transactions (90-day window)`,
+      href: `/transactions?${query.toString()}` }];
   });
+  const alerts = [...getOverviewAlerts(snapshot), ...alertDetails.map(alert => alert.title)];
   let forecastOpening = availableCash.amountMinor;
   const forecast = Array.from({ length: 3 }, (_, index) => {
     const month = nextMonth(reportingMonth, index + 1);
@@ -253,6 +263,7 @@ export async function getOverviewModel(repository: FinancialRepository, userId: 
     netBurnRunwayMonths,
     postTuitionCash,
     alertDetails,
+    spendingHistoryInsufficient,
     accountBalances,
     selectedAccount,
     spending,

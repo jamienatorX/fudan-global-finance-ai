@@ -104,7 +104,7 @@ describe('AppShell', () => {
     const model = await getOverviewModel(new DemoFinancialRepository(), DEMO_USER_ID);
     fireEvent.click(screen.getByRole('button', { name: 'Notifications' }));
     const status = screen.getByRole('status');
-    expect(status).toHaveTextContent(`${model.alerts.length} financial alerts`);
+    expect(status).toHaveTextContent(`${model.alerts.length} financial alert${model.alerts.length===1?'':'s'}`);
     for (const alert of model.alerts) expect(status).toHaveTextContent(alert);
   });
 
