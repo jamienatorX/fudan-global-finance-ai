@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createSeedSnapshot } from '../../src/demo/seed';
+import { createSeedSnapshot, normalizeDemoSnapshot } from '../../src/demo/seed';
 import { fromFinancialSnapshotDTO, toFinancialSnapshotDTO } from '../../src/domain/financial-snapshot-dto';
 
 describe('versioned demo seed', () => {
@@ -97,4 +97,13 @@ describe('versioned demo seed', () => {
     expect(dto.aiMessages[0].metadata).toEqual({ amountMinor: '123', currency: 'CNY', context: 'keep as JSON' });
     expect(fromFinancialSnapshotDTO(JSON.parse(JSON.stringify(dto)))).toEqual(snapshot);
   });
+});
+
+it('updates the old saved demo name without changing financial activity',()=>{
+ const original=createSeedSnapshot('v1');
+ const saved={...original,users:original.users.map(user=>({...user,profile:{...user.profile,displayName:'Ayu Pratama'}}))};
+ const migrated=normalizeDemoSnapshot(saved);
+ expect(migrated.users[0].profile.displayName).toBe('Jim Pratama');
+ expect(migrated.accounts).toEqual(saved.accounts);
+ expect(migrated.transactions).toEqual(saved.transactions);
 });

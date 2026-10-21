@@ -19,7 +19,7 @@ test('market header shows directional quotes, pauses, and keeps actions at the r
   await expect(ticker.locator('.fx-ticker-track')).toHaveAttribute('data-paused','false');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   const notification = await header.getByRole('button',{name:'Notifications'}).boundingBox();
-  const profile = await header.getByTitle('Ayu Pratama').boundingBox();
+  const profile = await header.getByTitle('Jim Pratama').boundingBox();
   expect(profile!.x).toBeGreaterThan(notification!.x);
   if (page.viewportSize()!.width >= 1024) {
     expect((await ticker.boundingBox())!.width).toBeGreaterThan((await header.getByRole('searchbox').boundingBox())!.width);

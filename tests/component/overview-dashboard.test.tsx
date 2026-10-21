@@ -30,7 +30,7 @@ describe('OverviewDashboard', () => {
   it('keeps the overview focused and preserves its reconciled totals', async () => {
     const overview = await getOverviewModel(new DemoFinancialRepository(), DEMO_USER_ID);
     render(<OverviewDashboard overview={overview} />);
-    expect(screen.getByRole('heading', { name: /(Good morning|Good afternoon|Good evening|Welcome), Ayu/ })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /(Good morning|Good afternoon|Good evening|Welcome), Jim/ })).toBeInTheDocument();
     expect(screen.getByText('Sandbox · fictional funds')).toBeInTheDocument();
     expect(screen.getByText('CNY 40,201.36')).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Net worth and cash' })).toHaveTextContent('CNY 38,669.36');

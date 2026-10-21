@@ -6,7 +6,7 @@ test.describe('overview dashboard', () => {
   });
 
   test('presents the simulated financial overview and all product destinations', async ({ page }, testInfo) => {
-    await expect(page.getByRole('heading', { name: /Good (morning|afternoon|evening), Ayu/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Good (morning|afternoon|evening), Jim/ })).toBeVisible();
     await expect(page.getByText('CNY 40,201.36')).toBeVisible();
     await expect(page.getByRole('region', { name: 'Currency market ticker' })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Banking shortcuts' })).toBeVisible();

@@ -5,7 +5,7 @@ test('keeps the financial overview readable across small screens, landscape and 
   for (const viewport of [{ width: 375, height: 812 }, { width: 812, height: 375 }, { width: 1440, height: 1000 }]) {
     await page.setViewportSize(viewport);
     await page.goto('/overview');
-    await expect(page.getByRole('heading', { name: /Good (morning|afternoon|evening), Ayu/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Good (morning|afternoon|evening), Jim/ })).toBeVisible();
     await expect(page.getByText('CNY 40,201.36')).toBeVisible();
     expect(await page.evaluate(() => getComputedStyle(document.body).fontFamily)).toMatch(/inter/i);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);

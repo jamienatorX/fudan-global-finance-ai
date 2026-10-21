@@ -16,7 +16,7 @@ it('expands a compact card and returns focus when closed with Escape', () => {
   const thumbnail = screen.getByRole('button', { name: /View daily spending card ending/i });
   thumbnail.focus(); fireEvent.click(thumbnail);
   const dialog = screen.getByRole('dialog', { name: 'Daily spending virtual card' });
-  expect(dialog).toHaveTextContent('Ayu Pratama');
+  expect(dialog).toHaveTextContent('Jim Pratama');
   expect(within(dialog).getByRole('button', { name: 'Review freeze' })).toBeInTheDocument();
   fireEvent.keyDown(dialog, { key: 'Escape' });
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();

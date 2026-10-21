@@ -47,7 +47,7 @@ export function createSeedSnapshot(seedVersion: string): FinancialSnapshot {
 
   return {
     seedVersion, asOf,
-    users: [{ id: ownerId, profile: { displayName: 'Ayu Pratama', nationality: 'Indonesian', institution: 'Fudan University', city: 'Shanghai' }, homeCurrency: 'IDR', locale: 'en-US', riskProfileRef: 'demo-moderate' }],
+    users: [{ id: ownerId, profile: { displayName: 'Jim Pratama', nationality: 'Indonesian', institution: 'Fudan University', city: 'Shanghai' }, homeCurrency: 'IDR', locale: 'en-US', riskProfileRef: 'demo-moderate' }],
     accounts: [
       { id: id(10), ownerId, type: 'daily', currency: 'CNY', balance: cny(1865000n), availableBalance: cny(1865000n), status: 'active', goal: null },
       { id: id(11), ownerId, type: 'savings', currency: 'CNY', balance: cny(1200000n), availableBalance: cny(1200000n), status: 'active', goal: cny(1500000n) },
@@ -111,7 +111,7 @@ export function createSeedSnapshot(seedVersion: string): FinancialSnapshot {
   };
 }
 
-/** Non-destructive migration for browser snapshots created before subscription categories. */
+/** Preserve saved activity while upgrading the demo profile and subscription categories. */
 export function normalizeDemoSnapshot(snapshot: FinancialSnapshot): FinancialSnapshot {
   const transactions=snapshot.transactions.map(t=>t.subscriptionId && snapshot.subscriptions.some(s=>s.id===t.subscriptionId)?{...t,category:'subscriptions' as const}:t);
   const budgets=[...snapshot.budgets];
@@ -127,5 +127,6 @@ export function normalizeDemoSnapshot(snapshot: FinancialSnapshot): FinancialSna
     budgets[index]={...other,limit:cny(other.limit.amountMinor-cap),actualSpend:cny(other.actualSpend.amountMinor-portion)};
     budgets.push({...other,id:newId,category:'subscriptions',limit:cny(cap),actualSpend:cny(portion),status:portion>cap?'over-limit':'within-limit'});
   }
-  return {...snapshot,transactions,budgets};
+  const users=snapshot.users.map(user=>user.id===DEMO_USER_ID&&user.profile.displayName==='Ayu Pratama'?{...user,profile:{...user.profile,displayName:'Jim Pratama'}}:user);
+  return {...snapshot,users,transactions,budgets};
 }
