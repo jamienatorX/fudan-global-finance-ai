@@ -6,6 +6,10 @@ const folded = new Map(Object.entries(catalog).map(([en, zh]) => [en.toLowerCase
 
 // Templates are anchored to whole UI messages: names, IDs, amounts and currency codes remain data.
 const templates: readonly [RegExp, (...values: string[]) => string][] = [
+  [/^Mean of (\d+) other observed category transactions(?:: (.+))?$/, (count,value) => `其他 ${count} 笔同类交易的均值${value?`：${value}`:''}`],
+  [/^(Up|Down|Unchanged) (.+) percent$/, (direction,value) => `${translateText(direction, 'zh-CN')} ${value}%`],
+  [/^compared with (\d{4}-\d{2}-\d{2})$/, date => `与 ${date} 比较`],
+  [/^Published (\d{4}-\d{2}-\d{2})$/, date => `公布日期 ${date}`],
   [/^Until (.+) on (\d{4}-\d{2}-\d{2})$/, (name,date) => `截至 ${date} ${translateText(name, 'zh-CN')} 到账前`],
   [/^(.+)% funded$/, value => `已筹集 ${value}%`],
   [/^(.+)% cash allocation$/, value => `现金配置 ${value}%`],
@@ -17,8 +21,8 @@ const templates: readonly [RegExp, (...values: string[]) => string][] = [
   [/^Available ([A-Z]{3} [\d,.]+)$/,  value => `可用余额 ${value}`],
   [/^CNY reference: (.+)$/, value => `人民币参考金额：${value}`],
   [/^Savings goal: (.+)$/, value => `储蓄目标：${value}`],
-  [/^(.+) months$/, value => `${value} 个月`],
-  [/^(.+) days$/, value => `${value} 天`],
+  [/^([\d,.]+) months$/, value => `${value} 个月`],
+  [/^([\d,.]+) days$/, value => `${value} 天`],
   [/^(\d+) accounts?$/, value => `${value} 个账户`],
   [/^(\d+) active accounts$/, value => `${value} 个正常账户`],
   [/^(\d+) financial alerts?$/, value => `${value} 条财务提醒`],

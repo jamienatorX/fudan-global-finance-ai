@@ -25,6 +25,8 @@ it('preserves IDs, currencies, merchants, and dynamic amounts',()=>{
  expect(translateText('CNY 18,650.00','zh-CN')).toBe('CNY 18,650.00');
  expect(translateText('Campus Video','zh-CN')).toBe('Campus Video');
  expect(translateText('Good evening, Ayu','zh-CN')).toBe('晚上好，Ayu');
+ expect(translateText('Mean of 1 other observed category transactions: CNY 1,150.00','zh-CN')).toBe('其他 1 笔同类交易的均值：CNY 1,150.00');
+ expect(translateText('CNY 3,060.85 / day · 11 days','zh-CN')).toBe('CNY 3,060.85 / 天 · 11 天');
 });
 
 it('translates account actions without changing account links or balances', async()=>{
