@@ -6,13 +6,15 @@ import { translateText } from '../../src/i18n/translate';
 
 it('switches visible and accessible copy, preserves values and remembers the selection', () => {
   localStorage.clear();
-  const view=render(<LanguageProvider><LanguageSwitcher/><LocalizedButton>View transactions</LocalizedButton><LocalizedInput aria-label="Amount" placeholder="Amount" defaultValue="18650.00"/><LocalizedP>Available {'CNY 18,650.00'}</LocalizedP></LanguageProvider>);
+  const view=render(<LanguageProvider><LanguageSwitcher/><LocalizedP>福 Bank</LocalizedP><LocalizedButton>View transactions</LocalizedButton><LocalizedInput aria-label="Amount" placeholder="Amount" defaultValue="18650.00"/><LocalizedP>Available {'CNY 18,650.00'}</LocalizedP></LanguageProvider>);
   expect(screen.getByRole('button',{name:'View transactions'})).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button',{name:'简体中文'}));
   expect(screen.getByRole('button',{name:'查看交易'})).toBeInTheDocument();
   expect(screen.getByRole('textbox',{name:'金额'})).toHaveValue('18650.00');
   expect(screen.getByText('可用余额 CNY 18,650.00')).toBeInTheDocument();
   expect(document.documentElement.lang).toBe('zh-CN');
+  expect(screen.getByText('福银行')).toBeInTheDocument();
+  expect(document.title).toBe('福银行');
   expect(localStorage.getItem(LANGUAGE_STORAGE_KEY)).toBe('zh-CN');
   view.unmount();
   render(<LanguageProvider><LanguageSwitcher/><LocalizedButton>View transactions</LocalizedButton></LanguageProvider>);
@@ -20,6 +22,7 @@ it('switches visible and accessible copy, preserves values and remembers the sel
   fireEvent.click(screen.getByRole('button',{name:'English'}));
   expect(screen.getByRole('button',{name:'View transactions'})).toBeInTheDocument();
   expect(document.documentElement.lang).toBe('en');
+  expect(document.title).toBe('福 Bank');
 });
 it('preserves IDs, currencies, merchants, and dynamic amounts',()=>{
  expect(translateText('CNY 18,650.00','zh-CN')).toBe('CNY 18,650.00');

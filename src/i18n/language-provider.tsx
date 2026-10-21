@@ -18,7 +18,7 @@ const LanguageContext = createContext<{language: Language; setLanguage: (languag
 
 export function LanguageProvider({children}: {children: ReactNode}) {
   const language = useSyncExternalStore(subscribe, readLanguage, () => 'en' as Language);
-  useEffect(() => { document.documentElement.lang = language; }, [language]);
+  useEffect(() => { document.documentElement.lang = language; document.title = translateText('福 Bank', language); }, [language]);
   function setLanguage(next: Language) {
     try { localStorage.setItem(LANGUAGE_STORAGE_KEY, next); memoryLanguage=null; } catch { memoryLanguage=next; }
     window.dispatchEvent(new Event(eventName));
