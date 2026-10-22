@@ -30,7 +30,7 @@ export function SafeToSpendHero({ currency='CNY' }: {currency?:CurrencyCode}) {
       <LocalizedP>Food, transport, shopping and other configured spending caps exclude rent and subscriptions; recorded purchases are deducted.</LocalizedP>
       <LocalizedUl>{plan.reservations.map(r=><LocalizedLi key={r.id}>{r.label} · {display({...plan.total,amountMinor:r.amountMinor})} · {r.dueAt.slice(0,10)}</LocalizedLi>)}</LocalizedUl>
       {plan.shortfall.amountMinor>0n?<LocalizedP>Funding shortfall: {display(plan.shortfall)}</LocalizedP>:null}
-      <LocalizedP>Fixed sandbox accounting rates. Unknown or unrecorded bills and future spending are not included; this is a planning estimate.</LocalizedP>
+      <LocalizedP>Reference accounting rates. Unknown or unrecorded bills and future spending are not included; this is a planning estimate.</LocalizedP>
     </LocalizedDetails>
     <LocalizedDiv className="student-invest-actions"><PortfolioQuickActions/></LocalizedDiv>
   </LocalizedSection>;

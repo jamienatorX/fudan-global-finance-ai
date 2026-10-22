@@ -296,3 +296,69 @@ html[data-theme="dark-disabled"] .balance-hero { background:radial-gradient(elli
 :root[lang="zh-CN"] body { font-family:var(--font-inter,ui-sans-serif),"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",system-ui,sans-serif; }
 :root[lang="zh-CN"] :is(.invest-eyebrow,.fx-ticker-heading) { letter-spacing:.04em; }
 @media(max-width:639px) { .bank-header-actions { gap:5px; } .language-switcher { padding:2px; } .language-switcher button { min-width:26px; padding:4px; font-size:10px; } }
+
+/* Fufu: shared, theme-aware conversation surface. */
+.fufu-home-welcome { padding: clamp(16px,4vw,40px) 0 24px; }
+.fufu-home-welcome h1 { font-size: clamp(32px,5vw,60px); line-height: 1.08; letter-spacing: -.04em; font-weight: 700; margin: 12px 0 16px; }
+.fufu-home-welcome h1 span { color: var(--color-primary); }
+.fufu-home-welcome > p:last-child { color: var(--color-text-muted); }
+.fufu-chat { color: var(--color-text); margin-bottom: 24px; }
+.fufu-chat h2 { color: var(--color-text); }
+.fufu-transcript { max-height: 520px; min-height: 120px; overscroll-behavior: contain; }
+.fufu-reply { display:flex; align-items:flex-start; gap:12px; padding:16px; background:var(--color-info-soft); border-radius:20px 20px 20px 4px; margin-right:24px; line-height:1.65; }
+.fufu-reply > span { width:40px; height:48px; flex-shrink:0; }
+.fufu-reply > div { min-width:0; overflow-wrap:anywhere; }
+.fufu-user { margin-left:40px; padding:16px; border:1px solid var(--color-border); border-radius:20px 20px 4px 20px; background:var(--color-background); overflow-wrap:anywhere; }
+.fufu-chat textarea { background:var(--color-surface); color:var(--color-text); min-height:96px; }
+.fufu-chat textarea:focus-visible { outline:2px solid var(--color-primary); outline-offset:3px; }
+@media(max-width:480px) { .fufu-reply { margin-right:0; padding:12px; } .fufu-user { margin-left:24px; } }
+
+/* Submission finish: readable theme pairs and quiet, consistent surfaces. */
+:root { --color-primary:#076e61; --color-text-muted:#52666b; }
+.text-slate-500 { color:var(--color-text-muted); }
+.auth-title { color:var(--color-text); }
+.auth-skip { color:var(--color-text); background:var(--color-surface); }
+.language-switcher button { min-height:44px; min-width:36px; font-size:12px; }
+.workspace-footer { display:flex; flex-wrap:wrap; justify-content:space-between; gap:16px; margin-top:40px; padding:24px 0 12px; border-top:1px solid var(--color-border); color:var(--color-text-muted); font-size:12px; line-height:1.7; }
+.workspace-footer details { max-width:360px; }
+.workspace-footer summary,.fufu-privacy summary { cursor:pointer; min-height:32px; }
+.workspace-footer a { color:var(--color-primary); text-decoration:underline; }
+.fufu-privacy { color:var(--color-text-muted); font-size:12px; margin-top:8px; max-width:65ch; line-height:1.65; }
+.fufu-chat { box-shadow:var(--shadow-card); }
+.fufu-chat > div:first-child h2 { font-size:clamp(22px,3vw,32px); letter-spacing:-.035em; line-height:1.15; }
+.fufu-chat :is(button,summary) { min-height:44px; }
+.fufu-chat button { cursor:pointer; }
+.fufu-chat button:disabled { cursor:not-allowed; }
+.fufu-chat :is(button,textarea,summary):focus-visible { outline:2px solid var(--color-primary); outline-offset:3px; }
+.fufu-chat > div:first-child { background:var(--color-info-soft); }
+@media (prefers-color-scheme:dark) {
+ :root:not([data-theme="light"]) { --color-background:#0c191e; --color-surface:#162b31; --color-primary:#8be3cd; --color-text:#edf6f4; --color-text-muted:#b9cdcf; --color-positive:#80dcbc; --color-warning:#f2ce82; --color-danger:#ffb4b4; --color-danger-text:#ffb4b4; }
+ :root:not([data-theme="light"]) :is(.text-emerald-800,.text-emerald-900,.text-green-700,.text-green-800) { color:#9ae5c8; }
+ :root:not([data-theme="light"]) :is(.text-red-600,.text-red-700,.text-red-800,.text-rose-700) { color:#ffb4b4; }
+ :root:not([data-theme="light"]) :is(.text-amber-700,.text-amber-800,.text-amber-900,.text-amber-950) { color:#f2ce82; }
+ :root:not([data-theme="light"]) :is(.bg-emerald-100,.bg-green-50,.bg-green-100) { background-color:var(--color-positive-soft); }
+ :root:not([data-theme="light"]) :is(.bg-amber-100,.bg-yellow-50) { background-color:var(--color-warning-soft); }
+ :root:not([data-theme="light"]) .bg-red-100 { background-color:var(--color-danger-soft); }
+ :root:not([data-theme="light"]) :is(.bg-blue-200,.bg-slate-200) { background-color:#2b4950; }
+ :root:not([data-theme="light"]) :is(.border-slate-300,.border-emerald-100,.border-emerald-200,.border-blue-200,.border-amber-200) { border-color:var(--color-border); }
+ :root:not([data-theme="light"]) dialog { color:var(--color-text); background:var(--color-surface); border-color:var(--color-border); }
+ :root:not([data-theme="light"]) :is(.auth-title,.auth-skip) { color:var(--color-text); }
+}
+
+@media (prefers-color-scheme:dark) {
+ :root:not([data-theme="light"]) :is(.bg-teal-50,.bg-teal-100,.bg-emerald-50) { background-color:var(--color-info-soft); color:var(--color-text); }
+ :root:not([data-theme="light"]) :is(.text-teal-700,.text-teal-800) { color:var(--color-primary); }
+}
+
+/* Card artwork needs contrast even at gallery size. */
+.bank-card-face[data-tier=silver] { background:linear-gradient(125deg,#243744,#354d5c); }
+.card-gallery-item[data-variant="1"] .bank-card-face,.expanded-card-stage[data-variant="1"] .bank-card-face { background:linear-gradient(125deg,#263b5d,#304b6e); }
+.card-gallery-item[data-variant="2"] .bank-card-face,.expanded-card-stage[data-variant="2"] .bank-card-face { background:linear-gradient(125deg,#303247,#493d5e); }
+.bank-card-bottom div>span { color:#edf6f4; }
+.card-gallery-item .bank-card-top>span { font-size:10px; letter-spacing:.06em; }
+.card-gallery-item .bank-card-bottom div>span { font-size:9px; }
+.card-gallery-item .bank-card-number { font-size:12px; }
+.fx-down { --ticker-down:#ffa8b0; }
+.fufu-home-welcome { padding-top:16px; }
+.fufu-chat > div:first-child > span { height:112px; width:84px; }
+.fufu-transcript { min-height:88px; }

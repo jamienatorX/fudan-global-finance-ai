@@ -44,6 +44,6 @@ export function advanceConversation(state:ConversationState,update:ConversationU
  }
  if(drafts.filter(d=>d.status==='draft').length>6||drafts.length>20)throw new Error('TASK_LIMIT');
  const next:ConversationState={...state,revision:state.revision+1,drafts,messages:[...state.messages,{role:'user',content:message.slice(0,1000)}],expiresAt:Date.now()+1800000};
- const turn=describeConversation(next,c,mode);const text=turn.question??(drafts.length?'I’ve updated your tasks. Review the details and scenario below; nothing changes without exact confirmation.':'Tell me a banking task or choose one below. A chat reply never confirms a payment.');
+ const turn=describeConversation(next,c,mode);const text=turn.question??((!drafts.length?update.reply?.trim():undefined)||(drafts.length?'Here’s what I found. Review the details below, and I’ll guide you through the next step.':'What would you like help with? Ask a question or choose a task to get started.'));
  next.messages.push({role:'assistant',content:text});return turn;
 }

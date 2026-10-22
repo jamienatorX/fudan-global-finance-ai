@@ -31,7 +31,7 @@ describe('OverviewDashboard', () => {
     const overview = await getOverviewModel(new DemoFinancialRepository(), DEMO_USER_ID);
     render(<OverviewDashboard overview={overview} />);
     expect(screen.getByRole('heading', { name: /(Good morning|Good afternoon|Good evening|Welcome), Jim/ })).toBeInTheDocument();
-    expect(screen.getByText('Sandbox · fictional funds')).toBeInTheDocument();
+    expect(screen.getByRole('heading', {name: /Good|Hello|Hi|morning|afternoon|evening/i})).toBeInTheDocument();
     expect(screen.getByText('CNY 40,201.36')).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Net worth and cash' })).toHaveTextContent('CNY 38,669.36');
     const tuitionHeading = screen.getByRole('heading', { name: 'Upcoming tuition' });

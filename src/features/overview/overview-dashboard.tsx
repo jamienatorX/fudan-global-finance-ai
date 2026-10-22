@@ -18,7 +18,7 @@ export function ForecastCard({ overview: o }: { overview: OverviewModel }) {
   return <Card><CardHeader title="3-month cash-flow forecast" eyebrow="Forward view" />
     <LocalizedDiv className="student-balance-grid">{o.forecast.map(p => <LocalizedDiv key={p.month}><LocalizedP>{p.month}</LocalizedP><LocalizedStrong>{formatMoney(p.closing)}</LocalizedStrong><LocalizedSmall>Projected closing cash</LocalizedSmall>
       <LocalizedDl className="student-key-values"><LocalizedDiv><LocalizedDt>Opening</LocalizedDt><LocalizedDd>{formatMoney(p.opening)}</LocalizedDd></LocalizedDiv><LocalizedDiv><LocalizedDt>Recurring inflow</LocalizedDt><LocalizedDd>+{formatMoney(p.inflow)}</LocalizedDd></LocalizedDiv><LocalizedDiv><LocalizedDt>Living budget</LocalizedDt><LocalizedDd>−{formatMoney(p.recurringOutflow)}</LocalizedDd></LocalizedDiv><LocalizedDiv><LocalizedDt>Tuition</LocalizedDt><LocalizedDd>−{formatMoney(p.obligations)}</LocalizedDd></LocalizedDiv></LocalizedDl></LocalizedDiv>)}</LocalizedDiv>
-    <LocalizedP className="student-note">Fixed sandbox accounting rates; excludes one-off income. Opening + recurring inflow − budget − tuition = closing cash.</LocalizedP>
+    <LocalizedP className="student-note">Reference accounting rates; excludes one-off income. Opening + recurring inflow − budget − tuition = closing cash.</LocalizedP>
   </Card>;
 }
 export function RecentTransactions({ overview: o }: { overview: OverviewModel }) {
@@ -39,7 +39,7 @@ export function TuitionSummary({ overview: o }: { overview: OverviewModel }) {
 export function OverviewDashboard({ overview: o, hero, tuition }: { overview: OverviewModel; hero?: React.ReactNode; tuition?: React.ReactNode }) {
   const cashShare = o.totalNetWorth.amountMinor > 0n ? Number(o.availableCash.amountMinor * 10000n / o.totalNetWorth.amountMinor) / 100 : 0;
   return <LocalizedDiv className="overview-dashboard student-overview">
-    <LocalizedHeader className="student-overview-heading"><LocalizedDiv><LocalizedP className="invest-eyebrow">Your global workspace</LocalizedP><LocalizedH1><ShanghaiGreeting name={o.userName} /></LocalizedH1></LocalizedDiv><LocalizedSpan className="student-sandbox-badge">Sandbox · fictional funds</LocalizedSpan></LocalizedHeader>
+    <LocalizedHeader className="student-overview-heading"><LocalizedDiv><LocalizedP className="invest-eyebrow">Your global workspace</LocalizedP><LocalizedH1><ShanghaiGreeting name={o.userName} /></LocalizedH1></LocalizedDiv></LocalizedHeader>
     {hero ?? <LocalizedSection className="balance-hero student-safe-hero"><LocalizedP>Your financial snapshot</LocalizedP><LocalizedP className="student-hero-number">{formatMoney(o.availableCash)}</LocalizedP><PortfolioQuickActions /></LocalizedSection>}
     <LocalizedSection aria-label="Net worth and cash" className="student-net-worth"><LocalizedDiv><LocalizedSpan>Net worth</LocalizedSpan><LocalizedStrong>{formatMoney(o.totalNetWorth)}</LocalizedStrong><LocalizedSmall>Cash + investments</LocalizedSmall></LocalizedDiv><LocalizedDiv><LocalizedSpan>Available cash</LocalizedSpan><LocalizedStrong>{formatMoney(o.availableCash)}</LocalizedStrong><LocalizedSmall>{Math.min(100,Math.max(0,cashShare)).toFixed(1)}% cash allocation</LocalizedSmall></LocalizedDiv></LocalizedSection>
     <FinancialAlerts overview={o} />

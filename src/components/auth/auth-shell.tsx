@@ -30,7 +30,7 @@ export function AuthShell({ children }: Readonly<{ children: ReactNode }>) {
               <LocalizedDiv><GraduationCap size={20} aria-hidden /><LocalizedSpan>Student life.<LocalizedBr /><LocalizedStrong>A clearer plan.</LocalizedStrong></LocalizedSpan></LocalizedDiv>
             </LocalizedDiv>
           </LocalizedDiv>
-          <LocalizedP className="auth-story-footer">Demo</LocalizedP>
+          <LocalizedP className="auth-story-footer">Your future. Your agent.</LocalizedP>
         </LocalizedSection>
         <LocalizedSection className="auth-form-panel" aria-label="Account access">
           <LocalizedHeader className="auth-panel-header"><Link href="/" className="auth-back"><ArrowLeft size={16} aria-hidden />Back to overview</Link><LocalizedSpan className="auth-environment">PERSONAL BANKING</LocalizedSpan></LocalizedHeader>

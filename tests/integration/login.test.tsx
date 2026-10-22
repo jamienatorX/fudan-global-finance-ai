@@ -40,7 +40,7 @@ describe('fictional account login', () => {
     auth.configured = false;
     render(<LoginPage />);
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Try the demo' }).closest('form')).toHaveAttribute('action', '/demo');
+    expect(screen.getByRole('button', { name: 'Explore FU Bank' }).closest('form')).toHaveAttribute('action', '/demo');
   });
   it('displays a generic allowlisted callback failure', () => {
     auth.query = 'error=auth&details=private-provider-information';
