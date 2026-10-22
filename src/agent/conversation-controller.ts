@@ -35,16 +35,17 @@ export function describeConversation(state:ConversationState,c:AgentContext,mode
 export function advanceConversation(state:ConversationState,update:ConversationUpdate,c:AgentContext,message:string,mode:ConversationTurn['mode']='deterministic'):ConversationTurn{
  if(state.expiresAt<Date.now())throw new Error('CONVERSATION_EXPIRED');if(state.messages.length>=40)throw new Error('CONVERSATION_LIMIT');
  if(update.removeIds.length&&!/\b(skip|remove|forget|drop|cancel request)\b|跳过|取消|不要/.test(message.toLowerCase()))throw new Error('EXPLICIT_REMOVAL_REQUIRED');
- const drafts=structuredClone(state.drafts);
+ const drafts=structuredClone(state.drafts),touched=new Set<string>();
  for(const id of update.removeIds){const d=drafts.find(d=>d.id===id);if(!d||d.status!=='draft')throw new Error('INVALID_DRAFT');d.status='skipped';}
  for(const u of update.tasks){
   const index=u.id?drafts.findIndex(d=>d.id===u.id):-1;if(u.id&&index===-1)throw new Error('UNKNOWN_DRAFT');
   if(index>=0){const old=drafts[index];if(old.status!=='draft')throw new Error('TASK_ALREADY_DECIDED');if(old.kind!==u.kind)throw new Error('INVALID_DRAFT');drafts[index]={...old,...u,reservation:old.amountMinor===u.amountMinor&&old.currency===u.currency&&old.target===u.target&&old.category===u.category?old.reservation:'ask'};}
   else drafts.push({...u,id:crypto.randomUUID(),status:'draft',reservation:'ask'});
+  touched.add(drafts[index>=0?index:drafts.length-1].id);
  }
  if(drafts.filter(d=>d.status==='draft').length>6||drafts.length>20)throw new Error('TASK_LIMIT');
  const next:ConversationState={...state,revision:state.revision+1,drafts,messages:[...state.messages,{role:'user',content:message.slice(0,1000)}],expiresAt:Date.now()+1800000};
- const turn=describeConversation(next,c,mode);const answer=financialReply(turn);const text=answer?(answer+(turn.question?'\n\n'+turn.question:'')):turn.question??((!drafts.length?update.reply?.trim():undefined)||(drafts.length?'Here’s what I found. Review the details below, and I’ll guide you through the next step.':'What would you like help with? Ask a question or choose a task to get started.'));
+ const turn=describeConversation(next,c,mode);const currentTasks=turn.tasks.filter(t=>touched.has(t.draft.id)),question=currentTasks.find(t=>t.question)?.question;const answer=financialReply({...turn,tasks:currentTasks,impacts:update.tasks.some(t=>['affordability','transfer','investment','tuition','subscription_payment'].includes(t.kind))?turn.impacts:[]});const text=answer?(answer+(question?'\n\n'+question:'')):question??((!update.tasks.length?update.reply?.trim():undefined)||(drafts.length?'Here’s what I found. Review the details below, and I’ll guide you through the next step.':'What would you like help with? Ask a question or choose a task to get started.'));
  next.messages.push({role:'assistant',content:text});return turn;
 }
 
