@@ -1,6 +1,7 @@
 import {normalizeMerchant,displayAmount,type AgentContext} from './contracts';
 import {planCommand} from './planner';
 import {calculateAffordabilities} from './affordability';
+import {isSubscriptionPlanningRequest,subscriptionPlanningTask,prepareSubscriptionPlan} from './subscription-planning';
 import {UNSUPPORTED_MESSAGE} from './support';
 import type {ConversationState,ConversationTask,ConversationTurn,ConversationUpdate,DraftTask} from './conversation-contracts';
 function resolve<T extends {id:string;name:string}>(rows:readonly T[],query:string):T|undefined{
@@ -10,6 +11,7 @@ function resolve<T extends {id:string;name:string}>(rows:readonly T[],query:stri
 function compile(d:DraftTask,c:AgentContext):ConversationTask{
  const need=(question:string):ConversationTask=>({draft:d,status:'needs-input',message:'Nothing has changed.',question});
  if(d.status!=='draft')return{draft:d,status:d.status,message:d.receipt?'Original receipt: '+d.receipt.status+(d.receipt.verified?' · verified':''):'Task '+d.status+'.'};
+ const planning=subscriptionPlanningTask(d,c);if(planning)return planning;
  if(d.kind==='subscription_payment'||d.kind==='unsupported')return{draft:d,status:'unsupported',message:UNSUPPORTED_MESSAGE+(d.kind==='subscription_payment'?' Subscription payment is unavailable; you can explicitly include this cost as a hypothetical reservation.':'')};
  if(d.kind==='affordability')return !d.amountMinor||!d.currency?need('How much extra would you like to spend, and in which currency?'):{draft:d,status:'ready',message:'Read-only scenario calculation. No additional spending will be executed.'};
  let command='';const accounts=(c.accounts??[]).filter(a=>!d.currency||a.currency===d.currency),source=resolve(accounts,d.source);
@@ -37,7 +39,10 @@ export function advanceConversation(state:ConversationState,update:ConversationU
  if(update.removeIds.length&&!/\b(skip|remove|forget|drop|cancel request)\b|跳过|取消|不要/.test(message.toLowerCase()))throw new Error('EXPLICIT_REMOVAL_REQUIRED');
  const drafts=structuredClone(state.drafts),touched=new Set<string>();
  for(const id of update.removeIds){const d=drafts.find(d=>d.id===id);if(!d||d.status!=='draft')throw new Error('INVALID_DRAFT');d.status='skipped';}
- for(const u of update.tasks){
+ for(const incoming of update.tasks){
+  const previous=incoming.id?drafts.find(d=>d.id===incoming.id):undefined;
+  const planning=['subscription_payment','cancel_subscription'].includes(incoming.kind)&&(isSubscriptionPlanningRequest(message)||previous?.mode==='plan');
+  const u=planning?prepareSubscriptionPlan(incoming,message,c,previous):incoming;
   if(u.kind==='read'&&/\b(fx|forex)\b/i.test(u.query)&&!/(\b(fx|forex|convert|exchange|currency)\b|汇率|外汇|换汇|兑换)/i.test(message))continue;
   const index=u.id?drafts.findIndex(d=>d.id===u.id):-1;if(u.id&&index===-1)throw new Error('UNKNOWN_DRAFT');
   if(index>=0){const old=drafts[index];if(old.status!=='draft')throw new Error('TASK_ALREADY_DECIDED');if(old.kind!==u.kind)throw new Error('INVALID_DRAFT');drafts[index]={...old,...u,reservation:old.amountMinor===u.amountMinor&&old.currency===u.currency&&old.target===u.target&&old.category===u.category?old.reservation:'ask'};}
@@ -53,6 +58,8 @@ export function advanceConversation(state:ConversationState,update:ConversationU
 
 /** Money in assistant replies is formatted from validated tool results, never model prose. */
 function financialReply(turn:ConversationTurn):string|undefined{
+ const planned=turn.tasks.filter(t=>t.draft.mode==='plan'&&['subscription_payment','cancel_subscription'].includes(t.draft.kind));
+ if(planned.length)return ['Yes, I can help you plan this.',...planned.map(t=>t.message),'No purchase or cancellation has been made, and no automatic future action has been scheduled.'].join('\n\n');
  const impacts=turn.impacts??[];
  if(impacts.length){
   const short=impacts.some(r=>BigInt(r.cashRemainingMinor)<0n),overBudget=impacts.some(r=>r.budgetRemainingMinor!==null&&BigInt(r.budgetRemainingMinor)<0n);
