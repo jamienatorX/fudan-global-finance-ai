@@ -38,6 +38,7 @@ export function advanceConversation(state:ConversationState,update:ConversationU
  const drafts=structuredClone(state.drafts),touched=new Set<string>();
  for(const id of update.removeIds){const d=drafts.find(d=>d.id===id);if(!d||d.status!=='draft')throw new Error('INVALID_DRAFT');d.status='skipped';}
  for(const u of update.tasks){
+  if(u.kind==='read'&&/\b(fx|forex)\b/i.test(u.query)&&!/(\b(fx|forex|convert|exchange|currency)\b|汇率|外汇|换汇|兑换)/i.test(message))continue;
   const index=u.id?drafts.findIndex(d=>d.id===u.id):-1;if(u.id&&index===-1)throw new Error('UNKNOWN_DRAFT');
   if(index>=0){const old=drafts[index];if(old.status!=='draft')throw new Error('TASK_ALREADY_DECIDED');if(old.kind!==u.kind)throw new Error('INVALID_DRAFT');drafts[index]={...old,...u,reservation:old.amountMinor===u.amountMinor&&old.currency===u.currency&&old.target===u.target&&old.category===u.category?old.reservation:'ask'};}
   else drafts.push({...u,id:crypto.randomUUID(),status:'draft',reservation:'ask'});
@@ -45,8 +46,9 @@ export function advanceConversation(state:ConversationState,update:ConversationU
  }
  if(drafts.filter(d=>d.status==='draft').length>6||drafts.length>20)throw new Error('TASK_LIMIT');
  const next:ConversationState={...state,revision:state.revision+1,drafts,messages:[...state.messages,{role:'user',content:message.slice(0,1000)}],expiresAt:Date.now()+1800000};
- const turn=describeConversation(next,c,mode);const currentTasks=turn.tasks.filter(t=>touched.has(t.draft.id)),question=currentTasks.find(t=>t.question)?.question;const answer=financialReply({...turn,tasks:currentTasks,impacts:update.tasks.some(t=>['affordability','transfer','investment','tuition','subscription_payment'].includes(t.kind))?turn.impacts:[]});const text=answer?(answer+(question?'\n\n'+question:'')):question??((!update.tasks.length?update.reply?.trim():undefined)||(drafts.length?'Here’s what I found. Review the details below, and I’ll guide you through the next step.':'What would you like help with? Ask a question or choose a task to get started.'));
- next.messages.push({role:'assistant',content:text});return turn;
+ const turn=describeConversation(next,c,mode);const currentTasks=turn.tasks.filter(t=>touched.has(t.draft.id)),question=currentTasks.find(t=>t.question)?.question;const answer=financialReply({...turn,tasks:currentTasks,impacts:update.tasks.some(t=>['affordability','transfer','investment','tuition','subscription_payment'].includes(t.kind))?turn.impacts:[]});const text=answer?(answer+(question?'\n\n'+question:'')):question??((!currentTasks.length?update.reply?.trim():undefined)||(drafts.length?'Here’s what I found. Review the details below, and I’ll guide you through the next step.':'What would you like help with? Ask a question or choose a task to get started.'));
+ const links=[...new Map(currentTasks.flatMap(t=>t.plan?.links??[]).map(l=>[l.href,l])).values()];
+ next.messages.push({role:'assistant',content:text,...(links.length?{links}:{})});return turn;
 }
 
 /** Money in assistant replies is formatted from validated tool results, never model prose. */
@@ -58,5 +60,5 @@ function financialReply(turn:ConversationTurn):string|undefined{
   const lines=impacts.map(r=>r.currency+': '+displayAmount(r.availableMinor,r.currency)+' available − '+displayAmount(r.scenarioNeedsMinor,r.currency)+' planned spending'+(BigInt(r.obligationsMinor)>0n?' − '+displayAmount(r.obligationsMinor,r.currency)+' outstanding tuition':'')+' leaves '+displayAmount(r.cashRemainingMinor,r.currency)+'.');
   return [intro,...lines,impacts.length>1?'Each currency is checked separately; no currency exchange is assumed.':'',impacts.some(r=>r.budgetRemainingMinor===null)?'A monthly budget is not recorded for every currency, so this confirms cash coverage only.':'', 'This uses the website’s recorded balances as of '+impacts[0].asOf.slice(0,10)+'. Unrecorded bills or future changes may affect the result. No money has moved.'].filter(Boolean).join('\n\n');
  }
- const reads=turn.tasks.filter(t=>t.draft.kind==='read'&&t.status==='ready').map(t=>t.message);return reads.length?reads.join('\n\n').slice(0,3000):undefined;
+ const reads=turn.tasks.filter(t=>t.draft.kind==='read'&&t.status==='ready'||t.status==='unsupported').map(t=>t.message);return reads.length?reads.join('\n\n').slice(0,3000):undefined;
 }
