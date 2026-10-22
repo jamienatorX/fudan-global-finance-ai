@@ -4,6 +4,8 @@ import { inter } from '../src/styles/fonts';
 import './globals.css';
 import { LanguageProvider } from '../src/i18n/language-provider';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: '福 Bank',
   description: 'Your money, clearly in view.',

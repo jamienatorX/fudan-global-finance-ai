@@ -76,7 +76,7 @@ describe('SSR auth boundary', () => {
   });
   it('exchanges PKCE code and blocks external callback redirects without dropping cache headers', async () => {
     const response = await GET(new NextRequest('https://app.example/auth/callback?code=valid&next=https://evil.example'));
-    expect(response.headers.get('location')).toBe('https://app.example/overview');
+    expect(response.headers.get('location')).toBe('https://app.example/security');
     expect(response.cookies.get('session')?.value).toBe('new');
     expect(response.headers.get('cache-control')).toBe('private, no-store');
   });

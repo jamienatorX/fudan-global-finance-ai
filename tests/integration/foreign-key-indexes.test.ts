@@ -36,7 +36,7 @@ describe('ordered foreign-key index coverage after all local migrations', () => 
         and fk.confrelid <> 'auth.users'::regclass
       order by child.relname, fk.conname
     `);
-    expect(coverage.rows).toHaveLength(34);
+    expect(coverage.rows).toHaveLength(39);
     const missing = coverage.rows.filter((row) => row.covering_indexes.length === 0)
       .map((row) => `${row.table_name}(${row.columns.join(', ')})`);
     expect(missing).toEqual([]);
@@ -52,3 +52,5 @@ describe('ordered foreign-key index coverage after all local migrations', () => 
     } finally { await db.exec('reset enable_seqscan'); }
   });
 });
+
+

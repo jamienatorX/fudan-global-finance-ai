@@ -2,7 +2,7 @@
 
 An international-student finance **simulation** built with Next.js 16, React 19, TypeScript, Supabase Auth/PostgreSQL/RLS and Vercel.
 
-**AI banking features are intentionally paused.** The current application makes **no LLM API calls**, needs **no AI API key**, and does not offer an AI assistant, agent, prompt-to-action planner, or AI banking endpoint. The prior implementation is retained in Git history for possible future reintroduction if an affordable AI model is selected.
+**Fufu is the connected banking assistant.** Choose a task or explain a request naturally. Fufu keeps editable drafts, calculates cash and budget impact, and uses the existing approval engine for supported changes. Each exact change requires confirmation; unsupported merchant payments are declined. The public demo uses fictional finances, a shared conversation store and the free Nemotron model when configured. Free providers may collect demo messages; use invented details only. Signed-in banking remains owner/session/MFA scoped. See [Connected Agent Guide](docs/connected-agent.md) and [Hosted Release](docs/fufu-production-release.md).
 
 ## Features active now
 
@@ -33,9 +33,11 @@ Optional browser checks: `npx playwright install chromium && npm run test:e2e`.
 
 For unconfigured local development, `PLAYWRIGHT_DEMO_MODE=1 npm run dev` enables public demo pages only in development. Hosted public demo UI pages require `COMPETITION_PUBLIC_DEMO=1`; private banking endpoints remain authenticated.
 
-## Reintroducing AI later
+## Connected agent
 
-The AI work is not active in this release. It can be recovered from <https://github.com/jamienatorX/fudan-global-finance-ai/pull/3> or the Git history rather than being rebuilt from scratch. Until a model is connected and a full agent journey is validated, **this version should not be represented as satisfying an AI-agent competition requirement**.
+The default scripted interpreter needs no model key. Optional signed-in live interpretation uses a server-only OpenAI Responses adapter with validated intent output. It requires explicit `BANK_AGENT_MODE=live`, `OPENAI_API_KEY` and a compatible `OPENAI_AGENT_MODEL`. A configured model proposes intents; application tools calculate, validate, request confirmation and execute. The browser-local demo always stays scripted.
+
+The migrations `supabase/migrations/20261021000100_connected_agent.sql` and `supabase/migrations/20261022000100_agent_all_features.sql` must be applied to the intended database before using signed-in agent endpoints. Local implementation and test results do not imply that a production database or deployment has been updated. Full competition compliance has not been established from the partial requirement screenshots.
 
 See [Authenticated Banking Lab](docs/authenticated-banking-lab.md) and [Simulation Guide](docs/competition-demo-guide.md).
 

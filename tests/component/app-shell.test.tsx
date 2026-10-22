@@ -53,10 +53,10 @@ describe('AppShell', () => {
 
     const primaryNavigation = screen.getByRole('navigation', { name: 'Primary navigation' });
     const destinations = within(primaryNavigation).getAllByRole('link');
-    expect(destinations).toHaveLength(12);
+    expect(destinations).toHaveLength(13);
     expect(destinations.map((link) => link.getAttribute('href'))).toEqual([
       '/overview', '/accounts', '/transfers', '/transactions', '/wealth', '/investing', '/cards',
-      '/subscriptions', '/fx', '/planner', '/audit', '/settings',
+      '/subscriptions', '/fx', '/planner', '/copilot', '/audit', '/settings',
     ]);
     expect(screen.queryByRole('combobox', { name: 'Active account' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Notifications' })).toBeInTheDocument();
@@ -186,7 +186,7 @@ describe('AppShell', () => {
     fireEvent.click(opener);
     const drawer = screen.getByRole('dialog', { name: 'Mobile navigation' });
     const mobileNavigation = within(drawer).getByRole('navigation', { name: 'Mobile product navigation' });
-    expect(within(mobileNavigation).getAllByRole('link')).toHaveLength(12);
+    expect(within(mobileNavigation).getAllByRole('link')).toHaveLength(13);
     expect(screen.getByTestId('shell-background')).toHaveAttribute('inert');
 
     const close = within(drawer).getByRole('button', { name: 'Close navigation' });
@@ -231,4 +231,5 @@ describe('AppShell', () => {
     expect(desktopViewport.listeners.size).toBe(0);
   });
 });
+
 

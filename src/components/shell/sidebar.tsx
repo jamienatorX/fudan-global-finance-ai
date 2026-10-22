@@ -24,6 +24,7 @@ export const NAV_ITEMS: readonly Readonly<{ href: string; label: string; shortLa
   { href: '/subscriptions', label: 'Subscription Management', shortLabel: 'Subscriptions', icon: Repeat2 },
   { href: '/fx', label: 'Currency Exchange & Cross-Border', shortLabel: 'FX & Cross-border', icon: ArrowLeftRight },
   { href: '/planner', label: 'Budget & Tuition Planner', shortLabel: 'Planner', icon: GraduationCap },
+  { href: '/copilot', label: 'Banking Agent', shortLabel: 'Banking agent', icon: SendHorizontal },
   { href: '/audit', label: 'Notifications & Audit Trail', shortLabel: 'Audit trail', icon: Bell },
   { href: '/settings', label: 'Settings & Security', shortLabel: 'Settings', icon: Settings2 },
 ] as const;
@@ -116,4 +117,5 @@ export function MobileNavigation({ onClose, returnFocusRef }: Readonly<{ onClose
     </LocalizedDiv>
   );
 }
+
 

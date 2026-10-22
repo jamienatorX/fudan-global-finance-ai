@@ -5,6 +5,8 @@ import { LocalizedLink as Link } from '../../i18n/localized';
 import { useRouter } from 'next/navigation';
 import { createBrowserSupabaseClient } from '../../lib/supabase/browser';
 import type { BankingState,TableItem } from '../../server/secure-banking';
+import { SessionControls } from './session-controls';
+import {PrivateCopilot} from '../copilot/private-copilot';
 import { searchPrivateBanking } from './private-search';
 type BankProposal = Readonly<{type: 'transfer'|'tuition'|'budget'|'subscription'|'card'|'investment'; [key:string]:string}>;
 
@@ -50,11 +52,11 @@ const toMinor=(text:string,currency='CNY')=>{
 };
 const empty={enrolled:false,version:0,accounts:[],budgets:[],subscriptions:[],cards:[],tuition:[],products:[],holdings:[],actions:[],ledger:[],audit:[]} satisfies BankingState;
 
-export function BankingWorkspace(){
+export function BankingWorkspace({supportDestination,initialTab}:{supportDestination?:string;initialTab?:string}={}){
  const router=useRouter();
  const [state,setState]=useState<BankingState>(empty);
  const [bankSearch,setBankSearch]=useState('');
- const [tab,setTab]=useState<Tab>('overview');
+ const [tab,setTab]=useState<Tab>(()=>TABS.some(t=>t.id===initialTab)?initialTab as Tab:'overview');
  const [loading,setLoading]=useState(true);
  const [busy,setBusy]=useState(false);
  const [pending,setPending]=useState<Pending|null>(null);
@@ -66,9 +68,10 @@ export function BankingWorkspace(){
  const refresh=useCallback(async()=>{
    const response=await fetch('/api/banking/state',{cache:'no-store'});
    if(response.status===401){router.replace('/login');return;}
-   if(!response.ok)throw new Error('Could not load persistent financial records');
+   if(response.status===403){router.replace('/security');return;}
+   if(!response.ok)throw new Error('Could not load financial records');
    setState(await response.json() as BankingState);
- },[]);
+ },[router]);
  useEffect(()=>{
    let active=true;
    void (async()=>{
@@ -81,7 +84,9 @@ export function BankingWorkspace(){
  async function post(payload:Record<string,unknown>,route='/api/banking/action'){
    const response=await fetch(route,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
    const result=await response.json() as Record<string,unknown>;
-   if(!response.ok)throw new Error(typeof result.message==='string'?result.message:typeof result.error==='string'?result.error:'Banking request failed');
+   if(response.status===401){router.replace('/login');throw new Error('Your session ended. Please sign in again.');}
+   if(result.error==='MFA_REQUIRED'||result.error==='REAUTH_REQUIRED'){router.replace('/security');throw new Error('Verify again, then review your action.');}
+   if(!response.ok)throw new Error(response.status===429?'Too many requests. Please wait a minute.':'This action could not be completed. Review your details and try again.');
    return result;
  }
  async function run(work:()=>Promise<void>){
@@ -126,7 +131,7 @@ export function BankingWorkspace(){
        <LocalizedButton className={sec} onClick={async()=>{await createBrowserSupabaseClient().auth.signOut();window.location.assign('/login');}}>Sign out</LocalizedButton></LocalizedDiv>
      </LocalizedDiv>
    </LocalizedHeader>
-   <LocalizedDiv className="mx-auto max-w-[1480px] px-5 py-7 sm:px-8">
+   <LocalizedDiv className="mx-auto max-w-[1480px] px-5 py-7 sm:px-8"><SessionControls/>
     {!state.enrolled?<Pane title="Set up your accounts" description="Choose your accounts in CNY, USD, SGD and IDR.">
       <LocalizedButton className={cta} disabled={busy} onClick={initialize}>Set up accounts</LocalizedButton>
 
@@ -137,6 +142,7 @@ export function BankingWorkspace(){
        <LocalizedDiv className="flex gap-2"><LocalizedButton className={sec} onClick={()=>void run(refresh)} disabled={busy}>Refresh ledger</LocalizedButton>
        <LocalizedButton className={cta} onClick={()=>setTab('transfers')}>New transfer</LocalizedButton></LocalizedDiv>
      </LocalizedDiv>
+     <div className="mb-6"><PrivateCopilot supportDestination={supportDestination} version={state.version} refresh={refresh}/></div>
      <LocalizedSection aria-label="Search your banking records" className="mb-5 rounded-2xl border border-slate-200 bg-white p-4">
        <LocalizedLabel htmlFor="private-bank-search" className="block text-sm font-semibold text-slate-900">Search your banking records</LocalizedLabel>
        <LocalizedInput id="private-bank-search" type="search" className={input} value={bankSearch}
@@ -262,4 +268,5 @@ export function BankingWorkspace(){
    </LocalizedDiv>
  </LocalizedDiv>;
 }
+
 

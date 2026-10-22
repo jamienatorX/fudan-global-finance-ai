@@ -1,28 +1,27 @@
+import { sameOrigin } from '../../../../src/lib/security/request-origin';
 import { NextRequest,NextResponse } from 'next/server';
-import { authenticatedBanking } from '../../../../src/server/secure-banking';
+import { authenticatedBanking, securityFailure } from '../../../../src/server/secure-banking';
 
 export const runtime='nodejs';
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export function sameOrigin(request:Pick<NextRequest,'headers'|'nextUrl'>):boolean {
-  const origin=request.headers.get('origin');
-  if(!origin)return false;
-  try{
-    const parsed=new URL(origin);
-    return parsed.protocol==='https:' || parsed.protocol==='http:'
-      ? parsed.origin===request.nextUrl.origin : false;
-  }catch{return false;}
-}
 export async function POST(request:NextRequest){
   const headers={'Cache-Control':'private, no-store'};
   if(!sameOrigin(request))return NextResponse.json({error:'ORIGIN_REJECTED'},{status:403,headers});
   if(!request.headers.get('content-type')?.startsWith('application/json'))return NextResponse.json({error:'INVALID_TYPE'},{status:415,headers});
   try{
-    const text=await request.text();
-    if(new TextEncoder().encode(text).length>4096)return NextResponse.json({error:'PAYLOAD_TOO_LARGE'},{status:413,headers});
+    if(Number(request.headers.get('content-length')??0)>4096)return NextResponse.json({error:'PAYLOAD_TOO_LARGE'},{status:413,headers});
+    const reader=request.body?.getReader();let text='';let bytes=0;const decoder=new TextDecoder();
+    if(!reader)return NextResponse.json({error:'INVALID_REQUEST'},{status:400,headers});
+    while(true){const part=await reader.read();if(part.done)break;bytes+=part.value.byteLength;
+      if(bytes>4096){await reader.cancel();return NextResponse.json({error:'PAYLOAD_TOO_LARGE'},{status:413,headers});}
+      text+=decoder.decode(part.value,{stream:true});}
+    text+=decoder.decode();
     const body=JSON.parse(text) as Record<string,unknown>;
     const session=await authenticatedBanking();
     if(!session)return NextResponse.json({error:'AUTH_REQUIRED'},{status:401,headers});
+    const guard=await session.client.rpc('bank_security_guard');
+    if(guard.error){const failure=securityFailure(guard.error.message);return NextResponse.json({error:failure?.code??'BANKING_UNAVAILABLE'},{status:failure?.status??503,headers:{...headers,...(failure?.status===429?{'Retry-After':'60'}:{})}});}
     let result: {data:unknown;error:{message:string}|null};
     switch(body.operation){
       case 'initialize':
@@ -38,7 +37,7 @@ export async function POST(request:NextRequest){
         break;
       default:return NextResponse.json({error:'UNKNOWN_OPERATION'},{status:400,headers});
     }
-    if(result.error)return NextResponse.json({error:'ACTION_REJECTED',message:result.error.message.slice(0,180)},{status:409,headers});
+    if(result.error){const failure=securityFailure(result.error.message);return NextResponse.json({error:failure?.code??'ACTION_REJECTED'},{status:failure?.status??409,headers:{...headers,...(failure?.status===429?{'Retry-After':'60'}:{})}});}
     return NextResponse.json(result.data,{headers});
   }catch{return NextResponse.json({error:'INVALID_REQUEST'},{status:400,headers});}
 }

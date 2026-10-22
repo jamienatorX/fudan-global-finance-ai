@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { FxReferenceProvider } from '../../src/features/fx/fx-reference-context';
 import { DemoProvider } from '../../src/demo/demo-context';
@@ -12,5 +13,5 @@ import { InvestingPreferencesProvider } from '../../src/features/investing/inves
 export default async function ProductLayout({ children }: Readonly<{ children: ReactNode }>) {
   const repository = new DemoFinancialRepository();
   const snapshot = await repository.getSnapshot(DEMO_USER_ID);
-  return <DemoProvider><FxReferenceProvider><InvestingPreferencesProvider><AppShell accounts={snapshot.accounts} user={snapshot.users[0]} alerts={getOverviewAlerts(snapshot)}>{children}</AppShell><ApprovalDrawer /></InvestingPreferencesProvider></FxReferenceProvider></DemoProvider>;
+  return <DemoProvider><FxReferenceProvider><InvestingPreferencesProvider><AppShell accounts={snapshot.accounts} user={snapshot.users[0]} alerts={getOverviewAlerts(snapshot)}><div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-center text-xs text-amber-950">Demo workspace · Fictional accounts only. <Link className="font-semibold underline" href="/login">Sign in to your account</Link></div>{children}</AppShell><ApprovalDrawer /></InvestingPreferencesProvider></FxReferenceProvider></DemoProvider>;
 }

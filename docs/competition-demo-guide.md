@@ -1,10 +1,10 @@
-# Fudan Global Finance — Non-AI Banking Simulation Guide
+# Fudan Global Finance — Banking Simulation Guide
 
 ## Scope
 
 The current deployed application is a fictional banking simulator. It supports accounts, transfers, spending reports, card controls, subscription decisions, tuition budgeting, fictional investments and illustrative FX conversions.
 
-**The AI Banking Copilot has been removed from the active product while a free model solution is explored.** The `/copilot` and `/competition` agent routes no longer provide a chat or multi-action assistant. There are no model API calls or OpenAI API keys required.
+The connected agent is available locally at `/copilot` in scripted mode and inside signed-in `/banking` through server tools. Optional live interpretation needs explicit server-side model configuration. See [Connected Agent Guide](connected-agent.md) for setup, evidence and realistic demo flows. Production rollout and live-model behavior have not been verified by this implementation.
 
 ## Try the public demo
 
