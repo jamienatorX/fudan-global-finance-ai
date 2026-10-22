@@ -1,3 +1,5 @@
+import {readOnlyConversationUpdate} from '../agent/conversation-read-fallback';
+import {AgentModelError,modelFailureMessage} from './agent-model-provider';
 import {advanceConversation,describeConversation} from '../agent/conversation-controller';
 import {newConversation,validateUpdate,type ConversationState,type ConversationTurn} from '../agent/conversation-contracts';
 import type {AgentContext} from '../agent/contracts';
@@ -15,7 +17,13 @@ export async function applyConversationOperation(state:ConversationState,c:Agent
  if(state.messages.length>=40)throw new Error('CONVERSATION_LIMIT');
  if(b.operation==='message'){
   if(typeof b.message!=='string'||!b.message.trim()||b.message.length>1000)throw new Error('INVALID_MESSAGE');
-  return advanceConversation(state,await interpretConversation(b.message,state,c),c,b.message,mode);
+  const local=readOnlyConversationUpdate(b.message,state,c);if(local)return advanceConversation(state,local,c,b.message,'deterministic');
+  try{return advanceConversation(state,await interpretConversation(b.message,state,c),c,b.message,mode);}catch(e){
+   const code=e instanceof AgentModelError?e.code:['MODEL_RATE_LIMITED','MODEL_TIMEOUT','MODEL_CONFIGURATION','MODEL_BAD_RESPONSE'].find(code=>e instanceof Error&&e.message.includes(code))??'MODEL_UNAVAILABLE';
+   if(!(e instanceof Error)||!e.message.includes('MODEL_'))throw e;
+   const next:ConversationState={...state,revision:state.revision+1,expiresAt:Date.now()+1800000,messages:[...state.messages,{role:'user',content:b.message},{role:'assistant',content:modelFailureMessage(code,/[\u3400-\u9fff]/.test(b.message))}]};
+   return{...describeConversation(next,c,mode),serviceError:code};
+  }
  }
  if(b.operation==='draft')return advanceConversation(state,validateUpdate({tasks:[b.task],removeIds:[]}),c,'Task fields updated using the visible task form.',mode);
  if(b.operation==='reservation'||b.operation==='receipt'){

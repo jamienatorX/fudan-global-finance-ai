@@ -1,0 +1,16 @@
+import {readOnlyConversationUpdate} from '../../src/agent/conversation-read-fallback';
+import {it,expect,vi,afterEach} from 'vitest';
+import {advanceConversation} from '../../src/agent/conversation-controller';
+import {blankTask,newConversation} from '../../src/agent/conversation-contracts';
+import {demoAgentContext} from '../../src/agent/context-adapters';
+import {createSeedSnapshot,normalizeDemoSnapshot} from '../../src/demo/seed';
+const context=()=>demoAgentContext(normalizeDemoSnapshot(createSeedSnapshot('v1')),0);
+afterEach(()=>vi.useRealTimers());
+it('keeps two signup merchants and dates independent',()=>{const r=advanceConversation(newConversation('demo'),{tasks:[{...blankTask('subscription_payment'),target:'Spotify'},{...blankTask('subscription_payment'),target:'Netflix'}],removeIds:[]},context(),'Plan to buy Spotify tomorrow and buy Netflix next week');expect(r.state.drafts.map(d=>[d.target,d.schedule])).toEqual([['Spotify','tomorrow'],['Netflix','next week']]);});
+it('accepts a natural exact date using the current Shanghai year, not snapshot date',()=>{vi.useFakeTimers();vi.setSystemTime(new Date('2026-10-23T01:00:00Z'));const r=advanceConversation(newConversation('demo'),{tasks:[{...blankTask('cancel_subscription'),target:'Taobao',schedule:'October 30',mode:'plan'}],removeIds:[]},context(),'October 30 please');expect(r.state.drafts[0].schedule).toBe('2026-10-30');expect(r.state.messages.at(-1)?.content).not.toContain('What exact cancellation date');});
+it('withdraws a draft without cancelling the merchant subscription',()=>{const c=context();const first=advanceConversation(newConversation('demo'),{tasks:[{...blankTask('cancel_subscription'),target:'Taobao',mode:'plan'}],removeIds:[]},c,'Plan my Taobao cancellation');const next=advanceConversation(first.state,{tasks:[],removeIds:[first.state.drafts[0].id]},c,'Do not cancel Taobao anymore');expect(next.state.drafts[0].status).toBe('skipped');expect(c.subscriptions.find(s=>s.name.includes('Taobao'))?.active).toBe(true);});
+it('normalises a natural FX read to an existing workflow',()=>{const r=advanceConversation(newConversation('demo'),{tasks:[{...blankTask('read'),query:'Where can I check exchange rates?'}],removeIds:[]},context(),'Where can I check exchange rates?');expect(r.state.messages.at(-1)?.links).toContainEqual({href:'/fx',label:'Open FX'});});
+it('answers a Chinese affordability question with grounded Chinese figures',()=>{const r=advanceConversation(newConversation('demo'),{tasks:[{...blankTask('affordability'),currency:'CNY',amountMinor:'100000'}],removeIds:[]},context(),'我这个月还能花1000元吗？请用中文解释');expect(r.state.messages.at(-1)?.content).toContain('预算');expect(r.state.messages.at(-1)?.content).toContain('24650.00');});
+it('names the proposed card action rather than a generic update',()=>{const c=context();const r=advanceConversation(newConversation('demo'),{tasks:[{...blankTask('card'),target:c.cards[0].id,mode:'freeze'}],removeIds:[]},c,'Freeze my daily card');expect(r.state.messages.at(-1)?.content).toMatch(/Freeze daily/);expect(r.state.messages.at(-1)?.content).toMatch(/review|confirm/i);});
+
+it('leaves malformed money for clarification instead of throwing in the read-only shortcut',()=>{expect(()=>readOnlyConversationUpdate('If I spend 1,00 IDR can I pay 100 SGD?',newConversation('demo'))).not.toThrow();});

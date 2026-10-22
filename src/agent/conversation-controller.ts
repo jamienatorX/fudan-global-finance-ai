@@ -1,3 +1,4 @@
+import {canonicalReadQuery,explicitWithdrawal} from './conversation-normalisation';
 import {normalizeMerchant,displayAmount,type AgentContext} from './contracts';
 import {planCommand} from './planner';
 import {calculateAffordabilities} from './affordability';
@@ -16,7 +17,7 @@ function compile(d:DraftTask,c:AgentContext):ConversationTask{
  if(d.kind==='affordability')return !d.amountMinor||!d.currency?need('How much extra would you like to spend, and in which currency?'):{draft:d,status:'ready',message:'Read-only scenario calculation. No additional spending will be executed.'};
  let command='';const accounts=(c.accounts??[]).filter(a=>!d.currency||a.currency===d.currency),source=resolve(accounts,d.source);
  const target=resolve([...(c.accounts??[]),...(c.recipients??[]).filter(r=>r.verified)],d.target);
- if(d.kind==='read'){command=d.query||'Show my balances';const p=planCommand(command,c);if(p.actions.length)return need('Choose a read-only information task. Changes require a separate action draft.');return{draft:d,status:p.resultKind==='unsupported'?'unsupported':'ready',message:p.message,plan:p};}
+ if(d.kind==='read'){command=canonicalReadQuery(d.query||'Show my balances');const p=planCommand(command,c);if(p.actions.length)return need('Choose a read-only information task. Changes require a separate action draft.');return{draft:d,status:p.resultKind==='unsupported'?'unsupported':'ready',message:p.message,plan:p};}
  if(d.kind==='transfer'){
   if(d.target&&!target)return need(`I could not find one verified recipient or owned account matching “${d.target}”. Which existing recipient should I use?`);
   if(!d.amountMinor||!d.currency)return need('What amount and currency should I transfer?');
@@ -36,13 +37,14 @@ export function describeConversation(state:ConversationState,c:AgentContext,mode
 }
 export function advanceConversation(state:ConversationState,update:ConversationUpdate,c:AgentContext,message:string,mode:ConversationTurn['mode']='deterministic'):ConversationTurn{
  if(state.expiresAt<Date.now())throw new Error('CONVERSATION_EXPIRED');if(state.messages.length>=40)throw new Error('CONVERSATION_LIMIT');
- if(update.removeIds.length&&!/\b(skip|remove|forget|drop|cancel request)\b|跳过|取消|不要/.test(message.toLowerCase()))throw new Error('EXPLICIT_REMOVAL_REQUIRED');
+ if(update.removeIds.length&&!explicitWithdrawal(message))throw new Error('EXPLICIT_REMOVAL_REQUIRED');
  const drafts=structuredClone(state.drafts),touched=new Set<string>();
  for(const id of update.removeIds){const d=drafts.find(d=>d.id===id);if(!d||d.status!=='draft')throw new Error('INVALID_DRAFT');d.status='skipped';}
  for(const incoming of update.tasks){
-  const previous=incoming.id?drafts.find(d=>d.id===incoming.id):undefined;
-  const planning=['subscription_payment','cancel_subscription'].includes(incoming.kind)&&(isSubscriptionPlanningRequest(message)||previous?.mode==='plan');
-  const u=planning?prepareSubscriptionPlan(incoming,message,c,previous):incoming;
+  const matches=!incoming.id&&incoming.mode==='plan'?state.drafts.filter(d=>d.status==='draft'&&d.mode==='plan'&&d.kind===incoming.kind&&normalizeMerchant(d.target)===normalizeMerchant(incoming.target)):[];
+  const previous=incoming.id?drafts.find(d=>d.id===incoming.id):matches.length===1?drafts.find(d=>d.id===matches[0].id):undefined;
+  const planning=['subscription_payment','cancel_subscription'].includes(incoming.kind)&&(incoming.mode==='plan'||isSubscriptionPlanningRequest(message)||previous?.mode==='plan');
+  const u=planning?prepareSubscriptionPlan({...incoming,id:previous?.id??incoming.id},message,c,previous):incoming;
   if(u.kind==='read'&&/\b(fx|forex)\b/i.test(u.query)&&!/(\b(fx|forex|convert|exchange|currency)\b|汇率|外汇|换汇|兑换)/i.test(message))continue;
   const index=u.id?drafts.findIndex(d=>d.id===u.id):-1;if(u.id&&index===-1)throw new Error('UNKNOWN_DRAFT');
   if(index>=0){const old=drafts[index];if(old.status!=='draft')throw new Error('TASK_ALREADY_DECIDED');if(old.kind!==u.kind)throw new Error('INVALID_DRAFT');drafts[index]={...old,...u,reservation:old.amountMinor===u.amountMinor&&old.currency===u.currency&&old.target===u.target&&old.category===u.category?old.reservation:'ask'};}
@@ -51,21 +53,25 @@ export function advanceConversation(state:ConversationState,update:ConversationU
  }
  if(drafts.filter(d=>d.status==='draft').length>6||drafts.length>20)throw new Error('TASK_LIMIT');
  const next:ConversationState={...state,revision:state.revision+1,drafts,messages:[...state.messages,{role:'user',content:message.slice(0,1000)}],expiresAt:Date.now()+1800000};
- const turn=describeConversation(next,c,mode);const currentTasks=turn.tasks.filter(t=>touched.has(t.draft.id)),question=currentTasks.find(t=>t.question)?.question;const answer=financialReply({...turn,tasks:currentTasks,impacts:update.tasks.some(t=>['affordability','transfer','investment','tuition','subscription_payment'].includes(t.kind))?turn.impacts:[]});const text=answer?(answer+(question?'\n\n'+question:'')):question??((!currentTasks.length?update.reply?.trim():undefined)||(drafts.length?'Here’s what I found. Review the details below, and I’ll guide you through the next step.':'What would you like help with? Ask a question or choose a task to get started.'));
+ const turn=describeConversation(next,c,mode);const currentTasks=turn.tasks.filter(t=>touched.has(t.draft.id)),question=currentTasks.find(t=>t.question)?.question;const answer=financialReply({...turn,tasks:currentTasks,impacts:update.tasks.some(t=>['affordability','transfer','investment','tuition','subscription_payment'].includes(t.kind))?turn.impacts:[]},/[\u3400-\u9fff]/.test(message),c);const text=answer?(answer+(question?'\n\n'+question:'')):question??((!currentTasks.length?update.reply?.trim():undefined)||(drafts.length?'Here’s what I found. Review the details below, and I’ll guide you through the next step.':'What would you like help with? Ask a question or choose a task to get started.'));
  const links=[...new Map(currentTasks.flatMap(t=>t.plan?.links??[]).map(l=>[l.href,l])).values()];
  next.messages.push({role:'assistant',content:text,...(links.length?{links}:{})});return turn;
 }
 
 /** Money in assistant replies is formatted from validated tool results, never model prose. */
-function financialReply(turn:ConversationTurn):string|undefined{
+function financialReply(turn:ConversationTurn,chinese=false,c?:AgentContext):string|undefined{
  const planned=turn.tasks.filter(t=>t.draft.mode==='plan'&&['subscription_payment','cancel_subscription'].includes(t.draft.kind));
+ if(planned.length&&chinese)return ['可以，我来帮你整理计划。',...planned.map(t=>{const d=t.draft,record=t.plan?.subscriptions[0];return d.target+'：'+(d.schedule||'日期待定')+'，'+(d.kind==='cancel_subscription'?'计划取消订阅。'+(record?'已记录费用 '+displayAmount(record.amountMinor,record.currency)+'；下次续费 '+(record.nextRenewal?.slice(0,10)||'未知')+'。':'请确认订阅名称。')+(!/^\d{4}-\d{2}-\d{2}$/.test(d.schedule)?'请提供具体取消日期。':''):'计划开通订阅。'+(d.amountMinor&&d.currency?'拟定费用 '+displayAmount(d.amountMinor,d.currency)+'。':'请提供套餐价格、币种和计费周期。'));}),'这只是计划，没有购买、取消或安排自动操作。'].join('\n\n');
  if(planned.length)return ['Yes, I can help you plan this.',...planned.map(t=>t.message),'No purchase or cancellation has been made, and no automatic future action has been scheduled.'].join('\n\n');
  const impacts=turn.impacts??[];
  if(impacts.length){
   const short=impacts.some(r=>BigInt(r.cashRemainingMinor)<0n),overBudget=impacts.some(r=>r.budgetRemainingMinor!==null&&BigInt(r.budgetRemainingMinor)<0n);
+  if(chinese){const intro=short?'这个方案存在现金不足。':overBudget?'现有现金够用，但会超出本月已记录的预算。':'已记录的现金可以覆盖这些金额。';return [intro,...impacts.map(r=>r.currency+'：可用 '+displayAmount(r.availableMinor,r.currency)+' − 计划支出 '+displayAmount(r.scenarioNeedsMinor,r.currency)+(BigInt(r.obligationsMinor)>0n?' − 待付学费 '+displayAmount(r.obligationsMinor,r.currency):'')+'，剩余 '+displayAmount(r.cashRemainingMinor,r.currency)+'。'),impacts.some(r=>r.budgetRemainingMinor===null)?'部分币种没有月度预算，只能确认现金是否足够。':'现金余额与预算是两回事：预算还需扣除本月已记录的消费。','按各币种分别计算，不自动换汇。数据日期：'+impacts[0].asOf.slice(0,10)+'。未记录的账单不在估算内，没有执行任何支付。'].join('\n\n');}
   const intro=short?'There is a cash shortfall in this scenario.':overBudget?'Your recorded cash covers this scenario, but it exceeds a recorded monthly budget.':'Your recorded cash covers these amounts.';
   const lines=impacts.map(r=>r.currency+': '+displayAmount(r.availableMinor,r.currency)+' available − '+displayAmount(r.scenarioNeedsMinor,r.currency)+' planned spending'+(BigInt(r.obligationsMinor)>0n?' − '+displayAmount(r.obligationsMinor,r.currency)+' outstanding tuition':'')+' leaves '+displayAmount(r.cashRemainingMinor,r.currency)+'.');
   return [intro,...lines,impacts.length>1?'Each currency is checked separately; no currency exchange is assumed.':'',impacts.some(r=>r.budgetRemainingMinor===null)?'A monthly budget is not recorded for every currency, so this confirms cash coverage only.':'', 'This uses the website’s recorded balances as of '+impacts[0].asOf.slice(0,10)+'. Unrecorded bills or future changes may affect the result. No money has moved.'].filter(Boolean).join('\n\n');
  }
+ const actions=turn.tasks.flatMap(t=>t.plan?.actions??[]);if(actions.length)return (chinese?'请核对以下操作：':'Ready for your review:')+'\n'+actions.map(a=>a.description).join('\n')+(chinese?'\n尚未更改任何内容，需要明确确认。':'\nNothing has changed. Review and explicitly confirm the exact change before it can execute.');
+ if(chinese&&c&&turn.tasks.some(t=>t.draft.kind==='read')){const query=turn.tasks.filter(t=>t.draft.kind==='read').map(t=>canonicalReadQuery(t.draft.query)).join(' ');if(query.includes('balances'))return(c.accounts??[]).map(a=>a.name+'：余额 '+displayAmount(a.balanceMinor,a.currency)+'，可用 '+displayAmount(a.availableMinor,a.currency)).join('\n');if(query.includes('budgets'))return(c.budgets??[]).map(b=>b.category+'：预算 '+displayAmount(b.limitMinor,b.currency)+'，已花费 '+(b.spentMinor?displayAmount(b.spentMinor,b.currency):'未知')).join('\n');}
  const reads=turn.tasks.filter(t=>t.draft.kind==='read'&&t.status==='ready'||t.status==='unsupported').map(t=>t.message);return reads.length?reads.join('\n\n').slice(0,3000):undefined;
 }
