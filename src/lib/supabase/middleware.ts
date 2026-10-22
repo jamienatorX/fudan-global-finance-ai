@@ -15,6 +15,12 @@ const publicSimulation = (path: string) => process.env.COMPETITION_PUBLIC_DEMO =
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
   response.headers.set('Cache-Control', 'private, no-store');
+  // Open the public workspace on first arrival; private banking stays gated.
+  if (request.nextUrl.pathname === '/' && request.method === 'GET' && process.env.COMPETITION_PUBLIC_DEMO === '1') {
+    const home = new NextResponse(null, {status:307,headers:{Location:requestOrigin(request)+'/overview','Cache-Control':'private, no-store'}});
+    home.cookies.set('bank-demo','1',{httpOnly:true,secure:process.env.NODE_ENV==='production',sameSite:'lax',path:'/',maxAge:3600});
+    return home;
+  }
   const login = () => {
     const redirect = request.nextUrl.pathname.startsWith('/api/banking/')
       ? NextResponse.json({error:'AUTH_REQUIRED'},{status:401})

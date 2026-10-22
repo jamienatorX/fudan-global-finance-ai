@@ -34,3 +34,10 @@ describe('local browser demo routing', () => {
   });
 });
 
+
+it('opens the homepage for first-time visitors without granting private banking access',async()=>{
+ vi.stubEnv('COMPETITION_PUBLIC_DEMO','1');vi.stubEnv('NODE_ENV','production');vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL','');vi.stubEnv('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY','');
+ const home=await updateSession(new NextRequest('https://app.example/'));
+ expect(home.headers.get('location')).toBe('https://app.example/overview');expect(home.cookies.get('bank-demo')?.value).toBe('1');expect(home.headers.get('set-cookie')).toContain('HttpOnly');expect(home.headers.get('set-cookie')).toContain('Secure');expect(home.headers.get('cache-control')).toBe('private, no-store');
+ expect((await updateSession(new NextRequest('https://app.example/api/banking/state',{headers:{cookie:'bank-demo=1'}}))).status).toBe(401);
+});
