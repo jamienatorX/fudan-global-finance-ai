@@ -1,6 +1,6 @@
 import {normalizeMerchant,displayAmount,type AgentContext} from './contracts';
 import {planCommand} from './planner';
-import {calculateAffordability} from './affordability';
+import {calculateAffordabilities} from './affordability';
 import {UNSUPPORTED_MESSAGE} from './support';
 import type {ConversationState,ConversationTask,ConversationTurn,ConversationUpdate,DraftTask} from './conversation-contracts';
 function resolve<T extends {id:string;name:string}>(rows:readonly T[],query:string):T|undefined{
@@ -30,7 +30,7 @@ function compile(d:DraftTask,c:AgentContext):ConversationTask{
  const plan=planCommand(command,c);return{draft:d,status:plan.resultKind==='unsupported'?'unsupported':plan.actions.length?'ready':'needs-input',message:plan.message,...(!plan.actions.length&&plan.resultKind!=='unsupported'?{question:plan.message}:{}),plan};
 }
 export function describeConversation(state:ConversationState,c:AgentContext,mode:ConversationTurn['mode']='deterministic'):ConversationTurn{
- const tasks=state.drafts.map(d=>compile(d,c));return{state,tasks,question:tasks.find(t=>t.question)?.question,impact:calculateAffordability(c,state.drafts),mode,entities:{accounts:(c.accounts??[]).map(({id,name,currency})=>({id,name,currency})),recipients:(c.recipients??[]).filter(r=>r.verified).map(({id,name})=>({id,name})),products:(c.products??[]).map(({id,name})=>({id,name})),tuition:(c.tuition??[]).map(({id,name})=>({id,name})),cards:c.cards.map(({id,name})=>({id,name})),subscriptions:c.subscriptions.map(({id,name})=>({id,name}))}};
+ const tasks=state.drafts.map(d=>compile(d,c)),impacts=calculateAffordabilities(c,state.drafts);return{state,tasks,impacts,question:tasks.find(t=>t.question)?.question,impact:impacts[0]??null,mode,entities:{accounts:(c.accounts??[]).map(({id,name,currency})=>({id,name,currency})),recipients:(c.recipients??[]).filter(r=>r.verified).map(({id,name})=>({id,name})),products:(c.products??[]).map(({id,name})=>({id,name})),tuition:(c.tuition??[]).map(({id,name})=>({id,name})),cards:c.cards.map(({id,name})=>({id,name})),subscriptions:c.subscriptions.map(({id,name})=>({id,name}))}};
 }
 export function advanceConversation(state:ConversationState,update:ConversationUpdate,c:AgentContext,message:string,mode:ConversationTurn['mode']='deterministic'):ConversationTurn{
  if(state.expiresAt<Date.now())throw new Error('CONVERSATION_EXPIRED');if(state.messages.length>=40)throw new Error('CONVERSATION_LIMIT');
@@ -44,6 +44,18 @@ export function advanceConversation(state:ConversationState,update:ConversationU
  }
  if(drafts.filter(d=>d.status==='draft').length>6||drafts.length>20)throw new Error('TASK_LIMIT');
  const next:ConversationState={...state,revision:state.revision+1,drafts,messages:[...state.messages,{role:'user',content:message.slice(0,1000)}],expiresAt:Date.now()+1800000};
- const turn=describeConversation(next,c,mode);const text=turn.question??((!drafts.length?update.reply?.trim():undefined)||(drafts.length?'Here’s what I found. Review the details below, and I’ll guide you through the next step.':'What would you like help with? Ask a question or choose a task to get started.'));
+ const turn=describeConversation(next,c,mode);const answer=financialReply(turn);const text=answer?(answer+(turn.question?'\n\n'+turn.question:'')):turn.question??((!drafts.length?update.reply?.trim():undefined)||(drafts.length?'Here’s what I found. Review the details below, and I’ll guide you through the next step.':'What would you like help with? Ask a question or choose a task to get started.'));
  next.messages.push({role:'assistant',content:text});return turn;
+}
+
+/** Money in assistant replies is formatted from validated tool results, never model prose. */
+function financialReply(turn:ConversationTurn):string|undefined{
+ const impacts=turn.impacts??[];
+ if(impacts.length){
+  const short=impacts.some(r=>BigInt(r.cashRemainingMinor)<0n),overBudget=impacts.some(r=>r.budgetRemainingMinor!==null&&BigInt(r.budgetRemainingMinor)<0n);
+  const intro=short?'There is a cash shortfall in this scenario.':overBudget?'Your recorded cash covers this scenario, but it exceeds a recorded monthly budget.':'Your recorded cash covers these amounts.';
+  const lines=impacts.map(r=>r.currency+': '+displayAmount(r.availableMinor,r.currency)+' available − '+displayAmount(r.scenarioNeedsMinor,r.currency)+' planned spending'+(BigInt(r.obligationsMinor)>0n?' − '+displayAmount(r.obligationsMinor,r.currency)+' outstanding tuition':'')+' leaves '+displayAmount(r.cashRemainingMinor,r.currency)+'.');
+  return [intro,...lines,impacts.length>1?'Each currency is checked separately; no currency exchange is assumed.':'',impacts.some(r=>r.budgetRemainingMinor===null)?'A monthly budget is not recorded for every currency, so this confirms cash coverage only.':'', 'This uses the website’s recorded balances as of '+impacts[0].asOf.slice(0,10)+'. Unrecorded bills or future changes may affect the result. No money has moved.'].filter(Boolean).join('\n\n');
+ }
+ const reads=turn.tasks.filter(t=>t.draft.kind==='read'&&t.status==='ready').map(t=>t.message);return reads.length?reads.join('\n\n').slice(0,3000):undefined;
 }

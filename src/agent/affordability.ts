@@ -39,10 +39,16 @@ export function calculateAffordability(c:AgentContext,drafts:DraftTask[]):Afford
  if(!budgets.length)limitations.push('No monthly budget is available for this currency.');
  if(!review.category)limitations.push('Additional spending has no category; category headroom is unknown.');
  if(active.some(d=>!d.amountMinor&&['transfer','investment','subscription_payment'].includes(d.kind)))limitations.push('A proposed amount is missing.');
- const extra=BigInt(review.amountMinor),remaining=available-obligations-proposed-extra,budget=budgets.length?cap-recorded-proposedConsumption-extra:null;
- const category=budgets.find(b=>b.category===review.category),categorySpent=category?.spentMinor!==undefined?BigInt(category.spentMinor):rows.filter(t=>t.category===review.category).reduce((n,t)=>n+BigInt(t.amountMinor),0n);
+ const reviews=active.filter(d=>d.kind==='affordability'&&d.amountMinor),extra=reviews.reduce((sum,d)=>sum+BigInt(d.amountMinor),0n),remaining=available-obligations-proposed-extra,budget=budgets.length?cap-recorded-proposedConsumption-extra:null;
+ const category=reviews.every(d=>d.category===review.category)?budgets.find(b=>b.category===review.category):undefined,categorySpent=category?.spentMinor!==undefined?BigInt(category.spentMinor):rows.filter(t=>t.category===review.category).reduce((n,t)=>n+BigInt(t.amountMinor),0n);
  const categoryRemaining=category?BigInt(category.limitMinor)-categorySpent-extra-active.filter(d=>d.kind==='subscription_payment'&&d.reservation==='include'&&d.category===review.category&&!c.transactions.some(t=>t.currency===currency&&t.settled&&t.direction==='debit'&&t.classification==='consumption'&&t.date.startsWith(c.asOf.slice(0,7))&&normalizeMerchant(t.merchant)===normalizeMerchant(d.target)&&t.amountMinor===d.amountMinor)).reduce((n,d)=>n+BigInt(d.amountMinor||'0'),0n):null;
  limitations.push('Based only on recorded balances, budgets and known tuition; unrecorded bills and future changes are excluded.');
  const limited=limitations.length>1;
  return{currency,availableMinor:String(available),obligationsMinor:String(obligations),proposedCashMinor:String(proposed),additionalMinor:String(extra),scenarioNeedsMinor:String(proposed+extra),cashRemainingMinor:String(remaining),budgetRemainingMinor:budget===null?null:String(budget),categoryRemainingMinor:categoryRemaining===null?null:String(categoryRemaining),sourceWarnings,limitations:[...new Set(limitations)],verdict:remaining<0n||budget!==null&&budget<0n||categoryRemaining!==null&&categoryRemaining<0n||sourceWarnings.length?'insufficient':limited?'limited':'within-recorded-limits',asOf:c.asOf};
+}
+
+/** Keep separate currency ledgers: an IDR purchase never silently spends SGD. */
+export function calculateAffordabilities(c:AgentContext,drafts:DraftTask[]):AffordabilityResult[]{
+ const currencies=[...new Set(drafts.filter(d=>d.kind==='affordability'&&d.status==='draft'&&d.amountMinor&&d.currency).map(d=>d.currency))];
+ return currencies.flatMap(currency=>{const reviews=drafts.filter(d=>d.kind==='affordability'&&d.status==='draft'&&d.currency===currency);const rest=drafts.filter(d=>!reviews.includes(d));const result=calculateAffordability(c,[...reviews,...rest]);return result?[result]:[];});
 }
