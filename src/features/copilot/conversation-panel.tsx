@@ -2,6 +2,7 @@
 import {useEffect,useRef,useState} from 'react';
 import type {ConversationTurn,DraftUpdate} from '../../agent/conversation-contracts';
 import {AccountLink} from '../../components/shell/account-link';
+import {VoiceInput} from './voice-input';
 import {FufuMascot} from './fufu-mascot';
 import {HumanSupport} from './human-support';
 import {TaskPicker} from './task-picker';
@@ -11,6 +12,7 @@ export type ConversationPending={id:string;taskId:string;conversationId:string;r
 export type ConversationTransport={request:(b:Record<string,unknown>)=>Promise<ConversationTurn>;prepare:(turn:ConversationTurn,taskId:string)=>Promise<ConversationPending>;decide:(pending:ConversationPending,approve:boolean)=>Promise<{turn:ConversationTurn;outcome:{status:string;verified?:boolean}}>;};
 export function ConversationPanel({source,transport,supportDestination,version=0}:{source:string;transport:ConversationTransport;supportDestination?:string;version?:number}){
  const [turn,setTurn]=useState<ConversationTurn|null>(null),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[pending,setPending]=useState<ConversationPending|null>(null),[submitted,setSubmitted]=useState(''),[detailsOpen,setDetailsOpen]=useState(false);
+ const [voiceBusy,setVoiceBusy]=useState(false);
  const transcript=useRef<HTMLDivElement>(null);
  useEffect(()=>{const node=transcript.current;if(node)node.scrollTop=node.scrollHeight;},[turn?.state.revision,busy,error,notice,pending,submitted]);
  const latest=useRef<ConversationTurn|null>(null),currentTransport=useRef(transport),lastVersion=useRef(version);
@@ -28,7 +30,7 @@ export function ConversationPanel({source,transport,supportDestination,version=0
   if(messages.slice(0,index).some(old=>old.role==='assistant'&&old.content===m.content))return[];
   return [...new Map((turn?.tasks??[]).filter(t=>t.draft.kind==='read'&&m.content.includes(t.message)).flatMap(t=>t.plan?.links??[]).map(l=>[l.href,l])).values()];
  }
- function sendMessage(){if(!busy&&turn&&message.trim()){request({operation:'message',message});setMessage('');}}
+ function sendMessage(){if(!busy&&!voiceBusy&&turn&&message.trim()){request({operation:'message',message});setMessage('');}}
  function edit(task:DraftUpdate){setDetailsOpen(true);request({operation:'draft',task});}
  return <section aria-label="Fufu conversation" className="fufu-chat rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-sm sm:p-7"><div className="flex items-center gap-4 rounded-2xl bg-[var(--color-info-soft)] p-4"><FufuMascot state={busy?'thinking':notice.startsWith('Verified')?'success':'idle'}/><div><p className="text-xs font-bold uppercase tracking-widest text-[var(--color-primary)]">FU Bank · Fufu</p><h2 className="mt-1 text-2xl font-bold">Your future. Your agent.</h2><p className="mt-1 text-sm">Hi, I’m Fufu. Let’s make your money make sense.</p></div></div>
   <p className="mt-3 text-sm text-[var(--color-text-muted)]">Ask naturally. Review every change before it happens.</p>
@@ -44,8 +46,8 @@ export function ConversationPanel({source,transport,supportDestination,version=0
    {notice&&<div className="fufu-reply" role="status"><FufuMascot/><div><strong>Fufu</strong><p>{notice}</p></div></div>}
    {error&&<div className="fufu-reply" role="alert"><FufuMascot state="decline"/><div><strong>Fufu</strong><p>{error}</p></div></div>}
   </div>
-  <TaskPicker disabled={busy||!turn} onPick={edit}/>
-  <form className="mt-4" onSubmit={e=>{e.preventDefault();sendMessage();}}><label htmlFor="fufu-message" className="text-sm font-semibold">Message Fufu</label><textarea id="fufu-message" maxLength={1000} rows={3} value={message} disabled={busy} onChange={e=>setMessage(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.nativeEvent.isComposing){e.preventDefault();sendMessage();}}} placeholder="Send 500 yuan to Evan, review my budget, and check if I can still spend 1,000…" className="mt-2 w-full rounded-xl border border-slate-300 p-3 text-sm"/><div className="mt-3 flex flex-wrap gap-2"><button type="submit" disabled={busy||!turn||!message.trim()} className="rounded-xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50">{busy?'Fufu is thinking…':'Send to Fufu'}</button><button type="button" disabled={busy} onClick={()=>request({operation:'reset',conversationId:turn?.state.id})} className="rounded-xl border border-slate-300 px-4 py-3 text-sm">New conversation</button></div></form>
+  <TaskPicker disabled={busy||voiceBusy||!turn} onPick={edit}/>
+  <form className="mt-4" onSubmit={e=>{e.preventDefault();sendMessage();}}><label htmlFor="fufu-message" className="text-sm font-semibold">Message Fufu</label><textarea id="fufu-message" maxLength={1000} rows={3} value={message} disabled={busy} onChange={e=>setMessage(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.nativeEvent.isComposing){e.preventDefault();sendMessage();}}} placeholder="Send 500 yuan to Evan, review my budget, and check if I can still spend 1,000…" className="mt-2 w-full rounded-xl border border-slate-300 p-3 text-sm"/><VoiceInput disabled={busy||!turn} onBusyChange={setVoiceBusy} onText={text=>setMessage(previous=>(previous.trim()?previous.trimEnd()+' '+text:text).slice(0,1000))}/><div className="mt-3 flex flex-wrap gap-2"><button type="submit" disabled={busy||voiceBusy||!turn||!message.trim()} className="rounded-xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50">{busy?'Fufu is thinking…':'Send to Fufu'}</button><button type="button" disabled={busy||voiceBusy} onClick={()=>request({operation:'reset',conversationId:turn?.state.id})} className="rounded-xl border border-slate-300 px-4 py-3 text-sm">New conversation</button></div></form>
   <div className="mt-5"><HumanSupport destination={supportDestination} summary={message||turn?.state.messages.filter(m=>m.role==='user').at(-1)?.content||''}/></div>
  </section>;
 }
