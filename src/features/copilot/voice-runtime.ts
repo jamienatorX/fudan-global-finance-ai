@@ -1,3 +1,4 @@
+import {MAX_VOICE_SECONDS,VOICE_SAMPLE_RATE} from './voice-limits';
 export type VoiceRecording={stop:()=>Promise<Float32Array>;cancel:()=>void};
 
 // Capture stays in memory. Only the reviewed text enters the banking conversation.
@@ -19,8 +20,8 @@ export async function recordVoice():Promise<VoiceRecording>{
   const context=new AudioContext();
   try{
    const decoded=await context.decodeAudioData(await blob.arrayBuffer());
-   const duration=Math.min(decoded.duration,30);if(duration<.3)throw new Error('I did not hear enough speech. Please try again.');
-   const offline=new OfflineAudioContext(1,Math.ceil(duration*16000),16000),source=offline.createBufferSource();source.buffer=decoded;source.connect(offline.destination);source.start();
+   const duration=Math.min(decoded.duration,MAX_VOICE_SECONDS);if(duration<.3)throw new Error('I did not hear enough speech. Please try again.');
+   const offline=new OfflineAudioContext(1,Math.ceil(duration*VOICE_SAMPLE_RATE),VOICE_SAMPLE_RATE),source=offline.createBufferSource();source.buffer=decoded;source.connect(offline.destination);source.start();
    const pcm=(await offline.startRendering()).getChannelData(0);
    let energy=0;for(const n of pcm)energy+=n*n;if(Math.sqrt(energy/pcm.length)<.002)throw new Error('I could not hear speech. Please try again closer to the microphone.');
    return pcm;

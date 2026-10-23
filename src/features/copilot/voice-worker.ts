@@ -1,5 +1,6 @@
 import {env,pipeline,Tensor} from '@huggingface/transformers';
 import {detectedSpeechLanguage} from './speech-language';
+import {VOICE_SAMPLE_RATE} from './voice-limits';
 env.allowLocalModels=false;
 env.backends.onnx.wasm!.numThreads=1;
 // A multilingual model, with no forced language or translation to English.
@@ -14,7 +15,7 @@ self.onmessage=async({data}:{data:{audio:Float32Array}})=>{
   // Predict the language token from the audio before transcription instead.
   const config=transcriber.model.generation_config as {lang_to_id?:Record<string,number>;decoder_start_token_id?:number};
   if(!config.lang_to_id||!config.decoder_start_token_id)throw new Error('Language detection unavailable');
-  const features=await transcriber.processor(data.audio);
+  const features=await transcriber.processor(data.audio.subarray(0,30*VOICE_SAMPLE_RATE));
   const detection=await transcriber.model({...features,decoder_input_ids:new Tensor('int64',[BigInt(config.decoder_start_token_id)],[1,1])});
   const language=detectedSpeechLanguage(detection.logits.data,config.lang_to_id);
   const output=await transcriber(data.audio,{language,task:'transcribe',chunk_length_s:30,stride_length_s:5});

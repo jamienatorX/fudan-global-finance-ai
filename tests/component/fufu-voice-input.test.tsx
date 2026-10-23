@@ -9,7 +9,7 @@ import {createSeedSnapshot} from '../../src/demo/seed';
 vi.mock('next/navigation',()=>({useSearchParams:()=>new URLSearchParams()}));
 const voice=vi.hoisted(()=>({record:vi.fn(),transcribe:vi.fn()}));
 vi.mock('../../src/features/copilot/voice-runtime',()=>({recordVoice:voice.record,transcribeVoice:voice.transcribe}));
-afterEach(()=>{cleanup();vi.resetAllMocks();});
+afterEach(()=>{cleanup();vi.useRealTimers();vi.resetAllMocks();});
 it('dictates mixed language into an editable draft without sending anything',async()=>{
  const stop=vi.fn().mockResolvedValue(new Float32Array([.2,.3])),cancel=vi.fn(),onText=vi.fn();
  voice.record.mockResolvedValue({stop,cancel});voice.transcribe.mockResolvedValue('Send 500元 to Evan');
@@ -40,4 +40,16 @@ it('appends speech to existing chat text and sends only after explicit Send',asy
  await waitFor(()=>expect(screen.getByRole('button',{name:'Dictate message'})).toBeEnabled());fireEvent.change(screen.getByLabelText('Message Fufu'),{target:{value:'Check my balance'}});fireEvent.click(screen.getByRole('button',{name:'Dictate message'}));await screen.findByRole('button',{name:'Stop recording'});
  expect(screen.getByRole('button',{name:'Send to Fufu'})).toBeDisabled();fireEvent.click(screen.getByRole('button',{name:'Stop recording'}));
  await waitFor(()=>expect(screen.getByLabelText('Message Fufu')).toHaveValue('Check my balance 再查看预算'));expect(request).toHaveBeenCalledTimes(1);expect(decide).not.toHaveBeenCalled();fireEvent.click(screen.getByRole('button',{name:'Send to Fufu'}));await waitFor(()=>expect(request).toHaveBeenCalledWith(expect.objectContaining({operation:'message',message:'Check my balance 再查看预算'})));
+});
+it('keeps recording after 30 seconds and stops at two minutes',async()=>{
+ const stop=vi.fn().mockResolvedValue(new Float32Array([.2]));voice.record.mockResolvedValue({stop,cancel:vi.fn()});voice.transcribe.mockResolvedValue('Long message');
+ render(<VoiceInput disabled={false} onText={vi.fn()}/>);fireEvent.click(screen.getByRole('button',{name:'Dictate message'}));await screen.findByRole('button',{name:'Stop recording'});
+ vi.useFakeTimers();
+ // The timer is installed on start, so start a fresh recording under fake timers.
+ fireEvent.click(screen.getByRole('button',{name:'Cancel voice input'}));fireEvent.click(screen.getByRole('button',{name:'Dictate message'}));await vi.advanceTimersByTimeAsync(0);await vi.advanceTimersByTimeAsync(31000);expect(stop).not.toHaveBeenCalled();await vi.advanceTimersByTimeAsync(89000);expect(stop).toHaveBeenCalledOnce();vi.useRealTimers();
+});
+it('preserves a transcript over the chat limit and asks for editing rather than silently truncating it',async()=>{
+ const turn=describeConversation(newConversation('demo'),demoAgentContext(createSeedSnapshot('v1'),0)),request=vi.fn().mockResolvedValue(turn);const text='a'.repeat(1201);
+ voice.record.mockResolvedValue({stop:vi.fn().mockResolvedValue(new Float32Array([.2])),cancel:vi.fn()});voice.transcribe.mockResolvedValue(text);
+ render(<ConversationPanel source="long voice test" transport={{request,prepare:vi.fn(),decide:vi.fn()}}/>);await waitFor(()=>expect(screen.getByRole('button',{name:'Dictate message'})).toBeEnabled());fireEvent.click(screen.getByRole('button',{name:'Dictate message'}));await screen.findByRole('button',{name:'Stop recording'});fireEvent.click(screen.getByRole('button',{name:'Stop recording'}));await waitFor(()=>expect(screen.getByLabelText('Message Fufu')).toHaveValue(text));expect(screen.getByText(/Please shorten it to 1,000/)).toBeInTheDocument();expect(screen.getByRole('button',{name:'Send to Fufu'})).toBeDisabled();expect(request).toHaveBeenCalledTimes(1);
 });

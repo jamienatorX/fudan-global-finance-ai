@@ -1,0 +1,2 @@
+export const MAX_VOICE_SECONDS=120;
+export const VOICE_SAMPLE_RATE=16000;
