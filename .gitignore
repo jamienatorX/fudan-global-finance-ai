@@ -13,3 +13,6 @@ test-results/
 
 # Local-only Fufu anonymous conversations and rate counters.
 .data/
+# Generated on-device streaming speech assets
+.cache/fufu-stream/
+public/voice-stream/

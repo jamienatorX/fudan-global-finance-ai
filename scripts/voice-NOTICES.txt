@@ -1,0 +1,9 @@
+Fufu on-device live dictation uses unmodified sherpa-onnx 1.12.20 WebAssembly engine and bilingual streaming Zipformer model.
+Engine: https://github.com/k2-fsa/sherpa-onnx/tree/v1.12.20 (Apache-2.0).
+Model: https://huggingface.co/csukuangfj/sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20 (Apache-2.0 model card).
+Original model: https://huggingface.co/pfluo/k2fsa-zipformer-chinese-english-mixed
+Training code: https://github.com/k2-fsa/icefall/tree/master/egs/librispeech/ASR/pruned_transducer_stateless7_streaming
+Official packaging recipe: https://github.com/k2-fsa/sherpa-onnx/blob/v1.12.20/.github/workflows/wasm-simd-hf-space-zh-en-asr-zipformer.yaml
+Release archive SHA256: e889207cd6a84973cbc028c05115cdd778ae8e277867b83169644be5b3a63c53
+Model data is split into transport shards by FU Bank; reconstructed bytes are unchanged. See LICENSE.txt.
+Sherpa-onnx includes ONNX Runtime (MIT), Kaldi-native-fbank (Apache-2.0), and other upstream dependencies. Source and third-party notices: https://github.com/k2-fsa/sherpa-onnx/tree/v1.12.20 and https://github.com/microsoft/onnxruntime/blob/main/ThirdPartyNotices.txt
