@@ -362,3 +362,14 @@ html[data-theme="dark-disabled"] .balance-hero { background:radial-gradient(elli
 .fufu-home-welcome { padding-top:16px; }
 .fufu-chat > div:first-child > span { height:112px; width:84px; }
 .fufu-transcript { min-height:88px; }
+
+
+/* Compact conversation controls retain the existing navy/teal design. */
+.fufu-compose-actions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:start; gap:8px; margin-top:12px; }
+.fufu-compose-actions>.fufu-voice-control { min-width:0; }
+.fufu-compose-actions>.fufu-voice-control>div { display:flex; flex-direction:column; align-items:stretch; }
+.fufu-compose-actions>button,.fufu-compose-actions>.fufu-voice-control>div>button { display:flex; justify-content:center; align-items:center; width:100%; min-height:48px; padding:10px 8px; font-size:14px; line-height:1.4; text-align:center; }
+.fufu-compose-actions .fufu-voice-control svg { flex-shrink:0; }
+@media(max-width:479px) { .fufu-compose-actions>button,.fufu-compose-actions>.fufu-voice-control>div>button { font-size:12px; min-height:56px; gap:5px; } }
+
+.fufu-compose-actions>p { grid-column:1 / -1; grid-row:2; }
