@@ -373,3 +373,9 @@ html[data-theme="dark-disabled"] .balance-hero { background:radial-gradient(elli
 @media(max-width:479px) { .fufu-compose-actions>button,.fufu-compose-actions>.fufu-voice-control>div>button { font-size:12px; min-height:56px; gap:5px; } }
 
 .fufu-compose-actions>p { grid-column:1 / -1; grid-row:2; }
+/* Voice words and progress span the composer instead of squeezing into its button column. */
+.fufu-compose-actions > .fufu-voice-control { display:contents; }
+.fufu-compose-actions > .fufu-voice-control > div:first-child { grid-column:1; grid-row:1; }
+.fufu-compose-actions > .fufu-voice-control > :not(:first-child) { grid-column:1 / -1; min-width:0; overflow-wrap:anywhere; }
+.fufu-compose-actions > button[type="submit"] { grid-column:2; grid-row:1; }
+.fufu-compose-actions > button[type="button"] { grid-column:3; grid-row:1; }
