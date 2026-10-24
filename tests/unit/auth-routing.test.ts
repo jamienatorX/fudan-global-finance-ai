@@ -41,3 +41,8 @@ it('opens the homepage for first-time visitors without granting private banking 
  expect(home.headers.get('location')).toBe('https://app.example/overview');expect(home.cookies.get('bank-demo')?.value).toBe('1');expect(home.headers.get('set-cookie')).toContain('HttpOnly');expect(home.headers.get('set-cookie')).toContain('Secure');expect(home.headers.get('cache-control')).toBe('private, no-store');
  expect((await updateSession(new NextRequest('https://app.example/api/banking/state',{headers:{cookie:'bank-demo=1'}}))).status).toBe(401);
 });
+it('serves only public voice assets without opening private data',async()=>{
+ vi.stubEnv('NODE_ENV','production');vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL','');vi.stubEnv('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY','');
+ for(const path of ['/voice-stream/1.12.20/manifest.json','/voice-stream/1.12.20/model-0.bin','/voice-pcm-worklet.js'])expect((await updateSession(new NextRequest('https://app.example'+path))).status).toBe(200);
+ expect((await updateSession(new NextRequest('https://app.example/voice-stream/private'))).status).toBe(307);
+});

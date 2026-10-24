@@ -15,6 +15,8 @@ const publicSimulation = (path: string) => process.env.COMPETITION_PUBLIC_DEMO =
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
   response.headers.set('Cache-Control', 'private, no-store');
+  // Public on-device speech files contain no account data. Keep the exception narrow.
+  if (request.nextUrl.pathname === '/voice-pcm-worklet.js' || /^\/voice-stream\/1\.12\.20\/(?:manifest\.json|model-\d+\.bin|sherpa-onnx-asr\.js|sherpa-onnx-wasm-main-asr\.(?:js|wasm)|LICENSE\.txt|NOTICES\.txt|THIRD-PARTY-NOTICES\.txt)$/.test(request.nextUrl.pathname)) return response;
   // Open the public workspace on first arrival; private banking stays gated.
   if (request.nextUrl.pathname === '/' && request.method === 'GET' && process.env.COMPETITION_PUBLIC_DEMO === '1') {
     const home = new NextResponse(null, {status:307,headers:{Location:requestOrigin(request)+'/overview','Cache-Control':'private, no-store'}});
@@ -63,5 +65,3 @@ export async function updateSession(request: NextRequest) {
   }
   return response;
 }
-
-

@@ -13,7 +13,9 @@ describe('security policy',()=>{
   it('uses nonce-bound scripts and blocks framing and objects',()=>{
     const policy=securityPolicy('unique-nonce',true);
     expect(policy).toContain("'nonce-unique-nonce'");
-    expect(policy.split(';')[1]).not.toMatch(/unsafe-inline|unsafe-eval/);
+    const scriptTokens=policy.split(';')[1].trim().split(/\s+/);
+    expect(scriptTokens).not.toContain("'unsafe-inline'");
+    expect(scriptTokens).not.toContain("'unsafe-eval'");
     expect(policy).toContain("frame-ancestors 'none'");
     expect(policy).toContain("object-src 'none'");
   });

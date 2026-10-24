@@ -9,7 +9,7 @@ export function recentMfa(claims: { aal?: unknown; amr?: unknown }, now = Date.n
 export function securityPolicy(nonce: string, production: boolean) {
   let supabase = '';
   try { supabase = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').origin; } catch {}
-  return ["default-src 'self'", `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://challenges.cloudflare.com${production ? '' : " 'unsafe-eval'"}`,
-    "style-src 'self' 'unsafe-inline'", "img-src 'self' data: blob:", "font-src 'self'", `connect-src 'self' ${supabase} https://challenges.cloudflare.com${production ? '' : ' ws: http://127.0.0.1:*'}`,
+  return ["default-src 'self'", `script-src 'self' 'wasm-unsafe-eval' 'nonce-${nonce}' 'strict-dynamic' https://challenges.cloudflare.com${production ? '' : " 'unsafe-eval'"}`,
+    "worker-src 'self'", "style-src 'self' 'unsafe-inline'", "img-src 'self' data: blob:", "font-src 'self'", `connect-src 'self' ${supabase} https://challenges.cloudflare.com${production ? '' : ' ws: http://127.0.0.1:*'}`,
     "frame-src https://challenges.cloudflare.com", "object-src 'none'", "base-uri 'self'", "form-action 'self'", "frame-ancestors 'none'", ...(production ? ['upgrade-insecure-requests'] : [])].join('; ');
 }
