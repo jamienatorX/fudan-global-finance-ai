@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test.describe('banking simulation critical paths (AI features paused)', () => {
+test.describe('banking simulation critical paths', () => {
   test('a simulated card freeze requires human confirmation and survives reload',async({page})=>{
     await page.goto('/cards');
     await page.getByRole('button',{name:'Review freeze'}).first().click();
@@ -30,10 +30,11 @@ test.describe('banking simulation critical paths (AI features paused)', () => {
     await page.goto('/cards');
     await expect(page.getByRole('button',{name:'Review freeze'}).first()).toBeVisible();
   });
-  test('does not expose an AI copilot in banking navigation', async ({page}) => {
+  test('exposes the connected Fufu conversation on the public homepage', async ({page}) => {
     await page.goto('/overview');
     await expect(page.getByRole('region', { name: 'Banking shortcuts' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Ask AI banker' })).toHaveCount(0);
+    await expect(page.getByRole('region', { name: 'Fufu conversation' })).toBeVisible();
+    await expect(page.getByRole('textbox', { name: 'Message Fufu' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Dictate message' })).toBeVisible();
   });
 });
-

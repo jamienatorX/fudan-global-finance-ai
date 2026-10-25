@@ -35,9 +35,19 @@ For unconfigured local development, `PLAYWRIGHT_DEMO_MODE=1 npm run dev` enables
 
 ## Connected agent
 
-The default scripted interpreter needs no model key. Optional signed-in live interpretation uses a server-only OpenAI Responses adapter with validated intent output. It requires explicit `BANK_AGENT_MODE=live`, `OPENAI_API_KEY` and a compatible `OPENAI_AGENT_MODEL`. A configured model proposes intents; application tools calculate, validate, request confirmation and execute. The browser-local demo always stays scripted.
+Fufu supports task forms, deterministic interpretation for supported requests, and optional live interpretation through server-only OpenAI or OpenRouter adapters. The hosted public conversation uses the configured free OpenRouter model; no paid fallback is enabled. Configure `BANK_AGENT_MODE=live`, `BANK_AGENT_PROVIDER`, and the matching server-only provider key/model variables. Website visitors do not supply API keys. A model proposes typed intents; application tools calculate, validate, request exact confirmation and execute supported simulated changes.
 
 The migrations `supabase/migrations/20261021000100_connected_agent.sql` and `supabase/migrations/20261022000100_agent_all_features.sql` must be applied to the intended database before using signed-in agent endpoints. Local implementation and test results do not imply that a production database or deployment has been updated. Full competition compliance has not been established from the partial requirement screenshots.
 
 See [Authenticated Banking Lab](docs/authenticated-banking-lab.md) and [Simulation Guide](docs/competition-demo-guide.md).
 
+
+## Voice input
+
+Fufu offers on-device Chinese/English streaming dictation and an explicit standard Whisper fallback. Press Speak to Fufu, wait for Listening, speak, Stop, then review the editable transcript before Send. Names, currencies and amounts can be misrecognized. Speech never automatically submits or approves an action.
+
+First use downloads approximately 211 MB of pinned speech assets, which the browser may cache. Production builds prepare and verify static shards automatically. For local development run `npm run prepare:voice` before trying live dictation. No speech API key or always-on speech backend is required.
+
+## Submission walkthrough
+
+See [the current walkthrough](docs/competition-demo-guide.md) and [submission review](docs/submission-review-2026-10-25.md). Public financial values are fictional; authenticated sign-in/MFA is a separate flow.

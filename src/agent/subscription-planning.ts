@@ -2,7 +2,7 @@ import {normalisePlanDate} from './conversation-normalisation';
 import {normalizeMerchant,displayAmount,type AgentContext} from './contracts';
 import {planCommand} from './planner';
 import type {ConversationTask,DraftTask,DraftUpdate} from './conversation-contracts';
-export const isSubscriptionPlanningRequest=(message:string)=>/\b(can\s+(?:you|u)?\s*plan|plan\s+(?:this|it|a|my)|make\s+(?:a\s+)?plan|planning)\b|^\s*(?:please\s+)?plan\b|计划|规划/i.test(message);
+export const isSubscriptionPlanningRequest=(message:string)=>/\b(can\s+(?:you|u)?\s*plan|help\s+(?:me|us)\s+plan|plan\s+(?:this|it|a|my)|make\s+(?:a\s+)?plan|planning)\b|^\s*(?:please\s+)?plan\b|计划|规划/i.test(message);
 export function subscriptionPlanningTask(d:DraftTask,c:AgentContext):ConversationTask|null{
  if(d.mode!=='plan'||!['subscription_payment','cancel_subscription'].includes(d.kind))return null;
  const key=normalizeMerchant(d.target),matches=c.subscriptions.filter(s=>s.id===d.target||key&&(normalizeMerchant(s.name)===key||normalizeMerchant(s.name).split(' ').includes(key)||normalizeMerchant(s.name).replaceAll(' ','').startsWith(key.replaceAll(' ',''))));const record=matches.length===1?matches[0]:undefined;
