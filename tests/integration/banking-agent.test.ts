@@ -1,14 +1,14 @@
 // @vitest-environment node
 import {afterEach,describe,expect,it} from 'vitest';
 import type {PGlite} from '@electric-sql/pglite';
-import {A,B,asUser,createDatabase} from './database';
+import {A,B,asUser,createDatabase,verifyFixtureAction} from './database';
 let db:PGlite;
 afterEach(async()=>{await db?.close();});
 describe('owner-scoped connected agent backend',()=>{
  it('replays the original verified receipt even after later changes',async()=>{
   db=await createDatabase();await asUser(db,A);await db.query('select public.sim_initialize()');
   const card=(await db.query<{id:string}>('select id from public.sim_cards limit 1')).rows[0];
-  async function change(mode:string,version:number){const plan={id:crypto.randomUUID(),version,mode:'deterministic',actions:[{id:crypto.randomUUID(),payload:{type:'card',cardId:card.id,mode}}]};await db.query('select public.bank_agent_store_plan($1::jsonb)',[JSON.stringify(plan)]);const id=(await db.query<{bank_agent_prepare:{id:string}}>('select public.bank_agent_prepare($1,0)',[plan.id])).rows[0].bank_agent_prepare.id;const result=(await db.query<{bank_agent_execute:{status:string;verified:boolean}}>('select public.bank_agent_execute($1,true)',[id])).rows[0].bank_agent_execute;return{id,result};}
+  async function change(mode:string,version:number){const plan={id:crypto.randomUUID(),version,mode:'deterministic',actions:[{id:crypto.randomUUID(),payload:{type:'card',cardId:card.id,mode}}]};await db.query('select public.bank_agent_store_plan($1::jsonb)',[JSON.stringify(plan)]);const id=(await db.query<{bank_agent_prepare:{id:string}}>('select public.bank_agent_prepare($1,0)',[plan.id])).rows[0].bank_agent_prepare.id;await verifyFixtureAction(db,id);const result=(await db.query<{bank_agent_execute:{status:string;verified:boolean}}>('select public.bank_agent_execute($1,true)',[id])).rows[0].bank_agent_execute;return{id,result};}
   const first=await change('freeze',0);expect(first.result.verified).toBe(true);await change('unfreeze',1);
   expect((await db.query<{bank_agent_execute:unknown}>('select public.bank_agent_execute($1,true)',[first.id])).rows[0].bank_agent_execute).toEqual(first.result);
   expect((await db.query<{frozen:boolean}>('select frozen from public.sim_cards where id=$1',[card.id])).rows[0].frozen).toBe(false);

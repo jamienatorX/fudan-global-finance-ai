@@ -1,11 +1,11 @@
 // @vitest-environment node
 import { afterEach,describe,expect,it } from 'vitest';
 import type { PGlite } from '@electric-sql/pglite';
-import { A,B,asUser,createDatabase } from './database';
+import { A,B,asUser,createDatabase,verifyFixtureAction } from './database';
 
 let db:PGlite|null=null;
 afterEach(async()=>{if(db){await db.close();db=null;}});
-type J={id:string;status:string;version?:number};
+type J={id:string;status:string;code?:string;version?:number};
 async function provision(owner=A){
   await asUser(db!,owner);
   const result=await db!.query<{sim_initialize:unknown}>('select public.sim_initialize()');
@@ -57,7 +57,7 @@ describe('authenticated fictitious money backend',()=>{
   await execute(current.id,true);
   expect((await execute(stale.id,true)).status).toBe('stale');
   const invalid=await prepare({...transfer,amountMinor:'99999999999'});
-  await expect(execute(invalid.id,true)).rejects.toThrow(/INSUFFICIENT_FUNDS/);
+  await verifyFixtureAction(db,invalid.id);expect((await execute(invalid.id,true)).code).toBe('INSUFFICIENT_FUNDS');
   const expired=await prepare(transfer);
   await db.exec('reset role');
   await db.query("update public.sim_actions set expires_at=now()-interval '2 minutes' where id=$1",[expired.id]);
@@ -65,7 +65,7 @@ describe('authenticated fictitious money backend',()=>{
   expect((await execute(expired.id,true)).status).toBe('expired');
   const foreign=await prepare(transfer);
   await asUser(db,B);await provision(B);
-  await expect(execute(foreign.id,true)).rejects.toThrow(/ACTION_NOT_FOUND/);
+  expect((await execute(foreign.id,true)).code).toBe('ACTION_NOT_FOUND');
   const visible=await db.query('select id from public.sim_actions where id=$1',[foreign.id]);
   expect(visible.rows).toHaveLength(0);
  });
@@ -85,13 +85,13 @@ describe('authenticated fictitious money backend',()=>{
   await execute(cancel.id,true);
   const cards=(await db.query<{id:string}>('select id from public.sim_cards')).rows;
   const freeze=await prepare({type:'card',cardId:cards[0].id,mode:'freeze'});
-  await execute(freeze.id,true);
+  await verifyFixtureAction(db,freeze.id);await execute(freeze.id,true);
   const tuition=(await db.query<{id:string}>('select id from public.sim_tuition')).rows[0].id;
   const payment=await prepare({type:'tuition',sourceId:source.id,tuitionId:tuition});
-  await execute(payment.id,true);
+  await verifyFixtureAction(db,payment.id);await execute(payment.id,true);
   const products=(await db.query<{id:string}>('select id from public.sim_products')).rows;
   const buy=await prepare({type:'investment',sourceId:source.id,productId:products[0].id,direction:'buy',amountMinor:'10000'});
-  expect((await execute(buy.id,true)).status).toBe('executed');
+  await verifyFixtureAction(db,buy.id);expect((await execute(buy.id,true)).status).toBe('executed');
   expect((await db.query<{paid:boolean}>('select paid from public.sim_tuition')).rows[0].paid).toBe(true);
   expect((await db.query<{frozen:boolean}>('select frozen from public.sim_cards where id=$1',[cards[0].id])).rows[0].frozen).toBe(true);
   expect((await db.query<{active:boolean}>('select active from public.sim_subscriptions where id=$1',[sub])).rows[0].active).toBe(false);

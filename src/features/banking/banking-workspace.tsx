@@ -5,6 +5,9 @@ import { LocalizedLink as Link } from '../../i18n/localized';
 import { useRouter } from 'next/navigation';
 import { createBrowserSupabaseClient } from '../../lib/supabase/browser';
 import type { BankingState,TableItem } from '../../server/secure-banking';
+import {securityMessage} from './security-client';
+import {ActionVerification} from './action-verification';
+import {SecurityStatus} from './security-status';
 import { SessionControls } from './session-controls';
 import {PrivateCopilot} from '../copilot/private-copilot';
 import { searchPrivateBanking } from './private-search';
@@ -60,6 +63,7 @@ export function BankingWorkspace({supportDestination,initialTab}:{supportDestina
  const [loading,setLoading]=useState(true);
  const [busy,setBusy]=useState(false);
  const [pending,setPending]=useState<Pending|null>(null);
+ const [actionReady,setActionReady]=useState(false);
  const [notice,setNotice]=useState('');
  const [error,setError]=useState('');
  const [form,setForm]=useState<Record<string,string>>({});
@@ -86,6 +90,8 @@ export function BankingWorkspace({supportDestination,initialTab}:{supportDestina
    const result=await response.json() as Record<string,unknown>;
    if(response.status===401){router.replace('/login');throw new Error('Your session ended. Please sign in again.');}
    if(result.error==='MFA_REQUIRED'||result.error==='REAUTH_REQUIRED'){router.replace('/security');throw new Error('Verify again, then review your action.');}
+   if(result.code)throw new Error(securityMessage(String(result.code)));
+   if(['SAFETY_LOCKED','ACTION_VERIFICATION_REQUIRED'].includes(String(result.error)))throw new Error(securityMessage(String(result.error)));
    if(!response.ok)throw new Error(response.status===429?'Too many requests. Please wait a minute.':'This action could not be completed. Review your details and try again.');
    return result;
  }
@@ -131,7 +137,7 @@ export function BankingWorkspace({supportDestination,initialTab}:{supportDestina
        <LocalizedButton className={sec} onClick={async()=>{await createBrowserSupabaseClient().auth.signOut();window.location.assign('/login');}}>Sign out</LocalizedButton></LocalizedDiv>
      </LocalizedDiv>
    </LocalizedHeader>
-   <LocalizedDiv className="mx-auto max-w-[1480px] px-5 py-7 sm:px-8"><SessionControls/>
+   <LocalizedDiv className="mx-auto max-w-[1480px] px-5 py-7 sm:px-8"><SessionControls/><SecurityStatus/>
     {!state.enrolled?<Pane title="Set up your accounts" description="Choose your accounts in CNY, USD, SGD and IDR.">
       <LocalizedButton className={cta} disabled={busy} onClick={initialize}>Set up accounts</LocalizedButton>
 
@@ -259,7 +265,7 @@ export function BankingWorkspace({supportDestination,initialTab}:{supportDestina
          return <LocalizedDiv className="flex justify-between gap-4" key={key}><LocalizedDt className="text-slate-500">{labels[key]??key}</LocalizedDt><LocalizedDd className="break-words text-right font-medium capitalize">{display}</LocalizedDd></LocalizedDiv>;
        })}</LocalizedDl>
        <LocalizedDiv className="mt-6 flex flex-wrap gap-3">
-        <LocalizedButton className={cta} disabled={busy} onClick={()=>void decide(true)}>Confirm</LocalizedButton>
+        <ActionVerification key={pending.id} actionId={pending.id} onReady={setActionReady}/><LocalizedButton className={cta} disabled={busy||!actionReady} onClick={()=>void decide(true)}>Confirm</LocalizedButton>
         <LocalizedButton className={sec} disabled={busy} onClick={()=>void decide(false)}>Reject without changes</LocalizedButton>
        </LocalizedDiv>
       </LocalizedSection>

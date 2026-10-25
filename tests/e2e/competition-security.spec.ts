@@ -1,0 +1,29 @@
+import {test,expect} from '@playwright/test';
+// UI fixtures only. These checks do not prove Supabase sign-in or an actual MFA challenge.
+const account='00000000-0000-4000-8000-000000000010',action='00000000-0000-4000-8000-000000000020';
+for(const mode of ['light','dark'] as const)for(const width of [1440,390]){
+ test(`security review and support UI ${mode} ${width}`,async({page})=>{
+  await page.setViewportSize({width,height:1000});await page.emulateMedia({colorScheme:mode});
+  const state={enrolled:true,version:0,accounts:[{id:account,label:'Daily CNY',currency:'CNY',balance_minor:1865000}],budgets:[],subscriptions:[],cards:[{id:account,label:'Daily card',masked_number:'•••• 4821',monthly_limit_minor:300000,frozen:false}],tuition:[],products:[],holdings:[],actions:[],ledger:[],audit:[]};
+  await page.route('**/api/banking/**',async route=>{
+   const url=new URL(route.request().url()),body=route.request().method()==='POST'?route.request().postDataJSON():{};
+   let data:unknown={status:'ok'};
+   if(url.pathname.endsWith('/state'))data=state;
+   else if(url.pathname.endsWith('/conversation'))data={state:{id:account,revision:0,messages:[],drafts:[]},tasks:[],entities:{accounts:[],recipients:[],cards:[],subscriptions:[],tuition:[],products:[]}};
+   else if(url.pathname.endsWith('/workflow'))data={workflows:[]};
+   else if(url.pathname.endsWith('/action'))data={id:action,expiresInSeconds:600};
+   else if(url.pathname.endsWith('/policy'))data=body.operation==='policy'?{tier:'Red',reason:'CARD_SECURITY_VERIFICATION',review:{Action:'card',Mode:'freeze',Card:'Daily card •••• 4821'}}:{locked:false};
+   else if(url.pathname.endsWith('/support'))data=body.operation==='create'?{id:action,revision:0,status:'queued',messages:[{id:account,role:'customer',message:body.message}]}:{tickets:[]};
+   await route.fulfill({json:data});
+  });
+  await page.goto('/banking?tab=cards');await page.getByRole('button',{name:'Review freeze',exact:true}).click();
+  const dialog=page.getByRole('dialog',{name:'Confirm action'});await expect(dialog.getByText('Red permission')).toBeVisible();
+  await expect(dialog.getByRole('button',{name:'Confirm',exact:true})).toBeDisabled();await expect(dialog.getByRole('button',{name:'Verify this action',exact:true})).toBeVisible();
+  await expect(dialog.getByText('Daily card •••• 4821',{exact:true})).toBeVisible();
+  await page.screenshot({path:test.info().outputPath(`permission-${mode}-${width}.png`),fullPage:true});
+  await page.goto('/support');await page.getByLabel('Support message').fill('Please help me review my task.');await page.getByRole('button',{name:'Send support request'}).click();
+  await expect(page.getByRole('status')).toHaveText('queued');await expect(page.getByRole('log',{name:'Support conversation'})).toContainText('Please help me review my task.');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await page.screenshot({path:test.info().outputPath(`support-${mode}-${width}.png`),fullPage:true});
+ });
+}

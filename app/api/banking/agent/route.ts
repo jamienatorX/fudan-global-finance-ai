@@ -28,7 +28,7 @@ export async function POST(request:NextRequest){
   else if(b.operation==='execute'&&typeof b.actionId==='string'&&uuid.test(b.actionId)&&typeof b.approve==='boolean')
    result=await session.client.rpc('bank_agent_execute',{p_action_id:b.actionId,p_approve:b.approve});
   else return respond({error:'INVALID_OPERATION'},400);
-  if(result.error)throw new Error(result.error.message);return respond(result.data);
+  if(result.error)throw new Error(result.error.message);if(result.data?.code)return respond({error:result.data.code},409);return respond(result.data);
  }catch(error){
   const message=error instanceof Error?error.message:'';const security=securityFailure(message);
   if(security)return respond({error:security.code},security.status);

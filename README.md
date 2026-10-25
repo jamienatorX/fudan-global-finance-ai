@@ -51,3 +51,7 @@ First use downloads approximately 211 MB of pinned speech assets, which the brow
 ## Submission walkthrough
 
 See [the current walkthrough](docs/competition-demo-guide.md) and [submission review](docs/submission-review-2026-10-25.md). Public financial values are fictional; authenticated sign-in/MFA is a separate flow.
+
+## Competition security and workflows
+
+Authenticated banking now includes database-enforced permission tiers, daily transfer/tuition thresholds, action-bound MFA, durable safety locks, recoverable task workflows and an owner/assignment-scoped operator inbox. See [security evidence](docs/competition-security-evidence.md), [live acceptance and limits](docs/competition-security-live-acceptance.md), [mutation inventory](docs/banking-mutation-inventory.md) and [rollout review](docs/production-security-rollout-review.md). Operator accounts require explicit team provisioning; public browser money is not security proof.

@@ -38,6 +38,7 @@ export async function POST(request:NextRequest){
       default:return NextResponse.json({error:'UNKNOWN_OPERATION'},{status:400,headers});
     }
     if(result.error){const failure=securityFailure(result.error.message);return NextResponse.json({error:failure?.code??'ACTION_REJECTED'},{status:failure?.status??409,headers:{...headers,...(failure?.status===429?{'Retry-After':'60'}:{})}});}
+    if(result.data&&typeof result.data==='object'&&'code' in result.data){const code=String(result.data.code);return NextResponse.json({error:code},{status:409,headers});}
     return NextResponse.json(result.data,{headers});
   }catch{return NextResponse.json({error:'INVALID_REQUEST'},{status:400,headers});}
 }

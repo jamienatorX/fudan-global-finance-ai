@@ -39,3 +39,17 @@ export async function asUser(db: PGlite, user: string | null, role = 'authentica
   const claims=JSON.stringify({sub:user,session_id:user,aal:'aal2',amr:[{method:'totp',timestamp:Math.floor(Date.now()/1000)}]});
   await db.exec(`reset role; select set_config('request.jwt.claim.sub', '${user ?? ''}', false); select set_config('request.jwt.claims', '${claims}', false); set role ${role};`);
 }
+
+/** Fixture only. This does not perform or prove an actual authenticator challenge. */
+export async function verifyFixtureAction(db:PGlite,actionId:string){
+ const grant=(await db.query<{bank_action_verification_begin:{id:string}}>('select public.bank_action_verification_begin($1)',[actionId])).rows[0].bank_action_verification_begin;
+ const current=(await db.query<{jwt:Record<string,unknown>}>('select auth.jwt() as jwt')).rows[0].jwt;
+ const previous=Array.isArray(current.amr)?Math.max(0,...current.amr.map((a:{timestamp?:number})=>Number(a.timestamp??0))):0;
+ await db.exec('reset role');
+ const used=(await db.query<{stamp:number}>('select coalesce(max(verified_event),0)::float8 as stamp from private.bank_action_grants')).rows[0].stamp;
+ await db.exec('set role authenticated');
+ const stamp=Math.max(Math.floor(Date.now()/1000)+1,previous+1,used+1);
+ await db.query("select set_config('request.jwt.claims',$1,false)",[JSON.stringify({...current,aal:'aal2',amr:[{method:'totp',timestamp:stamp}]})]);
+ const r=(await db.query<{bank_action_verification_complete:{status?:string;code?:string}}>('select public.bank_action_verification_complete($1)',[grant.id])).rows[0].bank_action_verification_complete;
+ if(r.status!=='verified')throw new Error(r.code??'Fixture verification failed');
+}

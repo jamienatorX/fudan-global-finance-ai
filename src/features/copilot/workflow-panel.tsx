@@ -1,0 +1,32 @@
+'use client';
+import {useEffect,useState} from 'react';
+import {securePost} from '../banking/security-client';
+import {ActionVerification} from '../banking/action-verification';
+import {OperatorInbox} from '../support/operator-inbox';
+type Node={id:string;position:number;description:string;status:string;action_id?:string;dependencies:number[]};
+type Workflow={id:string;revision:number;status:string;handoff?:boolean;nodes:Node[];actionId?:string;outcome?:{status:string;code?:string}};
+const button='min-h-11 rounded-xl border border-[var(--color-border)] px-3 py-2 text-sm font-semibold disabled:opacity-50';
+export function WorkflowPanel({conversationId,conversationRevision}:{conversationId:string;conversationRevision:number}){
+ const [saved,setSaved]=useState<{id:string;status:string}[]>([]),[workflow,setWorkflow]=useState<Workflow|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(''),[ready,setReady]=useState(false),[support,setSupport]=useState(false),[recovery,setRecovery]=useState<{id:string;payload:Record<string,string>}|null>(null);
+ const request=<T,>(body:Record<string,unknown>)=>securePost<T>('/api/banking/workflow',body);
+ useEffect(()=>{let active=true;request<{workflows:typeof saved}>({operation:'list'}).then(r=>{if(active)setSaved(r.workflows);}).catch(()=>{});return()=>{active=false;};},[]);
+ async function run(fn:()=>Promise<void>){if(busy)return;setBusy(true);setError('');try{await fn();}catch(e){setError(e instanceof Error?e.message:'Workflow unavailable.');}finally{setBusy(false);}}
+ function command(command:string,actionId?:string){if(!workflow)return;void run(async()=>{const w=await request<Workflow>({operation:'command',workflowId:workflow.id,revision:workflow.revision,command,actionId});setWorkflow(w);setReady(false);if(w.outcome?.code)throw new Error(w.outcome.code==='ACTION_VERIFICATION_REQUIRED'?'Verify this action before confirming.':'This step did not complete. Review the current account state.');});}
+ const pending=workflow?.nodes?.find(n=>n.status==='pending');
+ return <section aria-label="Task workflow" className="mt-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+  <h3 className="font-bold">Your task workflow</h3><p className="mt-1 text-sm">Save the ready banking tasks in order. Each change gets its own review and confirmation.</p>
+  <div className="mt-3 flex flex-wrap gap-2"><button type="button" className={button} disabled={busy} onClick={()=>void run(async()=>{setWorkflow(await request<Workflow>({operation:'create',conversationId,revision:conversationRevision}));setRecovery(null);})}>Create workflow from ready tasks</button>{saved.map(w=><button type="button" className={button} disabled={busy} key={w.id} onClick={()=>void run(async()=>{setWorkflow(await request<Workflow>({operation:'get',workflowId:w.id}));setRecovery(null);})}>Open workflow · {w.status}</button>)}</div>
+  {workflow&&<div className="mt-4 space-y-3"><p className="text-sm font-semibold">Workflow {workflow.id.slice(0,8)} · {workflow.status}{workflow.handoff?' · Operator review':''}</p><ol className="space-y-2">{workflow.nodes.map(n=><li key={n.id} className="rounded-xl border border-[var(--color-border)] p-3 text-sm"><strong>{n.position+1}. {n.description}</strong><p>{n.status}{n.dependencies.length?' · After step '+n.dependencies.map(d=>d+1).join(', '):''}</p></li>)}</ol>
+   <div className="flex flex-wrap gap-2"><button type="button" className={button} disabled={busy} onClick={()=>void run(async()=>{setWorkflow(await request<Workflow>({operation:'get',workflowId:workflow.id}));})}>Refresh workflow</button>
+   {workflow.status==='active'&&<><button type="button" className={button} disabled={busy||workflow.handoff} onClick={()=>command('advance')}>Review next step</button><button type="button" className={button} disabled={busy||workflow.handoff} onClick={()=>command('pause')}>Pause workflow</button></>}
+   {workflow.status==='paused'&&<button type="button" className={button} disabled={busy||workflow.handoff} onClick={()=>command('resume')}>Resume workflow</button>}
+   {!['completed','cancelled'].includes(workflow.status)&&<button type="button" className={button} disabled={busy||workflow.handoff} onClick={()=>command('cancel_remaining')}>Cancel remaining steps</button>}
+   {workflow.nodes.some(n=>n.status==='executed')&&<button type="button" className={button} disabled={busy||workflow.handoff||workflow.status==='active'} onClick={()=>void run(async()=>{const r=await request<{id:string;payload:Record<string,string>}>({operation:'recovery',workflowId:workflow.id,revision:workflow.revision});setRecovery(r);setReady(false);})}>Review reversal</button>}
+   <button type="button" className={button} onClick={()=>setSupport(v=>!v)}>Request operator takeover</button></div>
+   {pending?.action_id&&workflow.status==='active'&&!workflow.handoff&&<div className="rounded-xl border-2 border-[var(--color-primary)] p-3"><h4 className="font-semibold">Confirm step {pending.position+1}</h4><p className="text-sm">{pending.description}</p><ActionVerification key={pending.action_id} actionId={pending.action_id} onReady={setReady}/><div className="flex flex-wrap gap-2"><button type="button" className={button} disabled={busy||!ready} onClick={()=>command('confirm',pending.action_id)}>Confirm exact step</button><button type="button" className={button} disabled={busy} onClick={()=>command('reject',pending.action_id)}>Reject step</button></div></div>}
+   {recovery&&<div className="rounded-xl border-2 border-[var(--color-primary)] p-3"><h4 className="font-semibold">Review compensating change</h4><p className="text-sm">This creates a new {recovery.payload.type} entry. The original history remains.</p><ActionVerification key={recovery.id} actionId={recovery.id} onReady={setReady}/><button type="button" className={button} disabled={busy||!ready} onClick={()=>void run(async()=>{await securePost('/api/banking/action',{operation:'execute',actionId:recovery.id,approve:true});setRecovery(null);setWorkflow(await request<Workflow>({operation:'get',workflowId:workflow.id}));})}>Confirm exact reversal</button><button type="button" className={button} onClick={()=>setRecovery(null)}>Close review</button></div>}
+   {support&&<OperatorInbox workflowId={workflow.id} initialMessage="Please help me review this workflow."/>}
+  </div>}
+  {error&&<p role="alert" className="mt-3 text-sm">{error}</p>}
+ </section>;
+}
