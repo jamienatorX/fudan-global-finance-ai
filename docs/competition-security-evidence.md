@@ -1,5 +1,7 @@
 # Competition security evidence — 26 October 2026
 
+Current submission status is tracked in [the submission verification record](submission/verification.md). The runs below are historical implementation evidence. Real TOTP enrollment and operator provisioning are configured; execution and handoff acceptance remain separate.
+
 ## What is implemented
 
 The authenticated banking engine enforces permissions in PostgreSQL, not in model text or hidden buttons. Green read paths retain the existing AAL2/owner/session baseline. Yellow actions need exact confirmation. Transfers and tuition use an inclusive CNY 1000 daily threshold in Asia/Shanghai; unknown FX evidence escalates to Red. Investments and card freeze/unfreeze are Red. Red actions require a one-use, session/action/payload/state-bound MFA event newer than server grant creation. No arbitrary generated code is executed.
@@ -14,7 +16,7 @@ The authenticated banking engine enforces permissions in PostgreSQL, not in mode
 | Owner/RPC isolation | private fixed-path helpers, invoker public wrappers, RLS and grants | rls.test.ts; banking-api-security.test.ts; competition-api.test.ts; adversarial role/direct helper denial | Dedicated fictional identities only; no live brute force or cross-customer probing. |
 | DAG/checkpoints/retry | bank_workflow_create/command; stable action IDs and owner/revision locks | banking-workflows.test.ts | Topologically indexed DAG, default sequential dependencies; bounded request advances one node. No unattended scheduler. |
 | Safe recovery | bank_workflow_recovery_prepare plus shared action policy | workflow-recovery.test.ts; original and compensating ledger entries remain | Only supported own-account transfer/budget/card inverse proposals; later state, unknown and irreversible effects require manual review. |
-| Real human takeover | bank_support_create/get/list/reply; bank_operator_command; role and claim checks | operator-inbox.test.ts; adversarial expired/revoked role tests | Queue is real persistence. Staff account provisioning and a real team exercise are still needed. Operators cannot execute customer approvals. |
+| Real human takeover | bank_support_create/get/list/reply; bank_operator_command; role and claim checks | operator-inbox.test.ts; adversarial expired/revoked role tests | Queue is real persistence. The team operator account is provisioned; a real team exercise is still needed. Operators cannot execute customer approvals. |
 | Chat and accessible review | ActionVerification, WorkflowPanel, OperatorInbox | component tests and competition-security.spec.ts: desktop/mobile × light/dark | Browser checks use mocked API fixtures. They prove UI state, not real authentication. |
 | Audit evidence | bank_security_events, sim_audit, immutable receipts | SQL tests and owner-only JSON download | No codes, bearer tokens or authenticator secrets in audit schema. User support messages are explicitly supplied content. |
 

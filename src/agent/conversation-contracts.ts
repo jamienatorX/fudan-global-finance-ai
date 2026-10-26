@@ -1,14 +1,17 @@
-import type {AgentPlanResult} from './contracts';
+import type {AgentPlanResult,AgentSubscription,RecurringCandidate} from './contracts';
 export const TASK_KINDS=['read','transfer','budget','tuition','investment','card','cancel_subscription','subscription_payment','affordability','unsupported'] as const;
 export type TaskKind=typeof TASK_KINDS[number];
 export type DraftTask={id:string;kind:TaskKind;source:string;target:string;amountMinor:string;currency:string;category:string;mode:string;schedule:string;risk:string;query:string;reservation:'ask'|'include'|'exclude';status:'draft'|'completed'|'rejected'|'failed'|'skipped';receipt?:{actionId:string;status:string;verified:boolean}};
 export type DraftUpdate=Omit<DraftTask,'reservation'|'status'|'receipt'>;
 export type ConversationUpdate={reply?:string;tasks:DraftUpdate[];removeIds:string[]};
-export type ConversationState={id:string;revision:number;source:'demo'|'private';messages:{role:'user'|'assistant';content:string;links?:{href:string;label:string}[]}[];drafts:DraftTask[];expiresAt:number};
+export type SubscriptionEvidence={asOf:string;coverage:AgentPlanResult['coverage'];candidates:(Omit<RecurringCandidate,'accountId'|'evidence'>&{evidence:Pick<RecurringCandidate['evidence'][number],'id'|'date'|'amountMinor'|'currency'>[]})[];subscriptions:AgentSubscription[];candidateCount:number;subscriptionCount:number};
+export type ConversationState={id:string;revision:number;source:'demo'|'private';messages:{role:'user'|'assistant';content:string;links?:{href:string;label:string}[];subscriptionEvidence?:SubscriptionEvidence}[];drafts:DraftTask[];expiresAt:number};
 export type AffordabilityResult={currency:string;availableMinor:string;obligationsMinor:string;proposedCashMinor:string;additionalMinor:string;scenarioNeedsMinor:string;cashRemainingMinor:string;budgetRemainingMinor:string|null;categoryRemainingMinor:string|null;sourceWarnings:string[];limitations:string[];verdict:'limited'|'insufficient'|'within-recorded-limits';asOf:string};
 export type ConversationTask={draft:DraftTask;status:'ready'|'needs-input'|'unsupported'|'completed'|'rejected'|'failed'|'skipped';message:string;question?:string;plan?:AgentPlanResult};
 export type ConversationTurn={serviceError?:string;state:ConversationState;tasks:ConversationTask[];question?:string;impact:AffordabilityResult|null;impacts?:AffordabilityResult[];mode:'live-model'|'deterministic';entities:{accounts:{id:string;name:string;currency:string}[];recipients:{id:string;name:string}[];products:{id:string;name:string}[];tuition:{id:string;name:string}[];cards:{id:string;name:string}[];subscriptions:{id:string;name:string}[]}};
 export const blankTask=(kind:TaskKind):DraftUpdate=>({id:'',kind,source:'',target:'',amountMinor:'',currency:'',category:'',mode:'',schedule:'',risk:'',query:''});
+/** Formatted JSON reserves more whitespace than PostgreSQL JSONB text adds. */
+export function assertConversationCapacity(state:ConversationState){if(new TextEncoder().encode(JSON.stringify(state,null,1)).length>95000)throw new Error('CONVERSATION_LIMIT');}
 export function newConversation(source:'demo'|'private'):ConversationState{return{id:crypto.randomUUID(),source,revision:0,messages:[],drafts:[],expiresAt:Date.now()+1800000};}
 export function validateUpdate(value:unknown):ConversationUpdate{
  if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('INVALID_DRAFT');

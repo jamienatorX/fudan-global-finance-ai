@@ -1,10 +1,13 @@
 import {readOnlyConversationUpdate} from '../agent/conversation-read-fallback';
 import {AgentModelError,modelFailureMessage} from './agent-model-provider';
 import {advanceConversation,describeConversation} from '../agent/conversation-controller';
-import {newConversation,validateUpdate,type ConversationState,type ConversationTurn} from '../agent/conversation-contracts';
+import {assertConversationCapacity,newConversation,validateUpdate,type ConversationState,type ConversationTurn} from '../agent/conversation-contracts';
 import type {AgentContext} from '../agent/contracts';
 import {interpretConversation} from './agent-conversation-model';
 export async function applyConversationOperation(state:ConversationState,c:AgentContext,b:Record<string,unknown>):Promise<ConversationTurn>{
+ const turn=await applyOperation(state,c,b);if(turn.state.revision!==state.revision)assertConversationCapacity(turn.state);return turn;
+}
+async function applyOperation(state:ConversationState,c:AgentContext,b:Record<string,unknown>):Promise<ConversationTurn>{
  const mode=process.env.BANK_AGENT_MODE==='live'?'live-model':'deterministic';
  if(b.operation==='load')return describeConversation(state,c,mode);
  if(b.operation==='receipt'){

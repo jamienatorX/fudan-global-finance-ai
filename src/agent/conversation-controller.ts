@@ -5,6 +5,7 @@ import {calculateAffordabilities} from './affordability';
 import {isSubscriptionPlanningRequest,subscriptionPlanningTask,prepareSubscriptionPlan} from './subscription-planning';
 import {UNSUPPORTED_MESSAGE} from './support';
 import type {ConversationState,ConversationTask,ConversationTurn,ConversationUpdate,DraftTask} from './conversation-contracts';
+import {assertConversationCapacity} from './conversation-contracts';
 function resolve<T extends {id:string;name:string}>(rows:readonly T[],query:string):T|undefined{
  if(!query)return;const exact=rows.filter(r=>r.id===query||normalizeMerchant(r.name)===normalizeMerchant(query));if(exact.length===1)return exact[0];
  const partial=rows.filter(r=>normalizeMerchant(r.name).split(' ').includes(normalizeMerchant(query)));return partial.length===1?partial[0]:undefined;
@@ -41,10 +42,10 @@ export function advanceConversation(state:ConversationState,update:ConversationU
  const drafts=structuredClone(state.drafts),touched=new Set<string>();
  for(const id of update.removeIds){const d=drafts.find(d=>d.id===id);if(!d||d.status!=='draft')throw new Error('INVALID_DRAFT');d.status='skipped';}
  for(const incoming of update.tasks){
-  const matches=!incoming.id&&incoming.mode==='plan'?state.drafts.filter(d=>d.status==='draft'&&d.mode==='plan'&&d.kind===incoming.kind&&normalizeMerchant(d.target)===normalizeMerchant(incoming.target)):[];
+  const matches=!incoming.id&&incoming.kind==='read'?state.drafts.filter(d=>d.status==='draft'&&d.kind==='read'&&canonicalReadQuery(d.query)===canonicalReadQuery(incoming.query)):!incoming.id&&incoming.mode==='plan'?state.drafts.filter(d=>d.status==='draft'&&d.mode==='plan'&&d.kind===incoming.kind&&normalizeMerchant(d.target)===normalizeMerchant(incoming.target)):[];
   const previous=incoming.id?drafts.find(d=>d.id===incoming.id):matches.length===1?drafts.find(d=>d.id===matches[0].id):undefined;
   const planning=['subscription_payment','cancel_subscription'].includes(incoming.kind)&&(incoming.mode==='plan'||isSubscriptionPlanningRequest(message)||previous?.mode==='plan');
-  const u=planning?prepareSubscriptionPlan({...incoming,id:previous?.id??incoming.id},message,c,previous):incoming;
+  const u=planning?prepareSubscriptionPlan({...incoming,id:previous?.id??incoming.id},message,c,previous):{...incoming,id:previous?.id??incoming.id};
   if(u.kind==='read'&&/\b(fx|forex)\b/i.test(u.query)&&!/(\b(fx|forex|convert|exchange|currency)\b|汇率|外汇|换汇|兑换)/i.test(message))continue;
   const index=u.id?drafts.findIndex(d=>d.id===u.id):-1;if(u.id&&index===-1)throw new Error('UNKNOWN_DRAFT');
   if(index>=0){const old=drafts[index];if(old.status!=='draft')throw new Error('TASK_ALREADY_DECIDED');if(old.kind!==u.kind)throw new Error('INVALID_DRAFT');drafts[index]={...old,...u,reservation:old.amountMinor===u.amountMinor&&old.currency===u.currency&&old.target===u.target&&old.category===u.category?old.reservation:'ask'};}
@@ -55,7 +56,16 @@ export function advanceConversation(state:ConversationState,update:ConversationU
  const next:ConversationState={...state,revision:state.revision+1,drafts,messages:[...state.messages,{role:'user',content:message.slice(0,1000)}],expiresAt:Date.now()+1800000};
  const turn=describeConversation(next,c,mode);const currentTasks=turn.tasks.filter(t=>touched.has(t.draft.id)),question=currentTasks.find(t=>t.question)?.question;const answer=financialReply({...turn,tasks:currentTasks,impacts:update.tasks.some(t=>['affordability','transfer','investment','tuition','subscription_payment'].includes(t.kind))?turn.impacts:[]},/[\u3400-\u9fff]/.test(message),c);const text=answer?(answer+(question?'\n\n'+question:'')):question??((!currentTasks.length?update.reply?.trim():undefined)||(drafts.length?'Here’s what I found. Review the details below, and I’ll guide you through the next step.':'What would you like help with? Ask a question or choose a task to get started.'));
  const links=[...new Map(currentTasks.flatMap(t=>t.plan?.links??[]).map(l=>[l.href,l])).values()];
- next.messages.push({role:'assistant',content:text,...(links.length?{links}:{})});return turn;
+ // Store a bounded tool-result snapshot on this reply, so later turns cannot move or replace its evidence.
+ const subscriptionPlan=currentTasks.find(t=>t.draft.kind==='read'&&/recurring|subscription|renewal|evidence/i.test(t.draft.query))?.plan;
+ const subscriptionEvidence=subscriptionPlan?{asOf:subscriptionPlan.asOf,coverage:subscriptionPlan.coverage,candidateCount:subscriptionPlan.recurring.length,subscriptionCount:subscriptionPlan.subscriptions.length,candidates:subscriptionPlan.recurring.slice(0,3).map(r=>({merchant:r.merchant.slice(0,160),currency:r.currency,cadence:r.cadence,confidence:r.confidence,amountMinor:r.amountMinor,nextWindow:r.nextWindow,reasons:r.reasons.slice(0,3).map(s=>s.slice(0,160)),evidence:r.evidence.slice(-3).map(({id,date,amountMinor,currency})=>({id:id.slice(0,80),date,amountMinor,currency}))})),subscriptions:subscriptionPlan.subscriptions.slice(0,5).map(s=>({...s,name:s.name.slice(0,160),usage:s.usage.slice(0,160)}))}:undefined;
+ const reply={role:'assistant' as const,content:text,...(links.length?{links}:{}),...(subscriptionEvidence?{subscriptionEvidence}:{})};
+ // Preserve existing attachments rather than pruning history to fit the database limit.
+ if(subscriptionEvidence&&new TextEncoder().encode(JSON.stringify({...next,messages:[...next.messages,reply]})).length>90000){delete reply.subscriptionEvidence;reply.content+='\nStart a new conversation to view fresh subscription evidence; this conversation is near its storage limit.';}
+ next.messages.push(reply);
+ // Pretty-printing overestimates JSONB's added separators; leave room below its 100KB check.
+ assertConversationCapacity(next);
+ return turn;
 }
 
 /** Money in assistant replies is formatted from validated tool results, never model prose. */

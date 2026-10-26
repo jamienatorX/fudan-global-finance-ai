@@ -4,6 +4,10 @@ An international-student finance **simulation** built with Next.js 16, React 19,
 
 **Fufu is the connected banking assistant.** Choose a task or explain a request naturally. Fufu keeps editable drafts, calculates cash and budget impact, and uses the existing approval engine for supported changes. Each exact change requires confirmation; unsupported merchant payments are declined. The public demo uses fictional finances, a shared conversation store and the free Nemotron model when configured. Free providers may collect demo messages; use invented details only. Signed-in banking remains owner/session/MFA scoped. See [Connected Agent Guide](docs/connected-agent.md) and [Hosted Release](docs/fufu-production-release.md).
 
+## Submission materials
+
+See [the final written submission package](docs/submission/README.md) for the project brief, architecture and algorithms, requirements matrix, security self-assessment, reproducible setup and genuine acceptance runbook. The team is preparing the presentation and video separately. Current verification and outstanding live checks are explicitly recorded.
+
 ## Features active now
 
 - Multi-currency fictional account balances (CNY, IDR, USD, SGD).
@@ -37,7 +41,7 @@ For unconfigured local development, `PLAYWRIGHT_DEMO_MODE=1 npm run dev` enables
 
 Fufu supports task forms, deterministic interpretation for supported requests, and optional live interpretation through server-only OpenAI or OpenRouter adapters. The hosted public conversation uses the configured free OpenRouter model; no paid fallback is enabled. Configure `BANK_AGENT_MODE=live`, `BANK_AGENT_PROVIDER`, and the matching server-only provider key/model variables. Website visitors do not supply API keys. A model proposes typed intents; application tools calculate, validate, request exact confirmation and execute supported simulated changes.
 
-The migrations `supabase/migrations/20261021000100_connected_agent.sql` and `supabase/migrations/20261022000100_agent_all_features.sql` must be applied to the intended database before using signed-in agent endpoints. Local implementation and test results do not imply that a production database or deployment has been updated. Full competition compliance has not been established from the partial requirement screenshots.
+The migrations `supabase/migrations/20261021000100_connected_agent.sql` and `supabase/migrations/20261022000100_agent_all_features.sql` must be applied to the intended database before using signed-in agent endpoints. Local implementation and test results do not imply that a production database or deployment has been updated. The official Domestic Banking AI Agent brief has been mapped in the submission package; full compliance and eligibility are not certified.
 
 See [Authenticated Banking Lab](docs/authenticated-banking-lab.md) and [Simulation Guide](docs/competition-demo-guide.md).
 
@@ -54,4 +58,4 @@ See [the current walkthrough](docs/competition-demo-guide.md) and [submission re
 
 ## Competition security and workflows
 
-Authenticated banking now includes database-enforced permission tiers, daily transfer/tuition thresholds, action-bound MFA, durable safety locks, recoverable task workflows and an owner/assignment-scoped operator inbox. See [security evidence](docs/competition-security-evidence.md), [live acceptance and limits](docs/competition-security-live-acceptance.md), [mutation inventory](docs/banking-mutation-inventory.md) and [rollout review](docs/production-security-rollout-review.md). Operator accounts require explicit team provisioning; public browser money is not security proof.
+Authenticated banking now includes database-enforced permission tiers, daily transfer/tuition thresholds, action-bound MFA, durable safety locks, recoverable task workflows and an owner/assignment-scoped operator inbox. See [security evidence](docs/competition-security-evidence.md), [live acceptance and limits](docs/competition-security-live-acceptance.md), [mutation inventory](docs/banking-mutation-inventory.md) and [rollout review](docs/production-security-rollout-review.md). Operator accounts require explicit team provisioning; the team operator is configured. A real customer/operator acceptance exercise remains outstanding. Public browser money is not security proof.

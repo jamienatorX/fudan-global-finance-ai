@@ -1,0 +1,42 @@
+[
+  {
+    "theme": "light",
+    "width": 1440,
+    "anchored": true,
+    "overflow": false,
+    "errors": [],
+    "oneComposer": true,
+    "explicitLoader": true,
+    "note": "Mock conversation transport with fictional UI fixtures; not real MFA or database evidence"
+  },
+  {
+    "theme": "light",
+    "width": 390,
+    "anchored": true,
+    "overflow": false,
+    "errors": [],
+    "oneComposer": true,
+    "explicitLoader": true,
+    "note": "Mock conversation transport with fictional UI fixtures; not real MFA or database evidence"
+  },
+  {
+    "theme": "dark",
+    "width": 1440,
+    "anchored": true,
+    "overflow": false,
+    "errors": [],
+    "oneComposer": true,
+    "explicitLoader": true,
+    "note": "Mock conversation transport with fictional UI fixtures; not real MFA or database evidence"
+  },
+  {
+    "theme": "dark",
+    "width": 390,
+    "anchored": true,
+    "overflow": false,
+    "errors": [],
+    "oneComposer": true,
+    "explicitLoader": true,
+    "note": "Mock conversation transport with fictional UI fixtures; not real MFA or database evidence"
+  }
+]
