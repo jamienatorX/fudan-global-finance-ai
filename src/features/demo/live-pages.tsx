@@ -26,7 +26,7 @@ export function LiveOverview({account}:{account?:string}){
   const displayed=useMemo(()=>overview?displayOverviewCurrency(overview,reportingCurrency,snapshot.exchangeRates):null,
     [overview,reportingCurrency,snapshot.exchangeRates]);
   return displayed?<LocalizedDiv className="overview-workspace">
-    <section className="fufu-home-welcome" aria-label="Welcome to 福 Bank"><p className="invest-eyebrow">Welcome to 福 Bank</p><h1><span translate="no" lang="zh-Hans" style={{color:'inherit'}}>福</span> Bank.<br/><span>Your future. Your agent.</span></h1><p>Big plans. Everyday questions. One banking buddy.</p></section>
+    <section className="fufu-overview-heading" aria-label="Your financial overview"><p>PERSONAL BANKING</p><h1>Your financial overview</h1><p>Your accounts, plans and everyday spending.</p></section>
     <DemoConversation/>
     <LocalizedDiv className="student-reporting-controls flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-border)] pb-4">
         <LocalizedLabel className="flex flex-wrap items-center gap-3 text-xs font-medium text-[var(--color-text-muted)]">Reporting currency

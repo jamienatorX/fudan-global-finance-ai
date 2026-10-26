@@ -6,13 +6,14 @@ import {OperatorInbox} from '../support/operator-inbox';
 type Node={id:string;position:number;description:string;status:string;action_id?:string;dependencies:number[]};
 type Workflow={id:string;revision:number;status:string;handoff?:boolean;nodes:Node[];actionId?:string;outcome?:{status:string;code?:string}};
 const button='min-h-11 rounded-xl border border-[var(--color-border)] px-3 py-2 text-sm font-semibold disabled:opacity-50';
-export function WorkflowPanel({conversationId,conversationRevision}:{conversationId:string;conversationRevision:number}){
+export function WorkflowPanel({conversationId,conversationRevision,readyTasks=0}:{conversationId:string;conversationRevision:number;readyTasks?:number}){
  const [saved,setSaved]=useState<{id:string;status:string}[]>([]),[workflow,setWorkflow]=useState<Workflow|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(''),[ready,setReady]=useState(false),[support,setSupport]=useState(false),[recovery,setRecovery]=useState<{id:string;payload:Record<string,string>}|null>(null);
  const request=<T,>(body:Record<string,unknown>)=>securePost<T>('/api/banking/workflow',body);
  useEffect(()=>{let active=true;request<{workflows:typeof saved}>({operation:'list'}).then(r=>{if(active)setSaved(r.workflows);}).catch(()=>{});return()=>{active=false;};},[]);
  async function run(fn:()=>Promise<void>){if(busy)return;setBusy(true);setError('');try{await fn();}catch(e){setError(e instanceof Error?e.message:'Workflow unavailable.');}finally{setBusy(false);}}
  function command(command:string,actionId?:string){if(!workflow)return;void run(async()=>{const w=await request<Workflow>({operation:'command',workflowId:workflow.id,revision:workflow.revision,command,actionId});setWorkflow(w);setReady(false);if(w.outcome?.code)throw new Error(w.outcome.code==='ACTION_VERIFICATION_REQUIRED'?'Verify this action before confirming.':'This step did not complete. Review the current account state.');});}
  const pending=workflow?.nodes?.find(n=>n.status==='pending');
+ if(!readyTasks&&!saved.length&&!workflow&&!error)return null;
  return <section aria-label="Task workflow" className="mt-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
   <h3 className="font-bold">Your task workflow</h3><p className="mt-1 text-sm">Save the ready banking tasks in order. Each change gets its own review and confirmation.</p>
   <div className="mt-3 flex flex-wrap gap-2"><button type="button" className={button} disabled={busy} onClick={()=>void run(async()=>{setWorkflow(await request<Workflow>({operation:'create',conversationId,revision:conversationRevision}));setRecovery(null);})}>Create workflow from ready tasks</button>{saved.map(w=><button type="button" className={button} disabled={busy} key={w.id} onClick={()=>void run(async()=>{setWorkflow(await request<Workflow>({operation:'get',workflowId:w.id}));setRecovery(null);})}>Open workflow · {w.status}</button>)}</div>

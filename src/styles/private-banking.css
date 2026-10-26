@@ -1,0 +1,44 @@
+/* Account access introduces the brand; signed-in banking prioritizes tasks. */
+.fufu-overview-heading { padding:16px 0 24px; }
+.fufu-overview-heading h1 { margin:8px 0; font-size:clamp(26px,3vw,38px); line-height:1.2; letter-spacing:-.035em; }
+.fufu-overview-heading p { color:var(--color-text-muted); font-size:14px; }
+.fufu-overview-heading p:first-child { font-size:11px; letter-spacing:.15em; font-weight:700; }
+.auth-story-content { position:relative; min-height:540px; padding-right:145px; }
+.auth-story h2 { position:relative; z-index:1; font-size:clamp(42px,4.2vw,68px); }
+.auth-story-description { position:relative; z-index:1; max-width:270px; }
+.auth-fufu-art { position:absolute; right:-28px; top:100px; width:245px; height:340px; }
+.auth-fufu-art>span { width:100%; height:100%; }
+.auth-fufu-art img { filter:drop-shadow(0 22px 24px #0003); }
+.bank-security-toolbar { display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:8px 20px; margin-bottom:28px; }
+.bank-security-toolbar>section { margin:0; padding:0; border:0; background:none; }
+.private-security-menu { position:relative; font-size:13px; color:var(--color-text-muted); }
+.private-security-menu>summary { cursor:pointer; min-height:44px; display:flex; align-items:center; gap:10px; list-style:none; padding:8px 4px; }
+.private-security-menu>summary::-webkit-details-marker { display:none; }
+.private-security-menu>summary::after { content:'⌄'; font-size:16px; }
+.private-security-menu[open]>summary { color:var(--color-text); }
+.private-security-menu[open]>:is(section,div) { position:absolute; z-index:60; right:0; top:calc(100% + 6px); width:min(360px,85vw); margin:0; padding:20px; border:1px solid var(--color-border); border-radius:18px; background:var(--color-surface); color:var(--color-text); box-shadow:0 16px 50px #0002; }
+.bank-security-toolbar>section:has(>[role=status]) { flex-basis:100%; padding:16px; border:1px solid var(--color-border); border-radius:16px; background:var(--color-warning-soft); }
+.private-banking .fufu-chat { border:0; box-shadow:none; padding:28px; }
+.private-banking .fufu-chat>.fufu-intro { border-radius:0; background:none; padding:0; gap:14px; }
+.private-banking .fufu-intro>span { width:52px; height:64px; }
+.private-banking .fufu-chat>.fufu-intro h2 { font-size:24px; line-height:1.2; }
+.private-banking .fufu-intro p:first-child { display:none; }
+.private-banking .fufu-intro p:last-child { color:var(--color-text-muted); font-size:14px; }
+.private-banking .fufu-chat>p { display:none; }
+.private-banking .fufu-transcript { min-height:90px; margin-top:24px; }
+.private-banking .fufu-transcript:empty { display:none; }
+.private-banking section[aria-label="Search your banking records"] { border:0; padding:8px 0; background:none; }
+.private-banking .fufu-chat>details { border:0; padding:8px 0; background:none; }
+.private-banking .fufu-support-link { display:inline-flex; min-height:44px; align-items:center; color:var(--color-text-muted); font-size:13px; text-decoration:underline; text-underline-offset:4px; }
+.private-banking button:focus-visible,.private-security-menu>summary:focus-visible { outline:2px solid var(--color-primary); outline-offset:4px; }
+@media(max-width:760px) {
+ .auth-story-content { min-height:180px; padding-top:20px; padding-right:100px; }
+ .auth-story h2 { font-size:34px; max-width:230px; }
+ .auth-story h2 br { display:block; }
+ .auth-story h2>span::before { content:none; }
+ .auth-fufu-art { width:130px; height:170px; top:5px; right:-16px; }
+ .bank-security-toolbar { justify-content:flex-start; margin-bottom:20px; gap:16px; }
+ .private-security-menu[open]>:is(section,div) { left:0; right:auto; width:min(310px,85vw); }
+ .bank-security-toolbar>section .private-security-menu[open]>div { left:auto; right:0; }
+ .private-banking .fufu-chat { padding:20px; }
+}

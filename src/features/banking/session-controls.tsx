@@ -34,8 +34,8 @@ export function SessionControls(){
     try{const {error}=await createBrowserSupabaseClient().auth.signOut({scope:'others'});setNotice(error?'Could not sign out other devices. Try again.':'Other devices have been signed out.');}
     catch{setNotice('Could not sign out other devices. Try again.');}finally{setBusy(false);}
   }
-  return <section aria-label="Account security" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-sm">
+  return <details className="private-security-menu"><summary>Security & sessions</summary><section aria-label="Account security" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-sm">
     <div><p className="font-semibold">Two-factor verification enabled</p><p className="text-xs text-slate-600">Locks after 15 minutes of inactivity. Sessions expire after 8 hours.</p>{notice?<p role="status" className="mt-1">{notice}</p>:null}</div>
     <div className="flex flex-wrap gap-2"><Link className="rounded-xl border px-3 py-3" href="/security">Verify again</Link><button className="rounded-xl border px-3 py-3" disabled={busy} onClick={()=>void signOutOthers()}>Sign out other devices</button></div>
-  </section>;
+  </section></details>;
 }

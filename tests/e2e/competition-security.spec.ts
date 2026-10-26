@@ -17,6 +17,10 @@ for(const mode of ['light','dark'] as const)for(const width of [1440,390]){
    await route.fulfill({json:data});
   });
   await page.goto('/banking');
+  await expect(page.getByRole('textbox',{name:'Message Fufu',exact:true})).toHaveCount(1);
+  await expect(page.getByRole('textbox',{name:'Your banking request',exact:true})).toHaveCount(0);
+  await expect(page.getByText('Two-factor verification enabled',{exact:true})).not.toBeVisible();
+  await page.screenshot({path:test.info().outputPath('banking-clean-'+mode+'-'+width+'.png'),fullPage:true});
   const card=page.getByText('Daily CNY',{exact:true}).locator('..');
   const ratio=await card.evaluate(el=>{
    const luminance=(c:string)=>{const canvas=document.createElement('canvas');canvas.width=canvas.height=1;const ctx=canvas.getContext('2d')!;ctx.fillStyle=c;ctx.fillRect(0,0,1,1);const rgb=ctx.getImageData(0,0,1,1).data;return [...rgb].slice(0,3).map(v=>{const x=v/255;return x<=.04045?x/12.92:((x+.055)/1.055)**2.4;}).reduce((n,x,i)=>n+x*[.2126,.7152,.0722][i],0);};
@@ -32,6 +36,9 @@ for(const mode of ['light','dark'] as const)for(const width of [1440,390]){
   await page.goto('/support');await page.getByLabel('Support message').fill('Please help me review my task.');await page.getByRole('button',{name:'Send support request'}).click();
   await expect(page.getByRole('status')).toHaveText('queued');await expect(page.getByRole('log',{name:'Support conversation'})).toContainText('Please help me review my task.');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await page.goto('/login');await expect(page.getByRole('heading',{name:/Welcome to.*福 Bank/i})).toBeVisible();
+  await expect(page.getByRole('img',{name:/Fufu/})).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await page.screenshot({path:test.info().outputPath('welcome-'+mode+'-'+width+'.png'),fullPage:true});
   await page.screenshot({path:test.info().outputPath(`support-${mode}-${width}.png`),fullPage:true});
  });
 }

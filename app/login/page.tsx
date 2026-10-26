@@ -39,8 +39,8 @@ function LoginForm() {
   }
   return <AuthShell>
     <span className="auth-mode-label"><ShieldCheck size={15} aria-hidden />PERSONAL BANKING</span>
-    <h1 className="auth-title">Welcome back.</h1>
-    <p className="auth-intro">Your financial world, all in one place.<br />Sign in to your account.</p>
+    <h1 className="auth-title">Sign in</h1>
+    <p className="auth-intro">Access your accounts and talk to Fufu.</p>
     {!configured && <p className="auth-notice">Sign-in is currently unavailable. You can still explore the overview.</p>}
     <form onSubmit={signIn} className="auth-form" aria-label="Sign in" aria-busy={pending}>
       <div className="auth-field"><label htmlFor="email">Email</label><div className="auth-input-wrap"><Mail className="auth-input-icon" size={18} aria-hidden /><input id="email" name="email" type="email" autoComplete="username" placeholder="you@example.com" className="auth-input" disabled={pending} required /></div></div>

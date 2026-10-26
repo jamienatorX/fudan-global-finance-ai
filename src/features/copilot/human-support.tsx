@@ -1,9 +1,8 @@
 'use client';
 import Link from 'next/link';
 import {useEffect,useId,useRef,useState} from 'react';
-import {OperatorInbox} from '../support/operator-inbox';
 import {validSupportDestination} from '../../agent/support';
-export function HumanSupport({signedIn=false,...props}:{destination?:string;summary:string;demo?:boolean;signedIn?:boolean}){return signedIn?<OperatorInbox initialMessage={props.summary}/>:<PublicHumanSupport {...props}/>;}
+export function HumanSupport({signedIn=false,...props}:{destination?:string;summary:string;demo?:boolean;signedIn?:boolean}){return signedIn?<Link href="/support" className="fufu-support-link">Contact a human operator →</Link>:<PublicHumanSupport {...props}/>;}
 function PublicHumanSupport({destination,summary}:{destination?:string;summary:string;demo?:boolean}){
  
  const [open,setOpen]=useState(false),[copied,setCopied]=useState('');const dialog=useRef<HTMLDialogElement>(null),trigger=useRef<HTMLButtonElement>(null);

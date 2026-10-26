@@ -128,24 +128,24 @@ export function BankingWorkspace({supportDestination,initialTab}:{supportDestina
  const latest=useMemo(()=>state.ledger.slice(0,12),[state.ledger]);
  const searchResults=useMemo(()=>searchPrivateBanking(state,bankSearch),[state,bankSearch]);
  if(loading)return <LocalizedMain className="grid min-h-screen place-items-center bg-slate-50"><LocalizedP role="status">Loading your account…</LocalizedP></LocalizedMain>;
- return <LocalizedDiv className="min-h-screen bg-[var(--color-background)] text-[var(--color-text)]">
+ return <LocalizedDiv className="private-banking min-h-screen bg-[var(--color-background)] text-[var(--color-text)]">
    <LocalizedHeader className="border-b border-slate-200 bg-white">
      <LocalizedDiv className="mx-auto flex max-w-[1480px] flex-wrap items-center justify-between gap-3 px-5 py-5 sm:px-8">
       <LocalizedDiv><LocalizedP className="text-xl font-black tracking-tight text-[var(--color-text)]"><LocalizedSpan className="fu-logo mr-2" aria-hidden>福</LocalizedSpan>福 bank</LocalizedP>
-        <LocalizedP className="text-xs font-semibold tracking-widest text-slate-500">PERSONAL BANKING · DEMO</LocalizedP></LocalizedDiv>
+        <LocalizedP className="text-xs font-semibold tracking-widest text-slate-500">PERSONAL BANKING</LocalizedP></LocalizedDiv>
       <LocalizedDiv className="flex items-center gap-2"><Link href="/overview" className={sec}>Overview</Link>
        <LocalizedButton className={sec} onClick={async()=>{await createBrowserSupabaseClient().auth.signOut();window.location.assign('/login');}}>Sign out</LocalizedButton></LocalizedDiv>
      </LocalizedDiv>
    </LocalizedHeader>
-   <LocalizedDiv className="mx-auto max-w-[1480px] px-5 py-7 sm:px-8"><SessionControls/><SecurityStatus/>
+   <LocalizedDiv className="mx-auto max-w-[1480px] px-5 py-7 sm:px-8"><div className="bank-security-toolbar"><SessionControls/><SecurityStatus/></div>
     {!state.enrolled?<Pane title="Set up your accounts" description="Choose your accounts in CNY, USD, SGD and IDR.">
       <LocalizedButton className={cta} disabled={busy} onClick={initialize}>Set up accounts</LocalizedButton>
 
     </Pane>:<>
      <LocalizedDiv className="mb-7 flex flex-wrap items-center justify-between gap-4">
-       <LocalizedDiv><LocalizedP className="text-xs font-bold uppercase tracking-widest text-blue-700">Banking command center</LocalizedP><LocalizedH1 className="mt-1 text-3xl font-bold tracking-tight">Your financial workspace</LocalizedH1>
+       <LocalizedDiv><LocalizedP className="text-xs font-bold uppercase tracking-widest text-blue-700">YOUR BANKING</LocalizedP><LocalizedH1 className="mt-1 text-3xl font-bold tracking-tight">Your money, at a glance</LocalizedH1>
        </LocalizedDiv>
-       <LocalizedDiv className="flex gap-2"><LocalizedButton className={sec} onClick={()=>void run(refresh)} disabled={busy}>Refresh ledger</LocalizedButton>
+       <LocalizedDiv className="flex gap-2"><LocalizedButton className={sec} onClick={()=>void run(refresh)} disabled={busy}>Refresh balances</LocalizedButton>
        <LocalizedButton className={cta} onClick={()=>setTab('transfers')}>New transfer</LocalizedButton></LocalizedDiv>
      </LocalizedDiv>
      <div className="mb-6"><PrivateCopilot supportDestination={supportDestination} version={state.version} refresh={refresh}/></div>
