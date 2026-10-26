@@ -38,9 +38,9 @@ function Pane({title,description,children}:{title:string;description?:string;chi
  {description&&<LocalizedP className="mt-1 text-sm leading-6 text-slate-500">{description}</LocalizedP>}<LocalizedDiv className="mt-5">{children}</LocalizedDiv></LocalizedSection>;
 }
 function CurrencyAccount({row}:{row:TableItem}){
- return <LocalizedDiv className="rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50 p-5">
-   <LocalizedP className="text-xs font-bold uppercase tracking-widest text-blue-700">{String(row.label)}</LocalizedP>
-   <LocalizedP className="mt-3 text-2xl font-bold tabular-nums text-slate-950">{money(row.balance_minor,String(row.currency))}</LocalizedP>
+ return <LocalizedDiv className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 text-[var(--color-text)]">
+   <LocalizedP className="text-xs font-bold uppercase tracking-widest text-[var(--color-primary)]">{String(row.label)}</LocalizedP>
+   <LocalizedP className="mt-3 text-2xl font-bold tabular-nums text-[var(--color-text)]">{money(row.balance_minor,String(row.currency))}</LocalizedP>
 
  </LocalizedDiv>;
 }
@@ -128,10 +128,10 @@ export function BankingWorkspace({supportDestination,initialTab}:{supportDestina
  const latest=useMemo(()=>state.ledger.slice(0,12),[state.ledger]);
  const searchResults=useMemo(()=>searchPrivateBanking(state,bankSearch),[state,bankSearch]);
  if(loading)return <LocalizedMain className="grid min-h-screen place-items-center bg-slate-50"><LocalizedP role="status">Loading your account…</LocalizedP></LocalizedMain>;
- return <LocalizedDiv className="min-h-screen bg-slate-50 text-slate-900">
+ return <LocalizedDiv className="min-h-screen bg-[var(--color-background)] text-[var(--color-text)]">
    <LocalizedHeader className="border-b border-slate-200 bg-white">
      <LocalizedDiv className="mx-auto flex max-w-[1480px] flex-wrap items-center justify-between gap-3 px-5 py-5 sm:px-8">
-      <LocalizedDiv><LocalizedP className="text-xl font-black tracking-tight text-blue-950"><LocalizedSpan className="fu-logo mr-2" aria-hidden>福</LocalizedSpan>福 bank</LocalizedP>
+      <LocalizedDiv><LocalizedP className="text-xl font-black tracking-tight text-[var(--color-text)]"><LocalizedSpan className="fu-logo mr-2" aria-hidden>福</LocalizedSpan>福 bank</LocalizedP>
         <LocalizedP className="text-xs font-semibold tracking-widest text-slate-500">PERSONAL BANKING · DEMO</LocalizedP></LocalizedDiv>
       <LocalizedDiv className="flex items-center gap-2"><Link href="/overview" className={sec}>Overview</Link>
        <LocalizedButton className={sec} onClick={async()=>{await createBrowserSupabaseClient().auth.signOut();window.location.assign('/login');}}>Sign out</LocalizedButton></LocalizedDiv>
