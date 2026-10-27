@@ -7,10 +7,13 @@ import { useDemo } from '../../demo/demo-context';
 import { CURRENCY_MINOR_DIGITS, type CurrencyCode } from '../../domain/currency';
 import { money } from '../../domain/money';
 import { referenceConversion } from '../demo/planning-helpers';
+import { quoteFromReference, useFxReference } from './fx-reference-context';
+import { TICKER_CURRENCIES } from './ticker-quotes';
 
 type CurrencyOption = Readonly<{ code: string; name: string }>;
 type Quote = Readonly<{ base: string; quote: string; rate: number; date: string; source: string; provider: string }>;
 const CORE = new Set(Object.keys(CURRENCY_MINOR_DIGITS));
+const SHARED = new Set<string>(['USD', ...TICKER_CURRENCIES]);
 const CURRENCIES: CurrencyOption[] = [
   {code:'AUD',name:'Australian Dollar'}, {code:'CAD',name:'Canadian Dollar'},
   {code:'CHF',name:'Swiss Franc'}, {code:'CNY',name:'Chinese Yuan'},
@@ -65,12 +68,15 @@ function localQuote(base: string, quote: string, rates: Parameters<typeof refere
 
 export function FxWorkspace() {
   const { snapshot } = useDemo();
+  const {quotes: referenceQuotes, status: referenceStatus, date: referenceDateValue,
+    provider: referenceProvider, refresh: refreshReference} = useFxReference();
   const [base,setBase]=useState('USD');
   const [quote,setQuote]=useState('CNY');
   const [amount,setAmount]=useState('100');
   const [catalog,setCatalog]=useState<CurrencyOption[]>(CURRENCIES);
   const [catalogNote,setCatalogNote]=useState('Loading supported currencies…');
-  const [rate,setRate]=useState<Quote|null>(null);
+  const [storedRate,setRate]=useState<Quote|null>(null);
+  const rate=storedRate?.base===base && storedRate.quote===quote ? storedRate : null;
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState('');
   const [refreshId,setRefreshId]=useState(0);
@@ -86,8 +92,8 @@ export function FxWorkspace() {
         const list=(data.currencies??[]).filter(c=>/^[A-Z]{3}$/.test(c.code)&&typeof c.name==='string')
           .toSorted((a,b)=>a.code.localeCompare(b.code));
         if(list.length) setCatalog(list);
-        setCatalogNote(data.source==='live-catalog'?list.length+' published currencies available':'Common currency list · provider temporarily unavailable');
-      }catch{if(!controller.signal.aborted)setCatalogNote('Common currency list · provider temporarily unavailable');}
+        setCatalogNote(data.source==='live-catalog'?list.length+' published currencies available':'Common currency list · full list unavailable');
+      }catch{if(!controller.signal.aborted)setCatalogNote('Common currency list · full list unavailable');}
     }
     void loadCurrencies();return ()=>controller.abort();
   },[]);
@@ -97,6 +103,19 @@ export function FxWorkspace() {
     // Always show the source of the current selection, never a stale previous quote.
     async function loadRate(){
       setLoading(true);setRate(null);setError('');
+      if (base === quote) {
+        setRate({base,quote,rate:1,date:'',source:'identity',provider:'Same currency'});
+        setLoading(false);return;
+      }
+      if (SHARED.has(base) && SHARED.has(quote) && referenceStatus === 'loading') return;
+      const shared = quoteFromReference({quotes: referenceQuotes, status: referenceStatus,
+        date: referenceDateValue, provider: referenceProvider}, base, quote);
+      if (shared) {setRate(shared);setLoading(false);return;}
+      if (CORE.has(base) && CORE.has(quote)) {
+        setRate(localQuote(base,quote,snapshot.exchangeRates));
+        setError('Published reference rates are unavailable. A sample rate is shown.');
+        setLoading(false);return;
+      }
       try {
         const response=await fetch('/api/fx/rate?base='+encodeURIComponent(base)+'&quote='+encodeURIComponent(quote),
           {signal:controller.signal,cache:'no-store'});
@@ -114,7 +133,7 @@ export function FxWorkspace() {
     }
     void loadRate();
     return ()=>controller.abort();
-  },[base,quote,refreshId,snapshot.exchangeRates]);
+  },[base,quote,refreshId,snapshot.exchangeRates,referenceStatus,referenceQuotes,referenceDateValue,referenceProvider]);
 
   const result=rate&&value!==null ? value*rate.rate : null;
   const isFallback=rate?.source==='fallback';
@@ -138,7 +157,7 @@ export function FxWorkspace() {
       <LocalizedSection className={panel} aria-label="Currency converter">
         <LocalizedDiv className="flex flex-wrap items-center justify-between gap-3">
           <LocalizedDiv><LocalizedH2 className="text-xl font-bold text-slate-950">Currency converter</LocalizedH2><LocalizedP className="mt-1 text-sm text-slate-500">Choose any available pair and enter an amount.</LocalizedP></LocalizedDiv>
-          <LocalizedButton type="button" aria-label="Refresh reference rate" onClick={()=>setRefreshId(i=>i+1)}
+          <LocalizedButton type="button" aria-label="Refresh reference rate" onClick={()=>{refreshReference?.();setRefreshId(i=>i+1);}}
             className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"><RefreshCw size={16}/> Refresh</LocalizedButton>
         </LocalizedDiv>
         <LocalizedDiv className="mt-7 grid items-end gap-3 sm:grid-cols-[1fr_auto_1fr]">

@@ -18,10 +18,12 @@ import { AccountLink as Link } from '../../components/shell/account-link';
 import { TransactionTable } from '../transactions/transaction-table';
 import { CsvImportPreview } from '../transactions/csv-preview';
 import { buildSpendingReport } from '../transactions/reporting';
+import { useValuationSnapshot } from '../fx/use-valuation-snapshot';
+import { FxFreshnessLabel } from '../../components/shell/currency-ticker';
 
 export function LiveOverview({account}:{account?:string}){
   const overview=useDemoOverview(account);
-  const {snapshot}=useDemo();
+  const snapshot=useValuationSnapshot();
   const [reportingCurrency,setReportingCurrency]=useState<CurrencyCode>('CNY');
   const displayed=useMemo(()=>overview?displayOverviewCurrency(overview,reportingCurrency,snapshot.exchangeRates):null,
     [overview,reportingCurrency,snapshot.exchangeRates]);
@@ -37,6 +39,7 @@ export function LiveOverview({account}:{account?:string}){
           </LocalizedSelect>
         </LocalizedLabel>
 
+        <span className="text-xs text-[var(--color-text-muted)]"><FxFreshnessLabel /></span>
     </LocalizedDiv>
     <OverviewDashboard overview={displayed} hero={<SafeToSpendHero currency={reportingCurrency}/>} tuition={<TuitionFxCard overview={overview!} compact/>} />
 

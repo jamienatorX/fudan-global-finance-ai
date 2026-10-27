@@ -1,6 +1,6 @@
 'use client';
 import { LocalizedDetails, LocalizedDiv, LocalizedLi, LocalizedP, LocalizedSection, LocalizedSummary, LocalizedUl } from '../../i18n/localized';
-import { useDemo } from '../../demo/demo-context';
+import { useValuationSnapshot } from '../fx/use-valuation-snapshot';
 import { formatMoney } from '../../domain/money';
 import { referenceConversion } from '../demo/planning-helpers';
 import { safeToSpend } from './safe-to-spend';
@@ -11,7 +11,7 @@ import { useShanghaiClock } from './use-shanghai-clock';
 import type { CurrencyCode } from '../../domain/currency';
 
 export function SafeToSpendHero({ currency='CNY' }: {currency?:CurrencyCode}) {
-  const {snapshot}=useDemo();
+  const snapshot=useValuationSnapshot();
   const clock=useShanghaiClock();
   const plan=safeToSpend(snapshot,clock?new Date(clock).toISOString():snapshot.asOf);
   const dailyBudget=dailySpendingBudget(snapshot,clock?new Date(clock).toISOString():snapshot.asOf);
@@ -30,7 +30,7 @@ export function SafeToSpendHero({ currency='CNY' }: {currency?:CurrencyCode}) {
       <LocalizedP>Food, transport, shopping and other configured spending caps exclude rent and subscriptions; recorded purchases are deducted.</LocalizedP>
       <LocalizedUl>{plan.reservations.map(r=><LocalizedLi key={r.id}>{r.label} · {display({...plan.total,amountMinor:r.amountMinor})} · {r.dueAt.slice(0,10)}</LocalizedLi>)}</LocalizedUl>
       {plan.shortfall.amountMinor>0n?<LocalizedP>Funding shortfall: {display(plan.shortfall)}</LocalizedP>:null}
-      <LocalizedP>Reference accounting rates. Unknown or unrecorded bills and future spending are not included; this is a planning estimate.</LocalizedP>
+      <LocalizedP>Reference valuation rates. Unknown or unrecorded bills and future spending are not included; this is a planning estimate.</LocalizedP>
     </LocalizedDetails>
     <LocalizedDiv className="student-invest-actions"><PortfolioQuickActions/></LocalizedDiv>
   </LocalizedSection>;

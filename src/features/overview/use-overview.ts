@@ -1,11 +1,11 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useDemo } from '../../demo/demo-context';
+import { useValuationSnapshot } from '../fx/use-valuation-snapshot';
 import { DEMO_USER_ID } from '../../demo/seed';
 import type { FinancialRepository } from '../../domain/financial-repository';
 import { getOverviewModel, type OverviewModel } from './overview-queries';
 export function useDemoOverview(selectedAccount?: string) {
-  const { snapshot } = useDemo();
+  const snapshot = useValuationSnapshot();
   const [overview,setOverview] = useState<OverviewModel|null>(null);
   useEffect(() => {
     let active=true;

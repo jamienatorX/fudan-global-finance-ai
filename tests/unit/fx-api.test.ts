@@ -5,6 +5,11 @@ import { GET as getCurrencies } from '../../app/api/fx/currencies/route';
 
 afterEach(()=>vi.unstubAllGlobals());
 describe('keyless FX reference API',()=>{
+  it('accepts published currencies with a latest coverage end date', async()=>{
+    const codes=['AUD','CAD','CHF','CNY','EUR','GBP','HKD','IDR','INR','JPY','KRW','MYR','NZD','SGD','USD'];
+    vi.stubGlobal('fetch',vi.fn(async()=>Response.json(codes.map(iso_code=>({iso_code,name:iso_code,end_date:'2026-10-26'})))));
+    expect(await (await getCurrencies()).json()).toMatchObject({source:'live-catalog',currencies:expect.arrayContaining([{code:'USD',name:'USD'}])});
+  });
   const request=(base:string,quote:string)=>new NextRequest('https://example.org/api/fx/rate?base='+encodeURIComponent(base)+'&quote='+encodeURIComponent(quote));
   it('blocks invalid rate symbols before contacting any provider', async()=>{
     const spy=vi.fn();vi.stubGlobal('fetch',spy);

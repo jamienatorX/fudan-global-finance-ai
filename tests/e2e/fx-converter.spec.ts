@@ -1,5 +1,10 @@
 import { expect, test } from '@playwright/test';
 test.describe('keyless worldwide FX converter',()=>{
+ test.beforeEach(async({page})=>{
+   await page.route('**/api/fx/ticker',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+     provider:'Frankfurter fixture',quotes:['CNY','SGD','IDR'].map((currency,i)=>({pair:`USD/${currency}`,rate:[7,1.3,14000][i],date:'2026-10-16',change:null,previousDate:null}))
+   })}));
+ });
  test('converts global currency pairs with dated published rate and swaps directions',async({page})=>{
    await page.route('**/api/fx/currencies',async route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
      currencies:[{code:'USD',name:'US Dollar'},{code:'CNY',name:'Chinese Yuan'},{code:'SGD',name:'Singapore Dollar'},{code:'EUR',name:'Euro'},{code:'JPY',name:'Japanese Yen'}],
@@ -23,6 +28,7 @@ test.describe('keyless worldwide FX converter',()=>{
    await expect(page.getByText('JPY 120')).toBeVisible();
  });
  test('converts USD and SGD with historical fixture while service is unavailable',async({page})=>{
+   await page.route('**/api/fx/ticker',route=>route.fulfill({status:503,body:'{"error":"offline"}'}));
    await page.route('**/api/fx/rate?*',route=>route.fulfill({status:503,contentType:'application/json',body:'{"error":"offline"}'}));
    await page.goto('/fx');
    await page.getByRole('combobox',{name:'To currency'}).selectOption('SGD');

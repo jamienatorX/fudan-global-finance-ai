@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import type { ExchangeRate } from '../../domain/entities';
 import type { TickerQuote } from './ticker-quotes';
 
@@ -9,6 +9,7 @@ export type FxReference = {
   status: 'loading' | 'live' | 'fallback';
   date: string | null;
   provider: string | null;
+  refresh?: () => void;
 };
 const fallback: FxReference = { quotes: [], status: 'fallback', date: null, provider: null };
 const FxReferenceContext = createContext<FxReference>(fallback);
@@ -35,6 +36,8 @@ export function parseFxReference(input: unknown, now = new Date()): FxReference 
 
 export function FxReferenceProvider({ children }: { children: ReactNode }) {
   const [reference, setReference] = useState<FxReference>({ ...fallback, status: 'loading' });
+  const [refreshId, setRefreshId] = useState(0);
+  const refresh = useCallback(() => setRefreshId(value => value + 1), []);
   useEffect(() => {
     const controller = new AbortController();
     let pending = false;
@@ -42,7 +45,7 @@ export function FxReferenceProvider({ children }: { children: ReactNode }) {
       if (pending) return;
       pending = true;
       try {
-        const response = await fetch('/api/fx/ticker', { signal: controller.signal });
+        const response = await fetch('/api/fx/ticker', { signal: controller.signal, cache: 'no-store' });
         if (!response.ok) throw new Error('Rates unavailable');
         const value = parseFxReference(await response.json());
         if (!controller.signal.aborted) setReference(value);
@@ -53,11 +56,22 @@ export function FxReferenceProvider({ children }: { children: ReactNode }) {
     void refresh();
     const timer = setInterval(() => { void refresh(); }, 300_000);
     return () => { controller.abort(); clearInterval(timer); };
-  }, []);
-  return <FxReferenceContext.Provider value={reference}>{children}</FxReferenceContext.Provider>;
+  }, [refreshId]);
+  return <FxReferenceContext.Provider value={{ ...reference, refresh }}>{children}</FxReferenceContext.Provider>;
 }
 
 export function useFxReference(): FxReference { return useContext(FxReferenceContext); }
+
+/** Derive current display pairs from the exact USD snapshot shown in the ticker. */
+export function quoteFromReference(reference: FxReference, base: string, quote: string) {
+  if (reference.status !== 'live') return null;
+  const selected = reference.quotes.filter(q => q.pair === `USD/${base}` || q.pair === `USD/${quote}`);
+  const value = (currency: string) => currency === 'USD' ? 1 : selected.find(q => q.pair === `USD/${currency}`)?.rate;
+  const from = value(base), to = value(quote);
+  if (!from || !to) return null;
+  return { base, quote, rate: to / from, date: selected.map(q => q.date).sort()[0] ?? reference.date!,
+    source: 'live-reference', provider: reference.provider! };
+}
 
 /** Current valuation estimates only: never replace ledger or transaction accounting rates. */
 export function ratesFromQuotes(seedRates: readonly ExchangeRate[], quotes: readonly TickerQuote[]): readonly ExchangeRate[] {

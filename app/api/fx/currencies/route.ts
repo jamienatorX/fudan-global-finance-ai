@@ -17,14 +17,14 @@ export async function GET() {
     const rows = await response.json() as { iso_code?: string; name?: string; end_date?: string | null }[];
     if (!Array.isArray(rows)) throw new Error('Invalid catalog');
     const results = rows.filter(r => typeof r.iso_code === 'string' && /^[A-Z]{3}$/.test(r.iso_code) &&
-      typeof r.name === 'string' && r.name.length <= 100 && !r.end_date)
+      typeof r.name === 'string' && r.name.trim().length > 0 && r.name.length <= 100)
       .map(r => ({ code: r.iso_code!, name: r.name! }))
       .toSorted((a,b)=>a.code.localeCompare(b.code));
     if (results.length < 15) throw new Error('Empty catalog');
     return NextResponse.json({ currencies: results, source: 'live-catalog' }, { headers });
   } catch {
     return NextResponse.json({ currencies: common.map(([code,name])=>({code,name})),
-      source: 'offline-catalog', warning: 'Showing common currencies. Rates may be unavailable while the provider is offline.' },
+      source: 'offline-catalog', warning: 'Showing the common currency list. Quote availability is checked separately.' },
       { headers: { 'Cache-Control': 'public, max-age=60' } });
   }
 }
