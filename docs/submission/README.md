@@ -9,6 +9,7 @@ Prepared 27 October 2026 for the Domestic Banking AI Agent track. Product: **福
 - [Acceptance runbook](acceptance-runbook.md): genuine authenticator, workflow and operator checks.
 - [Deployment and reproduction](deployment-and-reproduction.md): source, setup, tests and release procedure.
 - [Verification record](verification.md): dated results and their limits.
+- [Latest Fufu improvements](fufu-everyday-repair.md): everyday questions, safe follow-ups and 580 passing regression tests.
 
 Website: https://fudan-global-finance-ai.vercel.app/  
 Source: https://github.com/jamienatorX/fudan-global-finance-ai

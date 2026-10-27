@@ -29,7 +29,7 @@ function compile(d:DraftTask,c:AgentContext):ConversationTask{
  if(d.kind==='budget'){if(!d.category||!d.amountMinor||d.currency!=='CNY')return need('Which monthly budget category and CNY limit should I use?');command=`Set ${d.category} budget to ${displayAmount(d.amountMinor,'CNY')}`;}
  if(d.kind==='tuition'){const t=resolve(c.tuition??[],d.target);if(!t)return need('Which recorded tuition obligation should I pay?');if(!source)return need('Which CNY funding account should I use for tuition?');command=`Pay ${t.name} from ${source.name}`;}
  if(d.kind==='investment'){const p=resolve(c.products??[],d.target);if(!p)return need('Which existing fictional investment product should I use?');if(!source)return need('Which CNY account should fund or receive this order?');if(!d.amountMinor||d.currency!=='CNY')return need('What CNY amount should I use?');if(!['buy','redeem'].includes(d.mode))return need('Would you like to buy or redeem?');if(d.mode==='buy'&&!d.risk)return need('What is your risk tolerance: low, medium or high?');command=`${d.mode==='buy'?'Buy':'Redeem'} ${displayAmount(d.amountMinor,'CNY')} of ${p.name} from ${source.name}${d.risk?' with '+d.risk+' risk tolerance':''}`;}
- if(d.kind==='card'){const card=resolve(c.cards,d.target);if(!card)return need('Which card should I change?');if(!['freeze','unfreeze','limit'].includes(d.mode))return need('Should I freeze, unfreeze or change its monthly limit?');if(d.mode==='limit'&&!d.amountMinor)return need('What new monthly limit in CNY should I use?');command=d.mode==='limit'?`Set ${card.name} card monthly limit to ${displayAmount(d.amountMinor,'CNY')}`:`${d.mode==='freeze'?'Freeze':'Unfreeze'} ${card.name} card`;}
+ if(d.kind==='card'){const card=resolve(c.cards,d.target);if(!card)return need('Which card should I change?');if(!['freeze','unfreeze','limit'].includes(d.mode))return need('Should I freeze, unfreeze or change its monthly limit?');if(d.mode==='limit'&&!d.amountMinor)return need('What new monthly limit in CNY should I use?');if(d.mode==='limit'&&d.currency&&d.currency!=='CNY')return need('Card limits use CNY. What CNY amount should I use?');command=d.mode==='limit'?`Set ${card.name} card monthly limit to ${displayAmount(d.amountMinor,'CNY')}`:`${d.mode==='freeze'?'Freeze':'Unfreeze'} ${card.name} card`;}
  if(d.kind==='cancel_subscription'){const s=resolve(c.subscriptions,d.target);if(!s)return need('Which registered subscription would you like to cancel?');command='Cancel '+s.name;}
  const plan=planCommand(command,c);return{draft:d,status:plan.resultKind==='unsupported'?'unsupported':plan.actions.length?'ready':'needs-input',message:plan.message,...(!plan.actions.length&&plan.resultKind!=='unsupported'?{question:plan.message}:{}),plan};
 }
@@ -52,8 +52,10 @@ export function advanceConversation(state:ConversationState,update:ConversationU
   else drafts.push({...u,id:crypto.randomUUID(),status:'draft',reservation:'ask'});
   touched.add(drafts[index>=0?index:drafts.length-1].id);
  }
- if(drafts.filter(d=>d.status==='draft').length>6||drafts.length>20)throw new Error('TASK_LIMIT');
- const next:ConversationState={...state,revision:state.revision+1,drafts,messages:[...state.messages,{role:'user',content:message.slice(0,1000)}],expiresAt:Date.now()+1800000};
+ // Answered reads live in their original messages, not in the unfinished financial-action queue.
+ const currentDrafts=drafts.filter(d=>d.kind!=='read'||touched.has(d.id));
+ if(currentDrafts.filter(d=>d.status==='draft'&&d.kind!=='read').length>6||currentDrafts.length>20)throw new Error('TASK_LIMIT');
+ const next:ConversationState={...state,revision:state.revision+1,drafts:currentDrafts,messages:[...state.messages,{role:'user',content:message.slice(0,1000)}],expiresAt:Date.now()+1800000};
  const turn=describeConversation(next,c,mode);const currentTasks=turn.tasks.filter(t=>touched.has(t.draft.id)),question=currentTasks.find(t=>t.question)?.question;const answer=financialReply({...turn,tasks:currentTasks,impacts:update.tasks.some(t=>['affordability','transfer','investment','tuition','subscription_payment'].includes(t.kind))?turn.impacts:[]},/[\u3400-\u9fff]/.test(message),c);const text=answer?(answer+(question?'\n\n'+question:'')):question??((!currentTasks.length?update.reply?.trim():undefined)||(drafts.length?'Here’s what I found. Review the details below, and I’ll guide you through the next step.':'What would you like help with? Ask a question or choose a task to get started.'));
  const links=[...new Map(currentTasks.flatMap(t=>t.plan?.links??[]).map(l=>[l.href,l])).values()];
  // Store a bounded tool-result snapshot on this reply, so later turns cannot move or replace its evidence.
@@ -88,6 +90,13 @@ function financialReply(turn:ConversationTurn,chinese=false,c?:AgentContext):str
   return [intro,...lines,...budgetLines,...exclusionNotes,impacts.length>1?'Each currency is checked separately; no currency exchange is assumed.':'',impacts.some(r=>r.budgetRemainingMinor===null)?'A monthly budget is not recorded for every currency, so this confirms cash coverage only.':'', 'This uses the website’s recorded balances as of '+impacts[0].asOf.slice(0,10)+'. Unrecorded bills or future changes may affect the result. No money has moved.'].filter(Boolean).join('\n\n');
  }
  const actions=turn.tasks.flatMap(t=>t.plan?.actions??[]);if(actions.length)return (chinese?'请核对以下操作：':'Ready for your review:')+'\n'+actions.map(a=>a.description).join('\n')+(chinese?'\n尚未更改任何内容，需要明确确认。':'\nNothing has changed. Review and explicitly confirm the exact change before it can execute.');
- if(chinese&&c&&turn.tasks.some(t=>t.draft.kind==='read')){const query=turn.tasks.filter(t=>t.draft.kind==='read').map(t=>canonicalReadQuery(t.draft.query)).join(' ');if(query.includes('balances'))return(c.accounts??[]).map(a=>a.name+'：余额 '+displayAmount(a.balanceMinor,a.currency)+'，可用 '+displayAmount(a.availableMinor,a.currency)).join('\n');if(query.includes('budgets'))return(c.budgets??[]).map(b=>b.category+'：预算 '+displayAmount(b.limitMinor,b.currency)+'，已花费 '+(b.spentMinor?displayAmount(b.spentMinor,b.currency):'未知')).join('\n');}
- const reads=turn.tasks.filter(t=>t.draft.kind==='read'&&t.status==='ready'||t.status==='unsupported').map(t=>t.message);return reads.length?reads.join('\n\n').slice(0,3000):undefined;
+ const reads=turn.tasks.filter(t=>t.draft.kind==='read'&&t.status==='ready'||t.status==='unsupported').map(t=>{
+  if(chinese&&c&&t.draft.kind==='read'){
+   const query=canonicalReadQuery(t.draft.query);
+   if(query==='Show my balances')return '已记录的账户余额：\n'+(c.accounts??[]).map(a=>a.name+'：余额 '+displayAmount(a.balanceMinor,a.currency)+'，可用 '+displayAmount(a.availableMinor,a.currency)).join('\n');
+   if(query==='Show my budgets')return '本月预算：\n'+(c.budgets??[]).map(b=>b.category+'：预算 '+displayAmount(b.limitMinor,b.currency)+'，已花费 '+(b.spentMinor?displayAmount(b.spentMinor,b.currency):'未知')).join('\n');
+   if(t.draft.query==='Explain spending this month')return t.message.replace('Recorded consumption for ','已记录的消费月份：').replace(' across ','，共 ').replace(' settled charges. Transfers and investments excluded. Comparison with other periods requires sufficient history.',' 笔已结算消费。已排除转账和投资；比较其他期间需要足够历史记录。').replace('Insufficient data: no settled consumption charges in ','数据不足：该月没有已结算的消费记录，月份 ').replace(' History is truncated; totals cover only retrieved records.',' 历史记录不完整；总额仅涵盖已检索到的记录。');
+  }
+  return t.message;
+ });return reads.length?reads.join('\n\n').slice(0,6000):undefined;
 }

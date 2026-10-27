@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-27",
+  "baselineCommit": "f96c711c4fd093205613b33160416c5ef7b09f4c",
+  "initialControlledSet": {
+    "total": 25,
+    "passed": 7,
+    "failed": 18
+  },
+  "finalEverydayCases": 38,
+  "totalTests": 580,
+  "passed": 580,
+  "failed": 0,
+  "success": true,
+  "reportSha256": "cd94bf30e9bd627d5d159584b51ee2422021b8be9e3415bb3b8a0455b98de70b",
+  "build": "passed, including TypeScript and voice asset preparation",
+  "changedCodeLint": "passed",
+  "review": "Original currency and qualifier findings resolved; 38 focused tests passed",
+  "scope": "Bounded information requests and existing draft edits, no financial execution authority",
+  "limits": [
+    "Controlled tests are not general-language accuracy benchmarks",
+    "Broad language still depends on free provider availability",
+    "Public simulation is not real private MFA or operator acceptance"
+  ]
+}

@@ -29,3 +29,7 @@ Changes: supported recurring/evidence reads use deterministic interpretation; bo
 The shared in-app browser could not reach the banking site (navigation timeout). No authenticated user session was available to the agent. No real authenticator code was requested, no user was impersonated and no production success records were inserted. The account holder still needs to complete the genuine protected-action/workflow/operator checks in [acceptance-runbook.md](acceptance-runbook.md).
 
 Presentation and video are being produced by the team member. Competition registration, organiser sandbox interpretation and final portal upload are not verified by this engineering record.
+
+## Everyday conversation follow-up
+
+The subsequent Fufu repair passed **580/580 tests**, build and changed-code lint. See [the repair report](fufu-everyday-repair.md) and [machine-readable evidence](evidence/fufu-everyday-verification.json) for the 38-case focused suite, independent review findings and limits. The preceding 542-test results document the earlier subscription-evidence release. Live publication is verified separately after deployment.

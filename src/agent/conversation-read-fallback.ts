@@ -4,9 +4,13 @@ import {normalizeMerchant,type AgentContext} from './contracts';
 import {blankTask,type ConversationState,type ConversationUpdate,type DraftTask,type DraftUpdate} from './conversation-contracts';
 import {canonicalReadQuery} from './conversation-normalisation';
 import {preserveScenarioCosts} from './scenario-language';
+import {informationUpdate} from './conversation-information';
+import {correctionUpdate} from './conversation-corrections';
 /** Only explicit information requests and hypothetical calculations bypass the model. */
 export function readOnlyConversationUpdate(message:string,state:ConversationState,c?:AgentContext):ConversationUpdate|undefined{
  const empty={tasks:[],removeIds:[]};
+ const correction=correctionUpdate(message,state,c);if(correction)return correction;
+ const information=informationUpdate(message);if(information)return information;
  // A narrow local parser must not accept a supported clause while silently losing another change.
  const requested=message.replace(/\b(?:do not|don't)\s+(?:pay|cancel|transfer|make (?:any )?changes)(?:\s+anything)?(?:\s+yet)?\b|不要转账|不需要转账|不转账/gi,'');
  if(/\b(send|transfer|increase|decrease|raise|lower|adjust|withdraw|redeem|sell|delete|close|apply|order|remind|purchase)\b|转账|支付|调高|提高|降低|减少|赎回|卖出|删除|销户|申请|提醒|冻结|设置|修改/i.test(requested))return;
