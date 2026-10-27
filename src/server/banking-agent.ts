@@ -1,3 +1,4 @@
+import {planScenario} from '../agent/scenario-tools';
 import {planQuote} from '../agent/fx-tool';
 import {fetchReferenceQuote} from '../features/fx/reference-quote';
 import {validSupportDestination} from '../agent/support';
@@ -11,7 +12,7 @@ export async function createBankingPlan(client:SimClient,command:string) {
  const state=await readBankingState(client);if(!state.enrolled)throw new Error('ENROLLMENT_REQUIRED');
  const history=await readAgentHistory(client);
  const context=privateAgentContext(state,history.transactions,history.coverage);
- const interpreted=await interpretWithModel(command,context);
+ const interpreted=planScenario(command,context)?null:await interpretWithModel(command,context);
  const plan=planCommand(interpreted??command,context);
  const quote=await planQuote(interpreted??command,context,async(base,quote)=>(await fetchReferenceQuote(base,quote)).data);if(quote)Object.assign(plan,quote);
  if(interpreted!==null)plan.mode='live-model';

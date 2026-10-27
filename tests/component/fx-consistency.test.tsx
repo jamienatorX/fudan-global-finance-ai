@@ -49,3 +49,13 @@ it('handles identical currencies during a provider outage without labelling it a
   expect(screen.queryByText('Sample rate · not live')).not.toBeInTheDocument();
   expect(screen.queryByText(/sample rate is shown/i)).not.toBeInTheDocument();
 });
+
+it('uses the same published valuation for planner available cash',async()=>{
+  const {PlannerWorkspace}=await import('../../src/features/demo/scenario-workspaces');
+  vi.stubGlobal('fetch',vi.fn(async()=>Response.json({provider:'Frankfurter',quotes})));
+  const seed=createSeedSnapshot(DEFAULT_SEED_VERSION),valuation={...seed,exchangeRates:ratesFromQuotes(seed.exchangeRates,quotes)};
+  const expected=await getOverviewModel({getSnapshot:async()=>valuation} as unknown as FinancialRepository,seed.users[0].id);
+  render(<DemoProvider><FxReferenceProvider><PlannerWorkspace/></FxReferenceProvider></DemoProvider>);
+  const {formatMoney}=await import('../../src/domain/money');
+  await waitFor(()=>expect(screen.getByText(formatMoney(expected.availableCash).replace(/\s/g,' '))).toBeInTheDocument());
+});

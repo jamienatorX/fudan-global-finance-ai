@@ -1,5 +1,5 @@
 import type {AgentPlanResult,AgentSubscription,RecurringCandidate} from './contracts';
-export const TASK_KINDS=['read','transfer','budget','tuition','investment','card','cancel_subscription','subscription_payment','affordability','unsupported'] as const;
+export const TASK_KINDS=['scenario','read','transfer','budget','tuition','investment','card','cancel_subscription','subscription_payment','affordability','unsupported'] as const;
 export type TaskKind=typeof TASK_KINDS[number];
 export type DraftTask={id:string;kind:TaskKind;source:string;target:string;amountMinor:string;currency:string;category:string;mode:string;schedule:string;risk:string;query:string;reservation:'ask'|'include'|'exclude';status:'draft'|'completed'|'rejected'|'failed'|'skipped';receipt?:{actionId:string;status:string;verified:boolean}};
 export type DraftUpdate=Omit<DraftTask,'reservation'|'status'|'receipt'>;

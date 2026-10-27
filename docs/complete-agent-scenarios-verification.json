@@ -1,0 +1,76 @@
+{
+  "date": "2026-10-27",
+  "branch": "feat/complete-banking-agent-scenarios",
+  "baseline_commit": "e543f23660a8bb436b0f21e8a5ee4f7e323226d2",
+  "scope": "Local source and disposable SQL fixtures; not deployed",
+  "checks": {
+    "tests": {
+      "command": "npm test -- --maxWorkers=2 --testTimeout=20000",
+      "status": "passed",
+      "files": 115,
+      "tests": 614
+    },
+    "build": {
+      "command": "npm run build",
+      "status": "passed",
+      "includes": "Pinned speech asset integrity verification, Next.js compilation and TypeScript"
+    },
+    "lint": {
+      "command": "npm run lint",
+      "status": "passed",
+      "errors": 0,
+      "existing_warnings": 3
+    },
+    "security_review": {
+      "status": "No actionable critical or important findings",
+      "focused_scenario_integration_tests": 12
+    },
+    "browser_e2e": {
+      "command": "FU_BANK_CHROMIUM_PATH=/tmp/chromium npm run test:e2e -- tests/e2e/complete-scenarios.spec.ts --project=desktop-chromium --workers=1",
+      "status": "passed",
+      "tests": 4,
+      "environment": "Isolated ephemeral Vercel Sandbox; Chromium 153.0.8010.0",
+      "viewports": [
+        1440,
+        390
+      ],
+      "color_schemes": [
+        "light",
+        "dark"
+      ],
+      "scope": "Actual browser UI with explicit fictional transport fixtures; not live Supabase Auth",
+      "duration_seconds": 41.8,
+      "initial_block_resolved": "Local container disallows required OS operations; execution moved to a non-root isolated test VM."
+    },
+    "postgres_concurrency": {
+      "command": "FU_BANK_TEST_TOOLS=/vercel/fubank-tools node scripts/verify-postgres-concurrency.mjs",
+      "status": "passed",
+      "tests": 8,
+      "version": "PostgreSQL 17.10 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0, 64-bit",
+      "evidence": "complete-agent-postgres-concurrency.json",
+      "scope": "Independent real PostgreSQL connections with controlled fictional SQL identity fixtures; includes customer/operator takeover and release."
+    },
+    "hosted_read_only": {
+      "status": "inspected",
+      "verified_mfa_factors": 1,
+      "new_migration_installed": false,
+      "new_scheduler_function_installed": false,
+      "security_advisory": "Leaked password protection disabled; private internal RLS tables intentionally have no client policies. No Auth settings were changed."
+    }
+  },
+  "database_fixture_catalog": {
+    "rls_public_tables": 45,
+    "public_invoker_rpcs": 33,
+    "indexed_non_auth_user_foreign_keys": 61
+  },
+  "not_verified": [
+    "Fresh real Supabase Auth and owner authenticator challenge for the new deployed branch",
+    "Hosted cron execution after authorised activation",
+    "Real bank, card issuer or merchant integrations",
+    "General-purpose generated-code sandbox certification"
+  ],
+  "production_changes": false,
+  "deployment_triggered": false,
+  "activation_gate": "Original user instruction prohibits deployment. Applying the production migration, enabling the trusted scheduler and publishing the branch await explicit authorisation.",
+  "test_environment_stopped": true
+}

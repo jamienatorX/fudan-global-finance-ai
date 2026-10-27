@@ -18,7 +18,7 @@ export function demoAgentContext(snapshot:FinancialSnapshot,version:number):Agen
   cards:snapshot.cards.filter(c=>c.ownerId===owner).map(c=>({id:c.id,name:c.purpose.replaceAll('-',' '),frozen:c.freezeState==='frozen',limitMinor:c.monthlyLimit.amountMinor.toString()}))};
 }
 export function privateAgentContext(state:BankingState,transactions:AgentTransaction[],coverage:AgentContext['coverage']):AgentContext {
- return {accounts:state.accounts.map(a=>({id:String(a.id),name:String(a.label),currency:String(a.currency),balanceMinor:String(a.balance_minor),availableMinor:String(a.balance_minor)})),recipients:[],
+ return {accounts:state.accounts.map(a=>({id:String(a.id),name:String(a.label),currency:String(a.currency),balanceMinor:String(a.balance_minor),availableMinor:String(BigInt(String(a.balance_minor))-(state.reservations??[]).filter(r=>r.account_id===a.id).reduce((n,r)=>n+BigInt(String(r.remaining_minor)),0n))})),recipients:(state.beneficiaries??[]).map(b=>({id:String(b.id),name:String(b.name),phone:String(b.phone),remark:String(b.remark),currencies:[String(b.currency)],verified:b.verified===true})),
  budgets:state.budgets.map(b=>({category:String(b.category),limitMinor:String(b.limit_minor),currency:'CNY'})),
  tuition:state.tuition.map(t=>({id:String(t.id),name:String(t.label),outstandingMinor:t.paid===true?'0':String(t.amount_minor),currency:'CNY',paid:t.paid===true})),
  products:state.products.map(p=>({id:String(p.id),name:String(p.name),risk:String(p.risk),fees:'Not supplied by this data source',liquidity:'Not supplied by this data source'})),
@@ -26,7 +26,7 @@ export function privateAgentContext(state:BankingState,transactions:AgentTransac
  activity:state.audit.map(a=>({id:String(a.id),label:String(a.event),date:String(a.created_at)})),activityCoverage:'At most 100 retrieved audit records; complete history is not guaranteed',
  ledger:state.ledger.map(t=>({id:String(t.id),accountId:String(t.account_id),currency:String(t.currency),amountMinor:String(t.amount_minor),merchant:String(t.label),date:String(t.created_at),category:'other',direction:String(t.direction),classification:String(t.classification),settled:true})),ledgerCoverage:'At most 100 retrieved ledger records; complete history is not guaranteed',
  source:'authenticated fictional banking; explicit sample purchase history if loaded',asOf:new Date().toISOString(),version:state.version,coverage,transactions,
-  subscriptions:state.subscriptions.map(s=>({id:String(s.id),name:String(s.merchant),active:s.active===true,amountMinor:String(s.monthly_minor),currency:'CNY',cadence:'monthly',capability:'simulated',usage:'unknown'})),
+  subscriptions:state.subscriptions.map(s=>({id:String(s.id),name:String(s.merchant),active:s.active===true,amountMinor:String(s.monthly_minor),currency:'CNY',cadence:'monthly',capability:'simulated',usage:'unknown',...(s.next_renewal?{nextRenewal:String(s.next_renewal)}:{})})),
   cards:state.cards.map(c=>({id:String(c.id),name:String(c.label),frozen:c.frozen===true,limitMinor:String(c.monthly_limit_minor)}))};
 }
 export function purchaseRow(row:TableItem):AgentTransaction {

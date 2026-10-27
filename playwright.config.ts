@@ -8,6 +8,7 @@ export default defineConfig({
   reporter: process.env.CI ? 'github' : 'list',
   use: {
     baseURL: 'http://127.0.0.1:3000',
+    launchOptions: process.env.FU_BANK_CHROMIUM_PATH ? {executablePath: process.env.FU_BANK_CHROMIUM_PATH} : undefined,
     trace: 'retain-on-failure',
   },
   projects: [

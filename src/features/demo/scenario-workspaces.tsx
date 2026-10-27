@@ -1,4 +1,5 @@
 'use client';
+import {useValuationSnapshot} from '../fx/use-valuation-snapshot';
 import { LocalizedButton, LocalizedDiv, LocalizedH1, LocalizedH2, LocalizedHeader, LocalizedInput, LocalizedLabel, LocalizedLi, LocalizedOl, LocalizedOption, LocalizedP, LocalizedProgress, LocalizedSection, LocalizedSelect, LocalizedSpan, LocalizedStrong } from '../../i18n/localized';
 import { useState, type ReactNode } from 'react';
 import { useShanghaiDate } from '../cards/use-shanghai-date';
@@ -49,7 +50,8 @@ function PageBody({ section, transferDefaults }: { section: Page; transferDefaul
   const accountId=val('source',defaultSource.id);
   const source=snapshot.accounts.find(a=>a.id===accountId) ?? snapshot.accounts[0];
   const totalSubscriptions=snapshot.subscriptions.filter(s=>s.status==='active').reduce((n,s)=>n+(s.cadence==='monthly'?s.amount.amountMinor:s.amount.amountMinor/12n),0n);
-  const runway=projectedRunway(snapshot);
+  const valuationSnapshot=useValuationSnapshot();
+  const runway=projectedRunway(valuationSnapshot);
   const currency=val('currency','USD') as CurrencyCode;
   const target=val('target','CNY') as CurrencyCode;
   let conversion: ReturnType<typeof referenceConversion> | null = null; let conversionError: string | null = null;
@@ -138,7 +140,7 @@ function PageBody({ section, transferDefaults }: { section: Page; transferDefaul
         <LocalizedP className="mt-1 text-xs text-amber-800">{r.source.toUpperCase()} · {r.provider}</LocalizedP><LocalizedP className="mt-1 text-xs text-slate-500">Reference: {r.referenceAt} · retrieved: {r.retrievedAt}</LocalizedP>
       </LocalizedDiv>)}</Panel></LocalizedDiv>}
     {section==='planner' && <>
-      <LocalizedDiv className="grid gap-4 sm:grid-cols-3">{[['Available CNY',formatMoney(runway.available)],['Monthly budget',formatMoney(runway.monthly)],['Projected runway',runway.months===null?'Not finite':runway.months+' months']].map(([n,v])=><LocalizedDiv key={n} className={card}><LocalizedP className="text-sm text-slate-500">{n}</LocalizedP><LocalizedP className="mt-2 text-2xl font-bold">{v}</LocalizedP></LocalizedDiv>)}</LocalizedDiv>
+      <LocalizedDiv className="grid gap-4 sm:grid-cols-3">{[['Available CNY',formatMoney(runway.available)],['Monthly budget',formatMoney(runway.monthly)],['Runway at budget caps',runway.months===null?'Not finite':runway.months+' months']].map(([n,v])=><LocalizedDiv key={n} className={card}><LocalizedP className="text-sm text-slate-500">{n}</LocalizedP><LocalizedP className="mt-2 text-2xl font-bold">{v}</LocalizedP></LocalizedDiv>)}</LocalizedDiv>
 
       <LocalizedDiv className="grid gap-5 lg:grid-cols-2"><Panel title="Update monthly budget caps">{snapshot.budgets.filter(b=>b.month===snapshot.asOf.slice(0,7)).map(b=><LocalizedDiv key={b.id} className="border-b border-slate-100 py-3">
         <LocalizedP className="text-sm font-semibold capitalize">{b.category}: {formatMoney(b.limit)} <LocalizedSpan className="text-slate-500">· spent {formatMoney(b.actualSpend)}</LocalizedSpan></LocalizedP>

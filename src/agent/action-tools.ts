@@ -14,15 +14,14 @@ export function planAction(command:string,c:AgentContext):Partial<AgentPlanResul
   if(/^(transfer|send)\b/i.test(text)){
    const m=text.match(/^(?:transfer|send)\s+(CNY|USD|IDR|SGD)\s+([\d,.]+)\s+from\s+(.+?)\s+to\s+(.+?)(?:\s+on\s+(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:\d{2})))?$/i);
    if(!m)return need('Specify currency, amount, source and destination: Transfer CNY 10 from daily CNY to savings CNY. For a demo schedule append “on 2027-01-01T12:00+08:00”.');
-   const source=find(c.accounts??[],m[3]),dest=find(c.accounts??[],m[4]),recipient=find(c.recipients??[],m[4]);
+   const source=find(c.accounts??[],m[3]),dest=find(c.accounts??[],m[4]),recipient=(()=>{const q=normalizeMerchant(m[4]),matches=(c.recipients??[]).filter(r=>[r.name,r.phone,r.remark].filter(Boolean).some(n=>normalizeMerchant(n!)===q));return matches.length===1?matches[0]:undefined;})();
    if(!source)return need('Specify one exact source account: '+(c.accounts??[]).map(a=>a.name).join(', '));
    if(!dest&&!recipient){if(!c.source.startsWith('browser-local'))return{resultKind:'unsupported',message:UNSUPPORTED_MESSAGE};return need('Specify an exact owned account or verified recipient: '+[...(c.accounts??[]),...(c.recipients??[])].map(a=>a.name).join(', '));}
    if(source.currency!==m[1].toUpperCase()||dest&&(dest.currency!==source.currency||dest.id===source.id)||recipient&&(!recipient.verified||!recipient.currencies.includes(source.currency)))return need('Choose distinct same-currency accounts or a verified recipient supporting the source currency.');
-   if(!c.source.startsWith('browser-local')&&(m[5]||recipient))return{resultKind:'unsupported',message:UNSUPPORTED_MESSAGE};
    const minor=amount(m[2],source.currency),scheduled=m[5]?new Date(m[5]):null;
    if(scheduled&&(!Number.isFinite(scheduled.getTime())||scheduled.getTime()<=Date.now()))return need('Choose a valid future schedule with an explicit timezone.');
    if(!scheduled&&BigInt(source.availableMinor)<BigInt(minor))return need('Insufficient available funds. No change has been made.');
-   return propose(`Transfer ${displayAmount(minor,source.currency)} from ${source.name} to ${dest?.name??recipient!.name}${scheduled?' on '+scheduled.toISOString()+'; no funds debited until execution (demo schedule only)':''}. Simulated only.`,{type:'transfer',sourceId:source.id,amountMinor:minor,...(dest?{destinationId:dest.id}:{beneficiaryId:recipient!.id}),...(scheduled?{scheduledAt:scheduled.toISOString()}:{})});
+   return propose(`Transfer ${displayAmount(minor,source.currency)} from ${source.name} to ${dest?.name??recipient!.name}${scheduled?' on '+scheduled.toISOString()+'; no funds debited until execution; daily permissions are rechecked':''}. Simulated only.`,{type:'transfer',sourceId:source.id,amountMinor:minor,...(dest?{destinationId:dest.id}:{beneficiaryId:recipient!.id}),...(scheduled?{scheduledAt:scheduled.toISOString(),...(!c.source.startsWith('browser-local')?{mode:'schedule'}:{})}:{})});
   }
   const budget=text.match(/^set\s+(rent|food|transportation|shopping|other)\s+budget\s+to\s+CNY\s+([\d,.]+)$/i);
   if(budget){if(!c.budgets?.some(b=>b.category===budget[1].toLowerCase()&&b.currency==='CNY'))return need('That CNY budget category is unavailable.');const minor=amount(budget[2],'CNY',9999999999n);return propose(`Set ${budget[1].toLowerCase()} monthly budget to ${displayAmount(minor,'CNY')}.`,{type:'budget',category:budget[1].toLowerCase(),limitMinor:minor});}

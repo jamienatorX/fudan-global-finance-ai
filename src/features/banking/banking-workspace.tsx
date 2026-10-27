@@ -9,17 +9,19 @@ import {securityMessage} from './security-client';
 import {ActionVerification} from './action-verification';
 import {SecurityStatus} from './security-status';
 import { SessionControls } from './session-controls';
+import {ScenarioWorkspace} from './scenario-workspace';
+import {SuitabilityPanel} from './report-and-suitability';
 import {PrivateCopilot} from '../copilot/private-copilot';
 import { searchPrivateBanking } from './private-search';
 type BankProposal = Readonly<{type: 'transfer'|'tuition'|'budget'|'subscription'|'card'|'investment'; [key:string]:string}>;
 
-type Tab='overview'|'transfers'|'cards'|'budgets'|'subscriptions'|'wealth'|'activity';
+type Tab='overview'|'transfers'|'cards'|'budgets'|'subscriptions'|'wealth'|'activity'|'automations';
 type Pending={id:string;payload:BankProposal;expiresInSeconds:number};
 const TABS:readonly {id:Tab;title:string}[]=[
  {id:'overview',title:'Overview'},{id:'transfers',title:'Transfers'},
  {id:'cards',title:'Cards'},{id:'budgets',title:'Budgets'},
  {id:'subscriptions',title:'Subscriptions'},{id:'wealth',title:'Investments'},
- {id:'activity',title:'Activity'},
+ {id:'activity',title:'Activity'},{id:'automations',title:'Automations & tools'},
 ];
 const money=(minor:unknown,currency='CNY')=>{
  try {
@@ -41,6 +43,7 @@ function CurrencyAccount({row}:{row:TableItem}){
  return <LocalizedDiv className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 text-[var(--color-text)]">
    <LocalizedP className="text-xs font-bold uppercase tracking-widest text-[var(--color-primary)]">{String(row.label)}</LocalizedP>
    <LocalizedP className="mt-3 text-2xl font-bold tabular-nums text-[var(--color-text)]">{money(row.balance_minor,String(row.currency))}</LocalizedP>
+   <LocalizedP className="mt-2 text-sm text-[var(--color-text-muted)]">Available after reservations: {money(row.available_minor??row.balance_minor,String(row.currency))}</LocalizedP>
 
  </LocalizedDiv>;
 }
@@ -57,6 +60,7 @@ const empty={enrolled:false,version:0,accounts:[],budgets:[],subscriptions:[],ca
 
 export function BankingWorkspace({supportDestination,initialTab}:{supportDestination?:string;initialTab?:string}={}){
  const router=useRouter();
+ const [suggestedRequest,setSuggestedRequest]=useState<{id:string;text:string}|undefined>();
  const [state,setState]=useState<BankingState>(empty);
  const [bankSearch,setBankSearch]=useState('');
  const [tab,setTab]=useState<Tab>(()=>TABS.some(t=>t.id===initialTab)?initialTab as Tab:'overview');
@@ -148,7 +152,7 @@ export function BankingWorkspace({supportDestination,initialTab}:{supportDestina
        <LocalizedDiv className="flex gap-2"><LocalizedButton className={sec} onClick={()=>void run(refresh)} disabled={busy}>Refresh balances</LocalizedButton>
        <LocalizedButton className={cta} onClick={()=>setTab('transfers')}>New transfer</LocalizedButton></LocalizedDiv>
      </LocalizedDiv>
-     <div className="mb-6"><PrivateCopilot supportDestination={supportDestination} version={state.version} refresh={refresh}/></div>
+     <div className="mb-6"><PrivateCopilot suggestedRequest={suggestedRequest} supportDestination={supportDestination} version={state.version} refresh={refresh}/></div>
      <LocalizedSection aria-label="Search your banking records" className="mb-5 rounded-2xl border border-slate-200 bg-white p-4">
        <LocalizedLabel htmlFor="private-bank-search" className="block text-sm font-semibold text-slate-900">Search your banking records</LocalizedLabel>
        <LocalizedInput id="private-bank-search" type="search" className={input} value={bankSearch}
@@ -168,6 +172,7 @@ export function BankingWorkspace({supportDestination,initialTab}:{supportDestina
        onClick={()=>setTab(item.id)} className={'rounded-xl px-4 py-2.5 text-sm font-semibold '+(tab===item.id?'bg-blue-600 text-white':'bg-white text-slate-600 hover:bg-blue-50')}>
        {item.title}</LocalizedButton>)}
      </LocalizedNav>
+     {tab==='automations'&&<ScenarioWorkspace accounts={state.accounts} cards={state.cards} products={state.products} refresh={refresh} onPending={setPending} onRequest={text=>{setSuggestedRequest({id:crypto.randomUUID(),text});requestAnimationFrame(()=>document.getElementById('fufu-message')?.focus());}}/>}
      {tab==='overview'&&<LocalizedDiv className="space-y-5">
        <LocalizedDiv className="grid gap-4 md:grid-cols-3">
         <LocalizedDiv className="rounded-3xl bg-gradient-to-br from-blue-950 to-blue-700 p-6 text-white shadow-lg md:col-span-2">
@@ -223,6 +228,7 @@ export function BankingWorkspace({supportDestination,initialTab}:{supportDestina
        <LocalizedP className="mt-2 text-sm text-slate-600">Status: {s.active?'Active':'Cancelled'}</LocalizedP>
        {s.active===true&&<LocalizedButton className={cta+' mt-4'} onClick={()=>void prepare({type:'subscription',subscriptionId:String(s.id)})}>Review cancellation</LocalizedButton>}
      </Pane>)}</LocalizedDiv>}
+     {tab==='wealth'&&<SuitabilityPanel products={state.products}/>}
      {tab==='wealth'&&<LocalizedDiv className="grid gap-5 lg:grid-cols-2">
        <Pane title="Investment products" description="">
          {state.products.map(p=><LocalizedDiv key={String(p.id)} className="border-b border-slate-100 py-4">
@@ -247,7 +253,7 @@ export function BankingWorkspace({supportDestination,initialTab}:{supportDestina
          <LocalizedP className="mt-1 text-xs text-slate-500">{String(t.created_at)} · {String(t.action_id)}</LocalizedP></LocalizedDiv>)}
        </Pane><Pane title="Server-side action audit">
         {state.audit.map(e=><LocalizedDiv key={String(e.id)} className="border-b border-slate-100 py-3 text-sm">
-          <LocalizedP className="font-semibold">{String(e.event)}</LocalizedP><LocalizedP className="mt-1 text-xs text-slate-500">{String(e.created_at)} · {String(e.action_id)}</LocalizedP>
+          <LocalizedP className="font-semibold">{String(e.event)}</LocalizedP><LocalizedP className="mt-1 text-xs text-slate-500">{String(e.created_at)} · {String(e.action_id)}</LocalizedP><details><summary>Decision and execution details</summary><pre className="overflow-auto whitespace-pre-wrap break-all text-xs">{JSON.stringify(e.detail,null,2)}</pre></details>
         </LocalizedDiv>)}
        </Pane></LocalizedDiv>}
     </>}

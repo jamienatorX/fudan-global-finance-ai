@@ -14,6 +14,8 @@ export type BankingState = {
   actions: TableItem[];
   ledger: TableItem[];
   audit: TableItem[];
+  beneficiaries?: TableItem[];
+  reservations?: TableItem[];
 };
 export type SimClient = Awaited<ReturnType<typeof createServerSupabaseClient>>;
 
@@ -28,7 +30,7 @@ export async function authenticatedBanking() {
 /** RLS checks owner IDs independently of the Next.js claims guard. */
 export async function readBankingState(client: SimClient): Promise<BankingState> {
   const names = ['sim_profiles','sim_accounts','sim_budgets','sim_subscriptions','sim_cards',
-    'sim_tuition','sim_products','sim_holdings','sim_actions','sim_ledger','sim_audit'] as const;
+    'sim_tuition','sim_products','sim_holdings','sim_actions','sim_ledger','sim_audit','bank_demo_beneficiaries','bank_reservations'] as const;
   const responses = await Promise.all(names.map(name => client.from(name).select('*').limit(
     name==='sim_ledger'||name==='sim_audit'?100:1000
   )));
@@ -37,8 +39,9 @@ export async function readBankingState(client: SimClient): Promise<BankingState>
   const rows = (name:string)=>data[name] as TableItem[];
   const profile = rows('sim_profiles')[0];
   return {
+    beneficiaries:rows('bank_demo_beneficiaries'),reservations:rows('bank_reservations'),
     enrolled:Boolean(profile), version: profile ? Number(profile.version) : 0,
-    accounts:rows('sim_accounts'),budgets:rows('sim_budgets'),subscriptions:rows('sim_subscriptions'),
+    accounts:rows('sim_accounts').map(a=>({...a,available_minor:String(BigInt(String(a.balance_minor))-rows('bank_reservations').filter(r=>r.account_id===a.id).reduce((n,r)=>n+BigInt(String(r.remaining_minor)),0n))})),budgets:rows('sim_budgets'),subscriptions:rows('sim_subscriptions'),
     cards:rows('sim_cards'),tuition:rows('sim_tuition'),products:rows('sim_products'),
     holdings:rows('sim_holdings'),actions:rows('sim_actions').sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at))),
     ledger:rows('sim_ledger').sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at))),

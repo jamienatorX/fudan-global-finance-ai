@@ -1,4 +1,10 @@
 export const securityMessage=(code:string)=>({
+ INVALID_PERIOD:'Enter a year (YYYY) or a month (YYYY-MM).',
+ INVALID_ACTION_FIELDS:'This action contains unsupported fields. Review a fresh draft.',
+ JOB_NOT_FOUND:'This scheduled task is unavailable for your account.',
+ JOB_NOT_READY:'This scheduled task is not ready for payment.',
+ INVALID_JOB_COMMAND:'Refresh the task before changing its status.',
+ MANDATE_SESSION_REVOKED:'The session that authorised this schedule was revoked. Create a fresh schedule.',
  SAFETY_LOCKED:'Changes are temporarily locked. You can still view your accounts and contact support.',
  ACTION_VERIFICATION_REQUIRED:'Verify this exact action with your authenticator, then confirm it.',
  FRESH_CHALLENGE_REQUIRED:'A new authenticator verification is needed. Please try a fresh code.',

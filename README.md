@@ -59,3 +59,7 @@ See [the current walkthrough](docs/competition-demo-guide.md) and [submission re
 ## Competition security and workflows
 
 Authenticated banking now includes database-enforced permission tiers, daily transfer/tuition thresholds, action-bound MFA, durable safety locks, recoverable task workflows and an owner/assignment-scoped operator inbox. See [security evidence](docs/competition-security-evidence.md), [live acceptance and limits](docs/competition-security-live-acceptance.md), [mutation inventory](docs/banking-mutation-inventory.md) and [rollout review](docs/production-security-rollout-review.md). Operator accounts require explicit team provisioning; the team operator is configured. A real customer/operator acceptance exercise remains outstanding. Public browser money is not security proof.
+
+## Unreleased scenario completion
+
+The local `feat/complete-banking-agent-scenarios` branch extends authenticated fictional transfers, reporting, card controls, renewals, birthday reservations, scheduling and inspectable approval evidence. See [scenario completion and acceptance boundaries](docs/complete-agent-scenarios.md). These source changes do not imply a deployed app, applied production migration or enabled cron.

@@ -12,7 +12,7 @@ if(hash(data)!==sha)throw new Error('Voice archive SHA-256 mismatch');
 const entries=execFileSync('tar',['-tf',archive],{encoding:'utf8'}).trim().split(/\r?\n/);for(const entry of entries){const e=entry.replace(/^\.\//,'');if(!e.startsWith(name+'/' )||e.split(/[\\/]/).includes('..')||e.includes('\\'))throw new Error('Unsafe archive entry');}
 // Only regular expected release files are extracted; no archive links are followed.
 const files=['sherpa-onnx-asr.js','sherpa-onnx-wasm-main-asr.js','sherpa-onnx-wasm-main-asr.wasm','sherpa-onnx-wasm-main-asr.data'];
-execFileSync('tar',['-xf',archive,'-C',cache,...files.map(f=>'./'+name+'/'+f)]);
+execFileSync('tar',['--no-same-owner','-xf',archive,'-C',cache,...files.map(f=>'./'+name+'/'+f)]);
 const source=path.join(cache,name),model=await readFile(path.join(source,files[3])),shards=[],assets=[];
 for(let offset=0,i=0;offset<model.length;offset+=24*1024*1024,i++){const b=model.subarray(offset,offset+24*1024*1024),file=`model-${i}.bin`;await writeFile(path.join(out,file),b);shards.push({file,bytes:b.length,sha256:hash(b)});}
 for(const file of files.slice(0,3)){await copyFile(path.join(source,file),path.join(out,file));const b=await readFile(path.join(out,file));assets.push({file,bytes:b.length,sha256:hash(b)});}

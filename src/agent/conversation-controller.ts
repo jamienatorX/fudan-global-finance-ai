@@ -7,7 +7,7 @@ import {UNSUPPORTED_MESSAGE} from './support';
 import type {ConversationState,ConversationTask,ConversationTurn,ConversationUpdate,DraftTask} from './conversation-contracts';
 import {assertConversationCapacity} from './conversation-contracts';
 function resolve<T extends {id:string;name:string}>(rows:readonly T[],query:string):T|undefined{
- if(!query)return;const exact=rows.filter(r=>r.id===query||normalizeMerchant(r.name)===normalizeMerchant(query));if(exact.length===1)return exact[0];
+ if(!query)return;const exact=rows.filter(r=>r.id===query||[r.name,(r as {phone?:string}).phone,(r as {remark?:string}).remark].filter(Boolean).some(n=>normalizeMerchant(n!)===normalizeMerchant(query)));if(exact.length===1)return exact[0];
  const partial=rows.filter(r=>normalizeMerchant(r.name).split(' ').includes(normalizeMerchant(query)));return partial.length===1?partial[0]:undefined;
 }
 function compile(d:DraftTask,c:AgentContext):ConversationTask{
@@ -18,6 +18,7 @@ function compile(d:DraftTask,c:AgentContext):ConversationTask{
  if(d.kind==='affordability')return !d.amountMinor||!d.currency?need('How much extra would you like to spend, and in which currency?'):{draft:d,status:'ready',message:'Read-only scenario calculation. No additional spending will be executed.'};
  let command='';const accounts=(c.accounts??[]).filter(a=>!d.currency||a.currency===d.currency),source=resolve(accounts,d.source);
  const target=resolve([...(c.accounts??[]),...(c.recipients??[]).filter(r=>r.verified)],d.target);
+ if(d.kind==='scenario'){const p=planCommand(d.query,c);return {draft:d,status:p.resultKind==='unsupported'?'unsupported':p.actions.length||p.resultKind==='answer'||p.resultKind==='handoff'?'ready':'needs-input',message:p.message,plan:p};}
  if(d.kind==='read'){command=canonicalReadQuery(d.query||'Show my balances');const p=planCommand(command,c);if(p.actions.length)return need('Choose a read-only information task. Changes require a separate action draft.');return{draft:d,status:p.resultKind==='unsupported'?'unsupported':'ready',message:p.message,plan:p};}
  if(d.kind==='transfer'){
   if(d.target&&!target)return need(`I could not find one verified recipient or owned account matching “${d.target}”. Which existing recipient should I use?`);

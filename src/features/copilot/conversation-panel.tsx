@@ -14,8 +14,10 @@ import {SubscriptionEvidence} from './subscription-evidence';
 import {ConversationTaskCard} from './conversation-task-card';
 export type ConversationPending={id:string;taskId:string;conversationId:string;revision:number;expiresAt:number;description:string};
 export type ConversationTransport={request:(b:Record<string,unknown>)=>Promise<ConversationTurn>;prepare:(turn:ConversationTurn,taskId:string)=>Promise<ConversationPending>;decide:(pending:ConversationPending,approve:boolean)=>Promise<{turn:ConversationTurn;outcome:{status:string;verified?:boolean}}>;loadHistory?:()=>Promise<void>;};
-export function ConversationPanel({source,transport,supportDestination,version=0}:{source:string;transport:ConversationTransport;supportDestination?:string;version?:number}){
+export function ConversationPanel({source,transport,supportDestination,version=0,suggestedRequest}:{source:string;transport:ConversationTransport;supportDestination?:string;version?:number;suggestedRequest?:{id:string;text:string}}){
  const [turn,setTurn]=useState<ConversationTurn|null>(null),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[pending,setPending]=useState<ConversationPending|null>(null),[submitted,setSubmitted]=useState('');
+ const [seenSuggestion,setSeenSuggestion]=useState('');
+ if(suggestedRequest&&seenSuggestion!==suggestedRequest.id){setSeenSuggestion(suggestedRequest.id);setMessage(suggestedRequest.text);}
  const [voiceBusy,setVoiceBusy]=useState(false);
  const [actionReady,setActionReady]=useState(false);
  const privateBanking=source==='Signed-in banking simulation';

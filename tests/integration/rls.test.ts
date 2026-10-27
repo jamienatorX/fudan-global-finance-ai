@@ -11,7 +11,7 @@ describe('financial migration executed by PostgreSQL', () => {
   it('enables RLS and leading ownership indexes for every public table', async () => {
     await asUser(db, A);
     const tables = await db.query<{ relname: string; relrowsecurity: boolean }>(`select relname, relrowsecurity from pg_class join pg_namespace n on n.oid = relnamespace where n.nspname = 'public' and relkind = 'r'`);
-    expect(tables.rows).toHaveLength(39);
+    expect(tables.rows).toHaveLength(45);
     for (const table of tables.rows) {
       expect(table.relrowsecurity).toBe(true);
       const indexes = await db.query<{ indexdef: string }>(`select indexdef from pg_indexes where schemaname = 'public' and tablename = $1`, [table.relname]);
@@ -56,7 +56,7 @@ describe('financial migration executed by PostgreSQL', () => {
   it('has only invoker RPCs in the exposed schema and no anonymous grants', async () => {
     await asUser(db, A);
     const functions = await db.query<{ proname: string; prosecdef: boolean }>(`select proname, prosecdef from pg_proc p join pg_namespace n on p.pronamespace=n.oid where n.nspname='public'`);
-    expect(functions.rows).toHaveLength(29);
+    expect(functions.rows).toHaveLength(33);
     expect(functions.rows.every((fn) => !fn.prosecdef)).toBe(true);
     const privateFunction = await db.query<{ proname:string; prosecdef: boolean; proconfig: string[]; anon: boolean }>(`select p.proname,p.prosecdef, p.proconfig, has_function_privilege('anon',p.oid,'EXECUTE') as anon from pg_proc p join pg_namespace n on p.pronamespace=n.oid where n.nspname='private'`);
     expect(privateFunction.rows.length).toBeGreaterThanOrEqual(16);
@@ -69,7 +69,7 @@ describe('financial migration executed by PostgreSQL', () => {
   it('denies direct demo writes to every financial table and administrative profile fields', async () => {
     await asUser(db, A);
     const grants = await db.query<{ table_name: string; privilege_type: string }>(`select table_name, privilege_type from information_schema.role_table_grants where table_schema='public' and grantee='authenticated'`);
-    expect(grants.rows).toHaveLength(39);
+    expect(grants.rows).toHaveLength(45);
     expect(grants.rows.every((grant) => grant.privilege_type === 'SELECT')).toBe(true);
     await expect(db.exec('update accounts set balance_amount_minor = 0')).rejects.toThrow(/permission denied/);
     await expect(db.exec('delete from transactions')).rejects.toThrow(/permission denied/);

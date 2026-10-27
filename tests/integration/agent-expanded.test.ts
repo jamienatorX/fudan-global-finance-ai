@@ -19,8 +19,7 @@ it('executes expanded immutable agent actions, verifies receipts and prevents cr
  const failed=await prepare({type:'transfer',sourceId:accounts[0].id,destinationId:accounts[1].id,amountMinor:'99999999999'});
  await verifyFixtureAction(db,failed);expect((await db.query<{bank_agent_execute:{code:string}}>('select public.bank_agent_execute($1,true)',[failed])).rows[0].bank_agent_execute.code).toBe('INSUFFICIENT_FUNDS');
  expect((await db.query('select balance_minor from public.sim_accounts where id=$1',[accounts[0].id])).rows).toEqual(balance);
- const scheduled=await prepare({type:'transfer',sourceId:accounts[0].id,destinationId:accounts[1].id,amountMinor:'100',scheduledAt:'2028-01-01T12:00:00Z'});
- await verifyFixtureAction(db,scheduled);expect((await db.query<{bank_agent_execute:{code:string}}>('select public.bank_agent_execute($1,true)',[scheduled])).rows[0].bank_agent_execute.code).toBe('CAPABILITY_UNAVAILABLE');
+ await expect(prepare({type:'transfer',sourceId:accounts[0].id,destinationId:accounts[1].id,amountMinor:'100',scheduledAt:'2028-01-01T12:00:00Z'})).rejects.toThrow('INVALID_ACTION_FIELDS'); // Explicit schedule mode is mandatory; a date must never be silently ignored.
  await asUser(db,B);expect((await db.query<{bank_agent_execute:{code:string}}>('select public.bank_agent_execute($1,true)',[transfer.id])).rows[0].bank_agent_execute.code).toBe('ACTION_NOT_FOUND');
  }finally{await db.close();}
 });

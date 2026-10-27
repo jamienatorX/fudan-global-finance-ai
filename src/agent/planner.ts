@@ -1,3 +1,4 @@
+import {planScenario} from './scenario-tools';
 import {resolveAgentQuote} from './fx-tool';
 import {planRead} from './read-tools';
 import {planAction} from './action-tools';
@@ -14,6 +15,7 @@ function planInternal(command:string,context:AgentContext):AgentPlanResult {
  const result:AgentPlanResult={id:crypto.randomUUID(),mode:'deterministic',source:context.source,asOf:context.asOf,version:context.version,expiresAt:Date.now()+600000,coverage:context.coverage,message:UNSUPPORTED_MESSAGE,actions:[],choices:[],recurring:[],subscriptions:[]};
  const add=(description:string,payload:Proposal)=>result.actions.push({id:crypto.randomUUID(),description,payload});
  if(!text||text.length>1000||/\b(don['’]?t|do not|not|never|except|unless|if|ignore|instead)\b/i.test(text)){result.resultKind='unsupported';return result;}
+ const scenario=planScenario(text,context);if(scenario)return {...result,...scenario};
  if(/\b(and|then)\b|[;\n]/i.test(text)&&! /^(?:please\s+)?(?:freeze|unfreeze)\s+.+?\s+and\s+(?:lower|set|change|raise)\s+(?:its|the)\s+monthly\s+limit\s+to\s+(?:cny\s*)?[\d,.]+(?:\s*cny)?$/i.test(text)){result.message='Please send separate requests for these actions. Nothing has changed.';return result;}
  const expanded=resolveAgentQuote(text,context)??planAction(text,context)??planRead(text,context);if(expanded)return {...result,...expanded};
  if(/^(?:please\s+)?(?:cancel|stop)\s+/i.test(text)){

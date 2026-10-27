@@ -4,7 +4,7 @@ export type AgentCard = {id:string;name:string;frozen:boolean;limitMinor:string}
 export type AgentAccount = {id:string;name:string;currency:string;balanceMinor:string;availableMinor:string;goalMinor?:string};
 export type AgentProduct = {id:string;name:string;risk:string;fees:string;liquidity:string};
 export type AgentContext = {source:string;asOf:string;version:number;coverage:{from:string;to:string;truncated:boolean};transactions:AgentTransaction[];subscriptions:AgentSubscription[];cards:AgentCard[];
- accounts?:AgentAccount[];recipients?:{id:string;name:string;currencies:readonly string[];verified:boolean}[];
+ accounts?:AgentAccount[];recipients?:{id:string;name:string;currencies:readonly string[];verified:boolean;phone?:string;remark?:string}[];
  budgets?:{category:string;limitMinor:string;currency:string;spentMinor?:string}[];
  tuition?:{id:string;name:string;outstandingMinor:string;currency:string;paid:boolean}[];
  products?:AgentProduct[];holdings?:{productId:string;valueMinor:string}[];

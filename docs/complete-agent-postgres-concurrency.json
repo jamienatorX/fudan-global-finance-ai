@@ -1,0 +1,75 @@
+{
+  "status": "passed",
+  "postgres": "PostgreSQL 17.10 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0, 64-bit",
+  "tests": 8,
+  "results": [
+    {
+      "name": "Concurrent transfers enforce the cumulative daily threshold",
+      "status": "passed",
+      "details": {
+        "connections": 2,
+        "executed": 1,
+        "blocked": 1
+      }
+    },
+    {
+      "name": "Concurrent duplicate confirmations produce one two-sided ledger effect",
+      "status": "passed",
+      "details": {
+        "connections": 2,
+        "ledgerEntries": 2
+      }
+    },
+    {
+      "name": "Concurrent spending cannot consume birthday reservations",
+      "status": "passed",
+      "details": {
+        "connections": 2,
+        "balanceMinor": "110000",
+        "reservedMinor": "100000"
+      }
+    },
+    {
+      "name": "Background worker and interactive transfer share the same daily allowance",
+      "status": "passed",
+      "details": {
+        "connections": 2,
+        "debitedMinor": "60000"
+      }
+    },
+    {
+      "name": "Concurrent workers execute an approved mandate once",
+      "status": "passed",
+      "details": {
+        "connections": 2,
+        "ledgerEntries": 2
+      }
+    },
+    {
+      "name": "Cancellation racing fulfilment releases or consumes an allocation exactly once",
+      "status": "passed",
+      "details": {
+        "connections": 2,
+        "remainingMinor": "70000"
+      }
+    },
+    {
+      "name": "Authenticated clients cannot invoke the trusted worker",
+      "status": "passed",
+      "details": {
+        "denied": true
+      }
+    },
+    {
+      "name": "Independent customer/operator sessions complete consented takeover and release",
+      "status": "passed",
+      "details": {
+        "connections": 2,
+        "operatorMembership": "explicit fixture provisioning",
+        "ticketStatus": "released"
+      }
+    }
+  ],
+  "authEvidence": "Controlled SQL claims only; this does not prove real Supabase Auth or a physical authenticator.",
+  "productionChanged": false
+}

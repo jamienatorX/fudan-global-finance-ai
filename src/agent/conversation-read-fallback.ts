@@ -1,3 +1,5 @@
+import {planCommand} from './planner';
+import {planScenario} from './scenario-tools';
 import {isSubscriptionPlanningRequest} from './subscription-planning';
 import {normalisePlanDate} from './conversation-normalisation';
 import {normalizeMerchant,type AgentContext} from './contracts';
@@ -6,9 +8,10 @@ import {canonicalReadQuery} from './conversation-normalisation';
 import {preserveScenarioCosts} from './scenario-language';
 import {informationUpdate} from './conversation-information';
 import {correctionUpdate} from './conversation-corrections';
-/** Only explicit information requests and hypothetical calculations bypass the model. */
+/** Only bounded complete tool requests and grounded reads bypass the model. No draft authorises execution. */
 export function readOnlyConversationUpdate(message:string,state:ConversationState,c?:AgentContext):ConversationUpdate|undefined{
  const empty={tasks:[],removeIds:[]};
+ if(c&&state.source==='private'&&(planScenario(message,c)||planCommand(message,c).actions.length>0))return{tasks:[{...blankTask('scenario'),query:message}],removeIds:[]};
  const correction=correctionUpdate(message,state,c);if(correction)return correction;
  const information=informationUpdate(message);if(information)return information;
  // A narrow local parser must not accept a supported clause while silently losing another change.
