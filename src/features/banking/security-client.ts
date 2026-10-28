@@ -1,4 +1,5 @@
 export const securityMessage=(code:string)=>({
+ VERIFICATION_EXPIRED:'This action verification expired. Verify the action again before confirming.',
  INVALID_PERIOD:'Enter a year (YYYY) or a month (YYYY-MM).',
  INVALID_ACTION_FIELDS:'This action contains unsupported fields. Review a fresh draft.',
  JOB_NOT_FOUND:'This scheduled task is unavailable for your account.',
@@ -23,3 +24,4 @@ export async function securePost<T>(path:string,body:Record<string,unknown>):Pro
  const response=await fetch(path,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(20000)});
  const r=await response.json();if(!response.ok||r.code||r.status==='denied')throw new Error(securityMessage(String(r.error??r.code??'SERVICE_UNAVAILABLE')));return r as T;
 }
+

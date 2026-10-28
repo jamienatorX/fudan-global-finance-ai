@@ -7,6 +7,7 @@ import { createBrowserSupabaseClient } from '../../lib/supabase/browser';
 import type { BankingState,TableItem } from '../../server/secure-banking';
 import {securityMessage} from './security-client';
 import {ActionVerification} from './action-verification';
+import {useReviewDeadline} from './review-deadline';
 import {SecurityStatus} from './security-status';
 import { SessionControls } from './session-controls';
 import {ScenarioWorkspace} from './scenario-workspace';
@@ -16,7 +17,7 @@ import { searchPrivateBanking } from './private-search';
 type BankProposal = Readonly<{type: 'transfer'|'tuition'|'budget'|'subscription'|'card'|'investment'; [key:string]:string}>;
 
 type Tab='overview'|'transfers'|'cards'|'budgets'|'subscriptions'|'wealth'|'activity'|'automations';
-type Pending={id:string;payload:BankProposal;expiresInSeconds:number};
+type Pending={id:string;payload:BankProposal;expiresAt:number};
 const TABS:readonly {id:Tab;title:string}[]=[
  {id:'overview',title:'Overview'},{id:'transfers',title:'Transfers'},
  {id:'cards',title:'Cards'},{id:'budgets',title:'Budgets'},
@@ -67,6 +68,7 @@ export function BankingWorkspace({supportDestination,initialTab}:{supportDestina
  const [loading,setLoading]=useState(true);
  const [busy,setBusy]=useState(false);
  const [pending,setPending]=useState<Pending|null>(null);
+ const remaining=useReviewDeadline(pending?.expiresAt??NaN);
  const [actionReady,setActionReady]=useState(false);
  const [notice,setNotice]=useState('');
  const [error,setError]=useState('');
@@ -95,7 +97,7 @@ export function BankingWorkspace({supportDestination,initialTab}:{supportDestina
    if(response.status===401){router.replace('/login');throw new Error('Your session ended. Please sign in again.');}
    if(result.error==='MFA_REQUIRED'||result.error==='REAUTH_REQUIRED'){router.replace('/security');throw new Error('Verify again, then review your action.');}
    if(result.code)throw new Error(securityMessage(String(result.code)));
-   if(['SAFETY_LOCKED','ACTION_VERIFICATION_REQUIRED'].includes(String(result.error)))throw new Error(securityMessage(String(result.error)));
+   if(['SAFETY_LOCKED','ACTION_VERIFICATION_REQUIRED','VERIFICATION_EXPIRED','STALE_STATE','FRESH_CHALLENGE_REQUIRED'].includes(String(result.error)))throw new Error(securityMessage(String(result.error)));
    if(!response.ok)throw new Error(response.status===429?'Too many requests. Please wait a minute.':'This action could not be completed. Review your details and try again.');
    return result;
  }
@@ -105,14 +107,16 @@ export function BankingWorkspace({supportDestination,initialTab}:{supportDestina
  }
  async function prepare(payload:BankProposal){
   await run(async()=>{
+   const requestedAt=Date.now();
    const result=await post({operation:'prepare',payload});
-   setPending({id:String(result.id),payload,expiresInSeconds:Number(result.expiresInSeconds)});
+   setActionReady(false);setPending({id:String(result.id),payload,expiresAt:requestedAt+Number(result.expiresInSeconds)*1000});
    setNotice('Ready for review. Confirm or cancel below.');
    await refresh();
   });
  }
  async function decide(approve:boolean){
   if(!pending)return;
+  if(approve&&Date.now()>=pending.expiresAt){setError('This review expired. Prepare a fresh draft.');return;}
   await run(async()=>{
    const result=await post({operation:'execute',actionId:pending.id,approve});
    setNotice('Status: '+String(result.status)+(typeof result.message==='string'?' — '+result.message:'')+'.');
@@ -172,7 +176,7 @@ export function BankingWorkspace({supportDestination,initialTab}:{supportDestina
        onClick={()=>setTab(item.id)} className={'rounded-xl px-4 py-2.5 text-sm font-semibold '+(tab===item.id?'bg-blue-600 text-white':'bg-white text-slate-600 hover:bg-blue-50')}>
        {item.title}</LocalizedButton>)}
      </LocalizedNav>
-     {tab==='automations'&&<ScenarioWorkspace accounts={state.accounts} cards={state.cards} products={state.products} refresh={refresh} onPending={setPending} onRequest={text=>{setSuggestedRequest({id:crypto.randomUUID(),text});requestAnimationFrame(()=>document.getElementById('fufu-message')?.focus());}}/>}
+     {tab==='automations'&&<ScenarioWorkspace accounts={state.accounts} cards={state.cards} products={state.products} refresh={refresh} onPending={p=>{setActionReady(false);setPending({id:p.id,payload:p.payload,expiresAt:Date.now()+Math.max(0,p.expiresInSeconds-20)*1000});}} onRequest={text=>{setSuggestedRequest({id:crypto.randomUUID(),text});requestAnimationFrame(()=>document.getElementById('fufu-message')?.focus());}}/>}
      {tab==='overview'&&<LocalizedDiv className="space-y-5">
        <LocalizedDiv className="grid gap-4 md:grid-cols-3">
         <LocalizedDiv className="rounded-3xl bg-gradient-to-br from-blue-950 to-blue-700 p-6 text-white shadow-lg md:col-span-2">
@@ -263,7 +267,8 @@ export function BankingWorkspace({supportDestination,initialTab}:{supportDestina
       <LocalizedSection className="w-full max-w-xl rounded-3xl bg-white p-6 shadow-2xl">
        <LocalizedP className="text-xs font-bold uppercase tracking-widest text-blue-700">Review & confirm</LocalizedP>
        <LocalizedH2 className="mt-2 text-2xl font-bold">Approve this exact change?</LocalizedH2>
-       <LocalizedP className="mt-3 text-sm text-slate-600">This confirmation expires in {pending.expiresInSeconds} seconds.</LocalizedP>
+       <LocalizedP className="mt-3 text-sm text-slate-600">{remaining>0?`This confirmation expires in ${remaining} seconds.`:'This review expired. No new confirmation can be submitted. Review a fresh draft.'}</LocalizedP>
+       {remaining===0&&<LocalizedButton className={sec} disabled={busy} onClick={()=>void prepare(pending.payload)}>Review fresh draft</LocalizedButton>}
        <LocalizedDl className="mt-4 space-y-3 text-sm">{Object.entries(pending.payload).filter(([key])=>key!=='type').map(([key,value])=>{
          const labels:Record<string,string>={sourceId:'From',destinationId:'To',tuitionId:'Tuition',productId:'Product',cardId:'Card',subscriptionId:'Subscription',amountMinor:'Amount',limitMinor:'Limit',direction:'Order',mode:'Change',category:'Category'};
          const record=byId([...state.accounts,...state.products,...state.cards,...state.subscriptions,...state.tuition],value);
@@ -271,7 +276,7 @@ export function BankingWorkspace({supportDestination,initialTab}:{supportDestina
          return <LocalizedDiv className="flex justify-between gap-4" key={key}><LocalizedDt className="text-slate-500">{labels[key]??key}</LocalizedDt><LocalizedDd className="break-words text-right font-medium capitalize">{display}</LocalizedDd></LocalizedDiv>;
        })}</LocalizedDl>
        <LocalizedDiv className="mt-6 flex flex-wrap gap-3">
-        <ActionVerification key={pending.id} actionId={pending.id} onReady={setActionReady}/><LocalizedButton className={cta} disabled={busy||!actionReady} onClick={()=>void decide(true)}>Confirm</LocalizedButton>
+        <ActionVerification key={pending.id} actionId={pending.id} onReady={setActionReady}/><LocalizedButton className={cta} disabled={busy||!actionReady||remaining===0} onClick={()=>void decide(true)}>Confirm</LocalizedButton>
         <LocalizedButton className={sec} disabled={busy} onClick={()=>void decide(false)}>Reject without changes</LocalizedButton>
        </LocalizedDiv>
       </LocalizedSection>
@@ -280,5 +285,6 @@ export function BankingWorkspace({supportDestination,initialTab}:{supportDestina
    </LocalizedDiv>
  </LocalizedDiv>;
 }
+
 
 
