@@ -140,6 +140,7 @@ function PageBody({ section, transferDefaults }: { section: Page; transferDefaul
         <LocalizedP className="mt-1 text-xs text-amber-800">{r.source.toUpperCase()} · {r.provider}</LocalizedP><LocalizedP className="mt-1 text-xs text-slate-500">Reference: {r.referenceAt} · retrieved: {r.retrievedAt}</LocalizedP>
       </LocalizedDiv>)}</Panel></LocalizedDiv>}
     {section==='planner' && <>
+      <LocalizedP className="text-sm text-slate-600">Available CNY is the reference CNY value of all active account currencies, not only CNY accounts. Budget runway = max(0, available cash − all unpaid tuition) ÷ monthly budget caps, adjusted for recorded cancelled subscriptions. It excludes future income. Overview runway uses observed consumption and the next tuition installment, so the estimates can differ.</LocalizedP>
       <LocalizedDiv className="grid gap-4 sm:grid-cols-3">{[['Available CNY',formatMoney(runway.available)],['Monthly budget',formatMoney(runway.monthly)],['Runway at budget caps',runway.months===null?'Not finite':runway.months+' months']].map(([n,v])=><LocalizedDiv key={n} className={card}><LocalizedP className="text-sm text-slate-500">{n}</LocalizedP><LocalizedP className="mt-2 text-2xl font-bold">{v}</LocalizedP></LocalizedDiv>)}</LocalizedDiv>
 
       <LocalizedDiv className="grid gap-5 lg:grid-cols-2"><Panel title="Update monthly budget caps">{snapshot.budgets.filter(b=>b.month===snapshot.asOf.slice(0,7)).map(b=><LocalizedDiv key={b.id} className="border-b border-slate-100 py-3">
