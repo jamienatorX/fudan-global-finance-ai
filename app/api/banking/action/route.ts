@@ -3,7 +3,7 @@ import { NextRequest,NextResponse } from 'next/server';
 import { authenticatedBanking, securityFailure } from '../../../../src/server/secure-banking';
 
 export const runtime='nodejs';
-const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function POST(request:NextRequest){
   const headers={'Cache-Control':'private, no-store'};
