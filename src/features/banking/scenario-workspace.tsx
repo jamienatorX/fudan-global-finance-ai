@@ -4,6 +4,7 @@ import {securePost} from './security-client';
 import type {TableItem} from '../../server/secure-banking';
 import type {Proposal} from '../../agent/contracts';
 import {displayAmount} from '../../agent/contracts';
+import {ExecutionEvidence} from './execution-evidence';
 import {PeriodReportPanel} from './report-and-suitability';
 type Data=Record<string,TableItem[]>;
 type Props={accounts:TableItem[];cards:TableItem[];products:TableItem[];onRequest:(text:string)=>void;onPending:(pending:{id:string;payload:Proposal;expiresInSeconds:number})=>void;refresh:()=>Promise<void>};
@@ -29,6 +30,7 @@ export function ScenarioWorkspace({accounts,cards,onRequest,onPending,refresh}:P
  <div className="grid gap-5 lg:grid-cols-2"><section className={box}><h3 className="font-bold">Reserved funds</h3>{rows('bank_reservations').map(r=><p className="text-sm" key={String(r.id)}>{String(r.label)} · {displayAmount(String(r.remaining_minor),'CNY')} remaining</p>)}</section><section className={box}><h3 className="font-bold">Renewal inbox</h3><p className="text-xs">The background worker creates one inbox notice per recorded renewal within seven days. These are in-app notices, not SMS or merchant confirmations.</p>{rows('bank_renewal_notices').map(r=><p className="rounded-xl border p-3 text-sm" key={String(r.id)}>{String(r.message)}</p>)}</section></div>
  <section className={box}><h3 className="font-bold">Split-bill requests</h3>{rows('bank_split_requests').map(r=><p className="text-sm" key={String(r.id)}>{String(r.participant)} · {displayAmount(String(r.amount_minor),String(r.currency))} · {String(r.status)}</p>)}</section>
  <PeriodReportPanel/>
- <section className={box}><h3 className="font-bold">Approval and execution evidence</h3>{rows('bank_action_evidence').map(r=><button className={button+' mr-2 mt-2'} key={String(r.action_id)} disabled={busy} onClick={()=>void work(async()=>setEvidence(await securePost('/api/banking/scenarios',{operation:'evidence',actionId:r.action_id})))}>Inspect {String(r.action_id).slice(0,8)} · {String(r.decision)}</button>)}{evidence!==null&&<pre className="max-h-96 overflow-auto whitespace-pre-wrap break-all rounded-xl border p-3 text-xs">{JSON.stringify(evidence,null,2)}</pre>}</section>
+ <section className={box}><h3 className="font-bold">Approval and execution evidence</h3>{rows('bank_action_evidence').map(r=><button className={button+' mr-2 mt-2'} key={String(r.action_id)} disabled={busy} onClick={()=>void work(async()=>setEvidence(await securePost('/api/banking/scenarios',{operation:'evidence',actionId:r.action_id})))}>Inspect {String(r.action_id).slice(0,8)} · {String(r.decision)}</button>)}{evidence!==null&&<ExecutionEvidence value={evidence}/>}</section>
  </div>;
 }
+

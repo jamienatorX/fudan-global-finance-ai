@@ -1,4 +1,6 @@
-# Verification record — 27 October 2026
+# Verification record — historical runs
+
+**Latest status:** [29 October production acceptance and current limits](current-status-2026-10-29.md). The historical pending statements below describe their original dates; use the latest record for submission claims.
 
 ## Baseline review
 

@@ -1,5 +1,6 @@
 'use client';
-import { useState,type FormEvent } from 'react';
+import { useEffect,useRef,useState,type FormEvent } from 'react';
+import { registrationFeedback } from '../../src/components/auth/registration-feedback';
 import Link from 'next/link';
 import { createBrowserSupabaseClient } from '../../src/lib/supabase/browser';
 import { isSupabaseConfigured } from '../../src/lib/supabase/config';
@@ -16,15 +17,27 @@ export default function RegisterPage(){
  const [email,setEmail]=useState('');const [password,setPassword]=useState('');
  const [pending,setPending]=useState(false);const [message,setMessage]=useState('');
  const [failed,setFailed]=useState(false);
+ const emailInput=useRef<HTMLInputElement>(null);
+ const [cooldown,setCooldown]=useState(0);
+ useEffect(()=>{if(cooldown<=0)return;const timer=setTimeout(()=>setCooldown(n=>Math.max(0,n-1)),1000);return()=>clearTimeout(timer);},[cooldown]);
+ async function resend(){
+  if(pending||cooldown>0||!isSupabaseConfigured()||!captchaReady||!emailInput.current?.reportValidity())return;
+  setPending(true);setMessage('');setFailed(false);
+  try{
+   const {error}=await createBrowserSupabaseClient().auth.resend({type:'signup',email,options:{captchaToken,emailRedirectTo:window.location.origin+'/auth/callback?next=/security'}});
+   setFailed(Boolean(error));setMessage(registrationFeedback(error));setCooldown(60);
+  }catch{setFailed(true);setMessage('The email request could not be completed. Check your connection and try again later.');}
+  finally{setPending(false);setCaptchaToken('');setCaptchaAttempt(n=>n+1);}
+ }
  async function submit(e:FormEvent<HTMLFormElement>){
-  e.preventDefault();if(pending||!isSupabaseConfigured()||!captchaReady)return;
+  e.preventDefault();if(pending||cooldown>0||!isSupabaseConfigured()||!captchaReady)return;
   setPending(true);setMessage('');setFailed(false);
   try{
    const client=createBrowserSupabaseClient();
    const {error}=await client.auth.signUp({email,password,options:{captchaToken,emailRedirectTo:window.location.origin+'/auth/callback?next=/security'}});
    setFailed(Boolean(error));
-   setMessage(error?'Unable to create account. Check your inputs and try again.':
-    'Account request received. Check your email for a confirmation link, then sign in. ');
+   setMessage(registrationFeedback(error));
+   if(!error||error.status===429)setCooldown(60);
   }catch{setFailed(true);setMessage('Registration could not be completed. Please try again.');}finally{setPending(false);setCaptchaToken('');setCaptchaAttempt(n=>n+1)}
  }
  return <AuthShell>
@@ -33,10 +46,13 @@ export default function RegisterPage(){
   <p className="auth-intro">Create your account and explore a clearer way to manage student life.</p>
   {!isSupabaseConfigured() && <p className="auth-notice">Account registration is currently unavailable. Please try again later.</p>}
   <form onSubmit={submit} className="auth-form" aria-label="Create an account" aria-busy={pending}>
-   <div className="auth-field"><label htmlFor="email">Email</label><div className="auth-input-wrap"><Mail className="auth-input-icon" size={18} aria-hidden /><input id="email" name="email" type="email" required autoComplete="email" placeholder="you@example.com" className="auth-input" disabled={pending} value={email} onChange={e=>setEmail(e.target.value)}/></div></div>
+   <div className="auth-field"><label htmlFor="email">Email</label><div className="auth-input-wrap"><Mail className="auth-input-icon" size={18} aria-hidden /><input ref={emailInput} id="email" name="email" type="email" required autoComplete="email" placeholder="you@example.com" className="auth-input" disabled={pending} value={email} onChange={e=>setEmail(e.target.value)}/></div></div>
    <div className="auth-field"><label htmlFor="password">Password</label><PasswordField id="password" name="password" required minLength={12} autoComplete="new-password" aria-describedby="password-help" placeholder="Create a password" disabled={pending} value={password} onChange={e=>setPassword(e.target.value)}/><p id="password-help" className="auth-field-help">Use at least 12 characters.</p></div>
    <Captcha key={captchaAttempt} onToken={setCaptchaToken}/>
-   <button type="submit" className="auth-submit" disabled={pending||!isSupabaseConfigured()||!captchaReady}>{pending?<><LoaderCircle className="auth-spinner" size={18} aria-hidden />Submitting…</>:<>Create account<ArrowRight size={18} aria-hidden /></>}</button>
+   <button type="submit" className="auth-submit" disabled={pending||cooldown>0||!isSupabaseConfigured()||!captchaReady}>{pending?<><LoaderCircle className="auth-spinner" size={18} aria-hidden />Submitting…</>:<>Create account<ArrowRight size={18} aria-hidden /></>}</button>
+   <button type="button" className="auth-submit" onClick={()=>void resend()} disabled={pending||cooldown>0||!isSupabaseConfigured()||!captchaReady}>Resend confirmation email</button>
+   <p className="auth-field-help">Already requested an account? Resend uses only your email address. Complete security verification first.</p>
+   {cooldown>0&&<p role="status" className="auth-field-help">Wait {cooldown} seconds before another request.</p>}
   </form>
   {message&&<p role={failed?'alert':'status'} className={`auth-feedback ${failed?'auth-feedback-error':'auth-feedback-success'}`}>{message}</p>}
   <p className="auth-switch">Already registered? <Link href="/login">Sign in</Link></p>
@@ -45,4 +61,5 @@ export default function RegisterPage(){
 
  </AuthShell>;
 }
+
 
