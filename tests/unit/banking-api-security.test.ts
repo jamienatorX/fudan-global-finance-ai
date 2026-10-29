@@ -11,6 +11,17 @@ function request(body:unknown,origin='https://bank.example'){
   return new NextRequest('https://bank.example/api/banking/action',{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify(body)});
 }
 describe('banking API security',()=>{
+  it.each([true,false])('passes a canonical action ID and decision %s to execution',async(approve)=>{
+    const actionId='f8c0e66d-d0b4-405a-b4a7-bf0593fd2b8f';
+    const response=await POST(request({operation:'execute',actionId,approve}));
+    expect(response.status).toBe(200);
+    expect(state.rpc).toHaveBeenCalledWith('sim_execute',{p_action_id:actionId,p_approve:approve});
+  });
+  it.each(['f8c0e66d-d0b4-405a-bf0593fd2b8f','not-an-id'])('rejects malformed action ID %s',async(actionId)=>{
+    expect((await POST(request({operation:'execute',actionId,approve:true}))).status).toBe(400);
+    expect(state.rpc).toHaveBeenCalledTimes(1);
+  });
+
   it('rejects cross-origin requests before accessing authentication or banking',async()=>{
     expect((await POST(request({operation:'initialize'},'https://evil.example'))).status).toBe(403);
     expect(state.auth).not.toHaveBeenCalled();
