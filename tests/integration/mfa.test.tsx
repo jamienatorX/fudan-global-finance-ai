@@ -7,7 +7,7 @@ vi.mock('next/navigation',()=>({useRouter:()=>router}));
 vi.mock('../../src/lib/supabase/browser',()=>({createBrowserSupabaseClient:()=>({auth:{
   getUser:async()=>({data:{user:{id:'user'}},error:null}),
   mfa:{listFactors:async()=>({data:{totp:state.verified?[{id:'verified',status:'verified'}]:[],all:[]},error:null}),
-    enroll:async()=>{state.enroll();return {data:{id:'new-factor',totp:{qr_code:'<svg/>',secret:'setup-secret'}},error:null};},
+    enroll:async()=>{state.enroll();return {data:{id:'new-factor',totp:{qr_code:'data:image/svg+xml;utf-8,<svg><path fill="#000"/></svg>',secret:'setup-secret'}},error:null};},
     unenroll:async()=>({error:null}),
     challengeAndVerify:async(value:unknown)=>{state.verify(value);return {error:state.fail?new Error('provider secret'):null};}},
   signOut:async()=>({error:null}),
@@ -18,6 +18,9 @@ describe('authenticator checkpoint',()=>{
     render(<SecurityPage/>);
     fireEvent.click(await screen.findByRole('button',{name:'Set up authenticator'}));
     expect(await screen.findByAltText('Authenticator setup QR code')).toBeInTheDocument();
+    const qr=screen.getByAltText('Authenticator setup QR code');
+    expect(qr.getAttribute('src')).toBe('data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg><path fill="#000"/></svg>'));
+    expect(qr).toHaveStyle({backgroundColor:'rgb(255, 255, 255)',padding:'24px'});
     expect(state.push).not.toHaveBeenCalled();
     fireEvent.change(screen.getByLabelText('Authenticator code'),{target:{value:'123456'}});
     fireEvent.click(screen.getByRole('button',{name:'Verify and continue'}));
@@ -33,3 +36,5 @@ describe('authenticator checkpoint',()=>{
     expect(state.enroll).not.toHaveBeenCalled();
   });
 });
+
+
